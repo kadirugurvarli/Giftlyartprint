@@ -31,7 +31,7 @@ export default function Home(){
   const [edit,setEdit]=useState<Item|null>(null);
   const [prompt,setPrompt]=useState("");
   const [publish,setPublish]=useState<Item|null>(null);
-  const [schedule,setSchedule]=useState<Item|null>(null);
+  const [schedule,setSchedule]=useState<Item|null>(null);\n  const [metricoolMessage,setMetricoolMessage]=useState("");
   const [loading,setLoading]=useState(true);
   const [syncing,setSyncing]=useState(false);
   const [source,setSource]=useState("Loading...");
@@ -96,7 +96,7 @@ export default function Home(){
           <div>
             <h1>Content Dashboard</h1>
             <div className="sub">Review, edit, schedule and publish from one screen.</div>
-            <div className="sub">Source: <b>{source}</b>{message ? " · "+message : ""}</div>
+            <div className="sub">Source: <b>{source}</b>{message ? " · "+message : ""}</div>\n            {metricoolMessage&&<div className="sub">{metricoolMessage}</div>}
           </div>
           <div className="row">
             <button className="secondary" disabled={syncing} onClick={runSync}>{syncing?"Syncing...":"Sync from Drive"}</button>
@@ -181,7 +181,7 @@ export default function Home(){
         <div className="hint">Platforms: {schedule.platforms.join(" + ")}</div>
         <div className="row end">
           <button className="secondary" onClick={()=>setSchedule(null)}>Cancel</button>
-          <button className="primary" onClick={()=>{update(schedule.id,{status:"Scheduled"});setSchedule(null)}}>Confirm schedule</button>
+          <button className="primary" onClick={async()=>{\n            const input=document.getElementById("when") as HTMLInputElement|null;\n            const when=input?.value;\n            if(!when){setMetricoolMessage("Choose a date and time first.");return;}\n            const map:{[key:string]:string}={Instagram:"instagram",Facebook:"facebook","Google Business":"gmb"};\n            const res=await fetch("/api/metricool/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:schedule.caption,providers:schedule.platforms.map(p=>map[p]),publicationDate:when})});\n            const data=await res.json();\n            setMetricoolMessage(data.message||"Metricool response received.");\n            if(res.ok) update(schedule.id,{status:"Scheduled"});\n            setSchedule(null);\n          }}>Confirm schedule</button>
         </div>
       </div></div>}
 
@@ -195,7 +195,7 @@ export default function Home(){
         </div>
         <div className="row end">
           <button className="secondary" onClick={()=>setPublish(null)}>Cancel</button>
-          <button className="primary" onClick={()=>{update(publish.id,{status:"Published"});setPublish(null)}}>Confirm & Publish</button>
+          <button className="primary" onClick={async()=>{\n            const now=new Date(Date.now()+2*60*1000);\n            const local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,19);\n            const map:{[key:string]:string}={Instagram:"instagram",Facebook:"facebook","Google Business":"gmb"};\n            const res=await fetch("/api/metricool/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:publish.caption,providers:publish.platforms.map(p=>map[p]),publicationDate:local})});\n            const data=await res.json();\n            setMetricoolMessage(res.ok?"Queued in Metricool for immediate publishing.":(data.message||"Metricool connection required."));\n            if(res.ok) update(publish.id,{status:"Scheduled"});\n            setPublish(null);\n          }}>Confirm & Publish</button>
         </div>
       </div></div>}
     </main>
