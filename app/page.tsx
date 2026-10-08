@@ -100,6 +100,18 @@ type CampaignOutput = MediaEntry & {
   height: number;
 };
 
+type CampaignQueueStatus = "Approved" | "Scheduling" | "Scheduled" | "Publishing" | "Published";
+
+type CampaignQueueItem = {
+  id: string;
+  campaign: CampaignDraft;
+  outputs: CampaignOutput[];
+  status: CampaignQueueStatus;
+  scheduleAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 const MEDIA_BY_ID: Record<string, string[]> = {
   "GAP-0003": [
     "https://drive.google.com/thumbnail?id=14wK2A5acg9iBC76Uuze3psCKxv79euen&sz=w1400",
@@ -154,6 +166,7 @@ export default function Home() {
   const [approvalStatus, setApprovalStatus] = useState("");
   const [approvalScheduleAt, setApprovalScheduleAt] = useState("");
   const [hasSavedApproval, setHasSavedApproval] = useState(false);
+  const [campaignQueue, setCampaignQueue] = useState<CampaignQueueItem[]>([]);
 
   const loadContent = async () => {
     setLoading(true);
@@ -188,6 +201,9 @@ export default function Home() {
     try {
       const saved = localStorage.getItem("giftly-latest-approval-v1");
       setHasSavedApproval(Boolean(saved));
+
+      const queueRaw = localStorage.getItem("giftly-campaign-queue-v1");
+      setCampaignQueue(queueRaw ? JSON.parse(queueRaw) : []);
     } catch {
       setHasSavedApproval(false);
     }
@@ -251,6 +267,55 @@ export default function Home() {
 
   const counts = (status: Status) =>
     items.filter((x) => x.status === status).length;
+
+  const saveCampaignQueue = (next: CampaignQueueItem[]) => {
+    setCampaignQueue(next);
+    try {
+      localStorage.setItem("giftly-campaign-queue-v1", JSON.stringify(next));
+    } catch {
+      // Queue remains available for the current session.
+    }
+  };
+
+  const upsertCurrentCampaign = (status: CampaignQueueStatus) => {
+    if (!approvalCampaign || approvalOutputs.length === 0) return;
+
+    const existing = campaignQueue.find((x) =>
+      x.outputs.some((o) => approvalOutputs.some((a) => a.fileId === o.fileId))
+    );
+    const now = new Date().toISOString();
+
+    if (existing) {
+      saveCampaignQueue(
+        campaignQueue.map((x) =>
+          x.id === existing.id
+            ? { ...x, campaign: approvalCampaign, outputs: approvalOutputs, status, scheduleAt: approvalScheduleAt || x.scheduleAt, updatedAt: now }
+            : x
+        )
+      );
+      return;
+    }
+
+    saveCampaignQueue([
+      {
+        id: "CMP-" + Date.now(),
+        campaign: approvalCampaign,
+        outputs: approvalOutputs,
+        status,
+        scheduleAt: approvalScheduleAt || undefined,
+        createdAt: now,
+        updatedAt: now,
+      },
+      ...campaignQueue,
+    ]);
+  };
+
+  const updateCampaignQueueStatus = (id: string, status: CampaignQueueStatus) => {
+    const now = new Date().toISOString();
+    saveCampaignQueue(
+      campaignQueue.map((x) => (x.id === id ? { ...x, status, updatedAt: now } : x))
+    );
+  };
 
   const copyPublishBrief = async (item: Item) => {
     const brief = [
@@ -387,6 +452,54 @@ export default function Home() {
                 </button>
               </div>
             </div>
+
+            {campaignQueue.length > 0 && (
+              <section className="campaignQueue">
+                <div className="queueHeader">
+                  <div>
+                    <h2>Campaign Queue</h2>
+                    <div className="sub">Approval and Metricool handoff status.</div>
+                  </div>
+                </div>
+
+                <div className="queueGrid">
+                  {campaignQueue.slice(0,8).map((q)=> {
+                    const feed=q.outputs.find((x)=>x.preset==="feed_4x5") || q.outputs[0];
+                    return (
+                      <article className="queueCard" key={q.id}>
+                        {feed && <img src={feed.url} alt={q.campaign.headline} />}
+                        <div className="queueCardBody">
+                          <b>{q.campaign.headline}</b>
+                          <span>{q.status}</span>
+                          {q.scheduleAt && <small>{q.scheduleAt} · Europe/London</small>}
+                          <div className="mediaInlineActions">
+                            {q.status==="Scheduling" && (
+                              <button onClick={()=>updateCampaignQueueStatus(q.id,"Scheduled")}>Mark Scheduled</button>
+                            )}
+                            {q.status==="Publishing" && (
+                              <button onClick={()=>updateCampaignQueueStatus(q.id,"Published")}>Mark Published</button>
+                            )}
+                            {q.status==="Scheduled" && (
+                              <button onClick={()=>updateCampaignQueueStatus(q.id,"Published")}>Mark Published</button>
+                            )}
+                            <button onClick={()=>{
+                              setApprovalCampaign(q.campaign);
+                              setApprovalOutputs(q.outputs);
+                              setApprovalScheduleAt(q.scheduleAt || "");
+                              setApprovalStatus("");
+                              setApprovalOpen(true);
+                            }}>Review</button>
+                            <button onClick={()=>{
+                              saveCampaignQueue(campaignQueue.filter((x)=>x.id!==q.id));
+                            }}>Remove</button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             <div className="stats">
               <div className="stat">
@@ -801,7 +914,13 @@ export default function Home() {
                   setApprovalStatus("Regenerate from the source image if you want a different concept.");
                 }}>Regenerate later</button>
 
+                <button className="secondary" onClick={()=>{
+                  upsertCurrentCampaign("Approved");
+                  setApprovalStatus("Campaign approved and saved to Campaign Queue.");
+                }}>Approve Only</button>
+
                 <button className="secondary" disabled={!approvalScheduleAt} onClick={async()=>{
+                  upsertCurrentCampaign("Scheduling");
                   const feed=approvalOutputs.find((x)=>x.preset==="feed_4x5");
                   const story=approvalOutputs.find((x)=>x.preset==="story_9x16");
                   const google=approvalOutputs.find((x)=>x.preset==="google_business_1x1");
@@ -831,6 +950,7 @@ export default function Home() {
                 }}>Approve & Schedule</button>
 
                 <button className="primary" onClick={async()=>{
+                  upsertCurrentCampaign("Publishing");
                   const feed=approvalOutputs.find((x)=>x.preset==="feed_4x5");
                   const story=approvalOutputs.find((x)=>x.preset==="story_9x16");
                   const google=approvalOutputs.find((x)=>x.preset==="google_business_1x1");
@@ -893,7 +1013,7 @@ export default function Home() {
                 <label>Output package</label>
                 <div className="platformPack">
                   <b>Standard Platform Pack</b>
-                  <span>Feed 4:5 · Story/Reel 9:16 · Google Business 1:1</span>
+                  <span>Feed 4:5 · Story 9:16 · Google Business 1:1</span>
                 </div>
               </div>
 
