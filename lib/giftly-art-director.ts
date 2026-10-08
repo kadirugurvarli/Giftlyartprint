@@ -37,13 +37,15 @@ function outputText(data:any){
 
 export async function reviewFinalAsset(args:{
   apiKey:string;
-  image:Buffer;
+  sourceImage:Buffer;
+  finalImage:Buffer;
   preset:PlatformPreset;
   category:string;
   headline:string;
   cta:string;
 }):Promise<ArtDirectorReview>{
-  const imageUrl=`data:image/png;base64,${args.image.toString("base64")}`;
+  const sourceImageUrl=`data:image/png;base64,${args.sourceImage.toString("base64")}`;
+  const finalImageUrl=`data:image/png;base64,${args.finalImage.toString("base64")}`;
 
   const response=await fetch("https://api.openai.com/v1/responses",{
     method:"POST",
@@ -65,7 +67,8 @@ export async function reviewFinalAsset(args:{
               `Intended headline: ${args.headline}`,
               `Intended CTA: ${args.cta}`,
               `Brand website: ${BRAND.website}`,
-              "Judge composition, subject fidelity, crop safety, whitespace, hierarchy, logo integrity, typography, readability, platform safe areas, realism, polish and brand fit.",
+              "Image 1 is the protected source. Image 2 is the final produced asset.",
+              "Compare them carefully. Judge composition, source/product fidelity, crop safety, whitespace, hierarchy, logo integrity, typography, readability, platform safe areas, realism, polish and brand fit.",
               "Hard-fail if any of the following is visible:",
               ...HARD_FAIL_RULES.map((x)=>"- "+x),
               "PASS requires score >= 85, no hard fail, readable copy, professional balance and no invented product/object.",
@@ -75,7 +78,12 @@ export async function reviewFinalAsset(args:{
           },
           {
             type:"input_image",
-            image_url:imageUrl,
+            image_url:sourceImageUrl,
+            detail:"high"
+          },
+          {
+            type:"input_image",
+            image_url:finalImageUrl,
             detail:"high"
           }
         ]
