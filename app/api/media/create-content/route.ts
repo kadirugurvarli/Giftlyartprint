@@ -39,28 +39,6 @@ function escapeXml(value:string) {
     .replace(/'/g,"&apos;");
 }
 
-async function makeLightLogo(source:Buffer) {
-  const { data, info } = await sharp(source)
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject:true });
-
-  for (let i=0; i<data.length; i+=4) {
-    const r=data[i], g=data[i+1], b=data[i+2];
-    const neutral=Math.abs(r-g)<12 && Math.abs(r-b)<12;
-    const greyBg=neutral && r>45 && r<125;
-    const whiteLogo=r>210 && g>210 && b>210;
-
-    if (greyBg) {
-      data[i]=255; data[i+1]=255; data[i+2]=255;
-    } else if (whiteLogo) {
-      data[i]=24; data[i+1]=24; data[i+2]=24;
-    }
-  }
-
-  return sharp(data,{raw:info}).png().toBuffer();
-}
-
 function textOverlaySvg(
   width:number,
   height:number,
@@ -193,7 +171,6 @@ export async function POST(req: NextRequest) {
 
     const source = await fetchDriveImage(feedUrl, feedToken, fileId);
     const logoSource = await fetchDriveImage(feedUrl, feedToken, BRAND_LOGO_FILE_ID);
-    const lightLogo = await makeLightLogo(logoSource.buffer);
 
     const sourceBlob = new Blob([source.buffer], { type: source.mimeType || "image/jpeg" });
 
@@ -301,7 +278,7 @@ export async function POST(req: NextRequest) {
       const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
       const darkBackground=brightness<145;
 
-      const logoBase=darkBackground ? logoSource.buffer : lightLogo;
+      const logoBase=logoSource.buffer;
       const logoWidth=Math.round(variant.width*0.28);
       const logo=await sharp(logoBase)
         .resize({width:logoWidth,withoutEnlargement:true})
@@ -325,6 +302,11 @@ export async function POST(req: NextRequest) {
             ),
             top:0,
             left:0
+          },
+          {
+            input:Buffer.from(`<svg width="${logoWidth+Math.round(margin*0.7)}" height="${logoHeight+Math.round(margin*0.5)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
+            left:variant.width-logoWidth-margin-Math.round(margin*0.35),
+            top:variant.height-logoHeight-margin-Math.round(margin*0.25)
           },
           {
             input:logo,
