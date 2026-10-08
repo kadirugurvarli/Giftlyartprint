@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import sharp from "sharp";
-import { CATEGORY_RULES, PLATFORM_PRESETS, normaliseCategory } from "@/lib/giftly-content-policy";
+import { CATEGORY_RULES, PLATFORM_PRESETS, normaliseCategory, type PlatformPreset } from "@/lib/giftly-content-policy";
 import { reviewFinalAsset } from "@/lib/giftly-art-director";
 
 export const runtime = "nodejs";
@@ -107,43 +107,139 @@ function textOverlaySvg(
 
 async function buildOriginalSafeBase(
   source:Buffer,
-  width:number,
-  height:number
+  preset:PlatformPreset,
+  strict=false
 ) {
-  const topSpace=Math.round(height*0.24);
-  const sideMargin=Math.round(width*0.055);
-  const bottomMargin=Math.round(height*0.055);
-  const usableHeight=height-topSpace-bottomMargin;
-  const usableWidth=width-sideMargin*2;
+  const width=preset.width;
+  const height=preset.height;
+
+  const topSafe=Math.round(
+    height * Math.max(preset.topSafeRatio, strict ? 0.20 : 0.18)
+  );
+  const bottomSafe=Math.round(
+    height * Math.max(preset.bottomSafeRatio, strict ? 0.12 : 0.09)
+  );
+  const sideMargin=Math.round(
+    width * (preset.outerMarginRatio + (strict ? 0.02 : 0))
+  );
+
+  const maxSubjectWidth=Math.round(
+    width * Math.max(0.68, preset.subjectMaxWidth - (strict ? 0.08 : 0.03))
+  );
+  const maxSubjectHeight=Math.round(
+    height * Math.max(0.50, preset.subjectMaxHeight - (strict ? 0.08 : 0.03))
+  );
+
+  const background=await sharp(source)
+    .rotate()
+    .resize(width,height,{fit:"cover",position:"centre"})
+    .blur(strict ? 40 : 30)
+    .modulate({brightness:0.62,saturation:0.72})
+    .png()
+    .toBuffer();
 
   const foreground=await sharp(source)
     .rotate()
-    .resize(usableWidth,usableHeight,{
+    .resize(maxSubjectWidth,maxSubjectHeight,{
       fit:"contain",
-      background:{r:244,g:242,b:237,alpha:1}
+      withoutEnlargement:false,
+      background:{r:247,g:245,b:240,alpha:1}
     })
     .png()
     .toBuffer();
 
   const meta=await sharp(foreground).metadata();
-  const fgW=meta.width || usableWidth;
-  const fgH=meta.height || usableHeight;
+  const fgW=meta.width || maxSubjectWidth;
+  const fgH=meta.height || maxSubjectHeight;
 
-  return sharp({
-    create:{
-      width,
-      height,
-      channels:4,
-      background:{r:244,g:242,b:237,alpha:1}
-    }
-  })
+  const availableTop=topSafe;
+  const availableBottom=height-bottomSafe;
+  const availableHeight=Math.max(1,availableBottom-availableTop);
+
+  const left=Math.max(sideMargin,Math.round((width-fgW)/2));
+  const top=availableTop+Math.max(0,Math.round((availableHeight-fgH)/2));
+
+  return sharp(background)
     .composite([{
       input:foreground,
-      left:Math.max(0,Math.round((width-fgW)/2)),
-      top:topSpace+Math.max(0,Math.round((usableHeight-fgH)/2))
+      left:Math.min(left,Math.max(sideMargin,width-fgW-sideMargin)),
+      top:Math.min(top,Math.max(availableTop,availableBottom-fgH))
     }])
     .png()
     .toBuffer();
+}
+
+async function applyBranding(
+  generated:Buffer,
+  variant:{key:string;width:number;height:number},
+  logoSource:Buffer,
+  campaign:{headline:string;cta:string},
+  strict=false
+) {
+  const base=sharp(generated).resize(variant.width,variant.height,{
+    fit:"cover",
+    position:"centre"
+  });
+
+  const cornerW=Math.max(1,Math.round(variant.width*0.42));
+  const cornerH=Math.max(1,Math.round(variant.height*0.18));
+  const stats=await base.clone().extract({
+    left:variant.width-cornerW,
+    top:variant.height-cornerH,
+    width:cornerW,
+    height:cornerH
+  }).stats();
+
+  const brightness=(
+    stats.channels[0].mean+
+    stats.channels[1].mean+
+    stats.channels[2].mean
+  )/3;
+  const darkBackground=brightness<145;
+
+  const defaultScale=
+    variant.key==="story_9x16" ? 0.22 :
+    variant.key==="google_business_1x1" ? 0.19 :
+    0.20;
+  const logoScale=Math.max(0.15,defaultScale-(strict?0.025:0));
+  const logoWidth=Math.round(variant.width*logoScale);
+
+  const logo=await sharp(logoSource)
+    .resize({width:logoWidth,withoutEnlargement:true})
+    .png()
+    .toBuffer();
+
+  const logoMeta=await sharp(logo).metadata();
+  const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
+  const margin=Math.round(
+    variant.width * (variant.key==="story_9x16" ? 0.055 : 0.045)
+  );
+  const backingPad=Math.round(variant.width*0.012);
+
+  return base.composite([
+    {
+      input:textOverlaySvg(
+        variant.width,
+        variant.height,
+        campaign.headline,
+        campaign.cta,
+        "giftlyartprint.co.uk",
+        darkBackground
+      ),
+      top:0,
+      left:0
+    },
+    {
+      input:Buffer.from(`<svg width="${logoWidth+backingPad*2}" height="${logoHeight+backingPad*2}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
+      left:variant.width-logoWidth-margin-backingPad,
+      top:variant.height-logoHeight-margin-backingPad
+    },
+    {
+      input:logo,
+      left:variant.width-logoWidth-margin,
+      top:variant.height-logoHeight-margin
+    }
+  ]).png().toBuffer();
 }
 
 export async function POST(req: NextRequest) {
@@ -277,6 +373,9 @@ export async function POST(req: NextRequest) {
 
     const generatedVariants = await Promise.all(
       variants.map(async (variant) => {
+        const preset=PLATFORM_PRESETS.find((x)=>x.key===variant.key);
+        if(!preset) throw new Error("Unknown platform preset: "+variant.key);
+
         const imageForm = new FormData();
         imageForm.append("model", "gpt-image-2.5-sunburst");
         imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
@@ -318,8 +417,8 @@ export async function POST(req: NextRequest) {
           usedOriginalSafeFallback=true;
           generated=await buildOriginalSafeBase(
             source.buffer,
-            variant.width,
-            variant.height
+            preset,
+            false
           );
         } else {
           try {
@@ -348,82 +447,22 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const base = originalSafe
-          ? sharp(generated)
-          : sharp(generated).resize(variant.width, variant.height, {
-              fit:"cover",
-              position:"centre"
-            });
-
-        const cornerW=Math.max(1,Math.round(variant.width*0.42));
-        const cornerH=Math.max(1,Math.round(variant.height*0.18));
-        const stats=await base
-          .clone()
-          .extract({
-            left:variant.width-cornerW,
-            top:variant.height-cornerH,
-            width:cornerW,
-            height:cornerH
-          })
-          .stats();
-
-        const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
-        const darkBackground=brightness<145;
-
-        const logoScale =
-          variant.key==="story_9x16" ? 0.34 :
-          variant.key==="google_business_1x1" ? 0.24 :
-          0.28;
-        const logoWidth=Math.round(variant.width*logoScale);
-        const logo=await sharp(logoSource.buffer)
-          .resize({width:logoWidth,withoutEnlargement:true})
-          .png()
-          .toBuffer();
-
-        const logoMeta=await sharp(logo).metadata();
-        const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
-        const margin=Math.round(
-          variant.width * (variant.key==="story_9x16" ? 0.055 : 0.045)
+        let processed=await applyBranding(
+          generated,
+          variant,
+          logoSource.buffer,
+          campaign,
+          false
         );
 
-        const processed = await base
-          .composite([
-            {
-              input:textOverlaySvg(
-                variant.width,
-                variant.height,
-                campaign.headline,
-                campaign.cta,
-                "giftlyartprint.co.uk",
-                darkBackground
-              ),
-              top:0,
-              left:0
-            },
-            {
-              input:Buffer.from(`<svg width="${logoWidth+Math.round(margin*0.7)}" height="${logoHeight+Math.round(margin*0.5)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
-              left:variant.width-logoWidth-margin-Math.round(margin*0.35),
-              top:variant.height-logoHeight-margin-Math.round(margin*0.25)
-            },
-            {
-              input:logo,
-              left:variant.width-logoWidth-margin,
-              top:variant.height-logoHeight-margin
-            }
-          ])
-          .png()
-          .toBuffer();
-
-        const preset = PLATFORM_PRESETS.find((x)=>x.key===variant.key);
-        if (!preset) {
-          throw new Error("Unknown platform preset: " + variant.key);
-        }
-
+        const protectedSource=await sharp(source.buffer).rotate().png().toBuffer();
         let qa;
+        let revisionCount=0;
+
         try {
           qa = await reviewFinalAsset({
             apiKey,
-            sourceImage: await sharp(source.buffer).rotate().png().toBuffer(),
+            sourceImage: protectedSource,
             finalImage: processed,
             preset,
             category,
@@ -437,16 +476,49 @@ export async function POST(req: NextRequest) {
             hardFail: false,
             issues: ["Art Director review could not be completed."],
             strengths: [],
-            revisionInstruction: "Human review required before publishing.",
+            revisionInstruction: "Run strict source-first revision.",
           };
         }
 
-        return { variant, processed, qa };
+        if (qa.decision!=="PASS" || qa.hardFail || qa.score<85) {
+          revisionCount=1;
+          const safeBase=await buildOriginalSafeBase(source.buffer,preset,true);
+          processed=await applyBranding(
+            safeBase,
+            variant,
+            logoSource.buffer,
+            campaign,
+            true
+          );
+
+          try {
+            qa=await reviewFinalAsset({
+              apiKey,
+              sourceImage:protectedSource,
+              finalImage:processed,
+              preset,
+              category,
+              headline:campaign.headline,
+              cta:campaign.cta,
+            });
+          } catch {
+            qa={
+              decision:"REJECT" as const,
+              score:0,
+              hardFail:true,
+              issues:["Art Director could not verify the revised asset."],
+              strengths:[],
+              revisionInstruction:"Do not publish automatically."
+            };
+          }
+        }
+
+        return { variant, processed, qa, revisionCount };
       })
     );
 
     const rejected = generatedVariants.filter(
-      ({qa}) => qa.hardFail || qa.decision === "REJECT" || qa.score < 70
+      ({qa}) => qa.hardFail || qa.decision !== "PASS" || qa.score < 85
     );
 
     if (rejected.length) {
@@ -462,7 +534,7 @@ export async function POST(req: NextRequest) {
     }
 
     const uploaded = await Promise.all(
-      generatedVariants.map(async ({variant,processed,qa}) => {
+      generatedVariants.map(async ({variant,processed,qa,revisionCount}) => {
         const uploadResponse = await fetch(uploadUrl, {
           method:"POST",
           headers:{ "Content-Type":"text/plain;charset=utf-8" },
@@ -487,7 +559,8 @@ export async function POST(req: NextRequest) {
           preset:variant.key,
           width:variant.width,
           height:variant.height,
-          qa
+          qa,
+          revisionCount
         };
       })
     );
