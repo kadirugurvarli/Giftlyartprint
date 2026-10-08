@@ -101,6 +101,10 @@ type CampaignOutput = MediaEntry & {
   revisionCount?: number;
   needsReview?: boolean;
   criticalReview?: boolean;
+  qaStatus?: "PASS" | "WARN";
+  defectCodes?: string[];
+  productMode?: string;
+  backgroundAttempts?: number;
   qa?: {
     decision: "PASS" | "REVISE" | "REJECT";
     score: number;
@@ -951,7 +955,23 @@ export default function Home() {
                     <img src={output.url} alt={output.preset} />
                     <b>{output.preset.replaceAll("_"," ")}</b>
                     <span>{output.width}×{output.height}</span>
-                    {output.qa && (
+                    {output.qaStatus && (
+                      <>
+                        <div className={"qaBadge " + (output.qaStatus==="PASS" ? "qaPASS" : "qaREVISE")}>
+                          V2 QA: {output.qaStatus}
+                        </div>
+                        {output.productMode && <small>Product: {output.productMode}</small>}
+                        {output.defectCodes?.length ? (
+                          <details className="qaDetails">
+                            <summary>Review warnings</summary>
+                            <ul>
+                              {output.defectCodes.map((issue,i)=><li key={i}>{issue}</li>)}
+                            </ul>
+                          </details>
+                        ) : null}
+                      </>
+                    )}
+                    {!output.qaStatus && output.qa && (
                       <>
                         <div className={"qaBadge qa" + output.qa.decision}>
                           {output.criticalReview ? "Critical Review" : (output.needsReview ? "Needs Review" : "Art Director")}
@@ -1159,7 +1179,7 @@ export default function Home() {
                       }
 
                       setContentStatus("Creating content visual...");
-                      const res=await fetch("/api/media/create-content",{
+                      const res=await fetch("/api/media/create-content-v2",{
                         method:"POST",
                         body:form
                       });
@@ -1197,7 +1217,7 @@ export default function Home() {
                     }
                   }}
                 >
-                  {creatingContent ? "Creating..." : "Create visual"}
+                  {creatingContent ? "Creating V2..." : "Create visual V2"}
                 </button>
               </div>
             </div>
