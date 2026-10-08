@@ -79,21 +79,23 @@ function textOverlaySvg(
 
   return Buffer.from(`
   <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="${pad}" y="${y}" width="${panelW}" height="${panelH}" rx="0" fill="${panel}"/>
-    <text x="${pad*1.35}" y="${y+headlineSize*1.35}"
+    <rect x="${pad}" y="${y}" width="${panelW}" height="${Math.round(panelH*0.58)}" fill="${panel}"/>
+    <text x="${pad*1.28}" y="${y+headlineSize*1.15}"
       font-family="DejaVu Sans, sans-serif"
       font-size="${headlineSize}" font-weight="700"
       fill="${fg}">${escapeXml(headline)}</text>
-    <rect x="${pad*1.35}" y="${y+panelH-Math.round(height*0.068)}"
-      width="${Math.round(width*0.28)}" height="${Math.round(height*0.047)}"
-      rx="0" fill="${ctaBg}"/>
-    <text x="${pad*1.35+Math.round(width*0.018)}"
-      y="${y+panelH-Math.round(height*0.037)}"
+
+    <rect x="${pad}" y="${y+Math.round(panelH*0.68)}"
+      width="${Math.round(width*0.24)}" height="${Math.round(height*0.043)}"
+      fill="${ctaBg}"/>
+    <text x="${pad+Math.round(width*0.016)}"
+      y="${y+Math.round(panelH*0.68)+Math.round(height*0.030)}"
       font-family="DejaVu Sans, sans-serif"
       font-size="${ctaSize}" font-weight="700" fill="${ctaFg}">
       ${escapeXml(cta)}
     </text>
-    <text x="${pad*1.35}" y="${y+panelH-Math.round(height*0.012)}"
+
+    <text x="${pad}" y="${y+Math.round(panelH*0.68)+Math.round(height*0.070)}"
       font-family="DejaVu Sans, sans-serif"
       font-size="${smallSize}" fill="${fg}">
       ${escapeXml(contact)}
