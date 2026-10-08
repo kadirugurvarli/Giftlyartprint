@@ -99,6 +99,8 @@ type CampaignOutput = MediaEntry & {
   width: number;
   height: number;
   revisionCount?: number;
+  needsReview?: boolean;
+  criticalReview?: boolean;
   qa?: {
     decision: "PASS" | "REVISE" | "REJECT";
     score: number;
@@ -952,7 +954,8 @@ export default function Home() {
                     {output.qa && (
                       <>
                         <div className={"qaBadge qa" + output.qa.decision}>
-                          Art Director: {output.qa.decision} · {output.qa.score}/100
+                          {output.criticalReview ? "Critical Review" : (output.needsReview ? "Needs Review" : "Art Director")}
+                          {" · "}{output.qa.decision} · {output.qa.score}/100
                         </div>
                         {output.revisionCount ? (
                           <small>Auto-revised {output.revisionCount}× before approval</small>
