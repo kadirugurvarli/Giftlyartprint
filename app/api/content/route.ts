@@ -48,10 +48,24 @@ export async function GET(req: NextRequest) {
     } catch {}
 
     const rawItems = Array.isArray(data) ? data : (data.items ?? []);
-    const items = rawItems.map((item: any) => ({
-      ...item,
-      media: Array.isArray(mediaByProject[item.id]) ? mediaByProject[item.id] : (item.media ?? []),
-    }));
+    const items = rawItems.map((item: any) => {
+      const rawMedia = Array.isArray(mediaByProject[item.id])
+        ? mediaByProject[item.id]
+        : (item.media ?? []);
+
+      const media = rawMedia
+        .map((entry: any) =>
+          typeof entry === "string"
+            ? entry
+            : entry?.url || entry?.thumbnailUrl || ""
+        )
+        .filter(Boolean);
+
+      return {
+        ...item,
+        media,
+      };
+    });
 
     return Response.json({
       configured: true,
