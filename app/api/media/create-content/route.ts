@@ -111,62 +111,34 @@ export async function POST(req: NextRequest) {
     const sourceBytes = Buffer.from(source.base64, "base64");
     const sourceBlob = new Blob([sourceBytes], { type: source.mimeType || "image/jpeg" });
 
-    const imageForm = new FormData();
-    imageForm.append("model", "gpt-image-2.5-sunburst");
-    imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
-
-    if (reference instanceof File && reference.size > 0) {
-      imageForm.append("image[]", reference, reference.name || "reference.jpg");
-    }
-
-    const size = "1024x1536";
-
-    const prompt = [
-      "Create a polished marketing/content visual for Giftly Art Print.",
-      "Image 1 is the primary source/product/customer project and must remain visually faithful.",
-      reference instanceof File && reference.size > 0
-        ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
-        : "",
-      "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
-      "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
-      "Create a finished, share-ready promotional visual with polished headline/supporting copy/CTA when appropriate. Keep all essential subject matter and all text inside a central safe area so the same composition can be adapted cleanly to 4:5, 9:16 and 1:1 platform outputs.",
-      "Campaign concept:",
-      campaign.concept,
-      "Use these exact marketing words where text is appropriate:",
-      "Headline: " + campaign.headline,
-      "Supporting line: " + campaign.supporting,
-      "CTA: " + campaign.cta,
-      "User direction (optional):",
-      description || "No extra direction — use the campaign concept above."
-    ].filter(Boolean).join("\n");
-
-    imageForm.append("prompt", prompt);
-    imageForm.append("quality", "medium");
-    imageForm.append("size", size);
-
-    const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
-      method:"POST",
-      headers:{ Authorization:`Bearer ${apiKey}` },
-      body:imageForm
-    });
-
-    const aiData = await aiResponse.json();
-
-    if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
-      return Response.json({
-        ok:false,
-        message:aiData?.error?.message || "Content image generation failed."
-      }, { status:502 });
-    }
-
-    const master = Buffer.from(aiData.data[0].b64_json, "base64");
     const stamp = new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
     const baseName = stripExt(source.fileName || "image") + "_content_" + stamp;
 
     const variants = [
-      { key:"feed_4x5", width:1080, height:1350, suffix:"feed_4x5" },
-      { key:"story_reel_9x16", width:1080, height:1920, suffix:"story_reel_9x16" },
-      { key:"google_business_1x1", width:720, height:720, suffix:"google_business_1x1" }
+      {
+        key:"feed_4x5",
+        width:1080,
+        height:1350,
+        suffix:"feed_4x5",
+        apiSize:"1024x1536",
+        layout:"Design specifically for a 4:5 social feed post. Keep headline, supporting copy, CTA and the main subject comfortably inside the 4:5 safe area with balanced top and bottom breathing room."
+      },
+      {
+        key:"story_reel_9x16",
+        width:1080,
+        height:1920,
+        suffix:"story_reel_9x16",
+        apiSize:"1024x1536",
+        layout:"Design specifically for a vertical 9:16 Story/Reel. Use a taller composition, keep all important text away from the extreme top and bottom UI zones, and make the subject visually strong in the centre."
+      },
+      {
+        key:"google_business_1x1",
+        width:720,
+        height:720,
+        suffix:"google_business_1x1",
+        apiSize:"1024x1024",
+        layout:"Design specifically for a square 1:1 Google Business post. Use a compact square composition with readable text, a prominent subject and a clear CTA without crowding."
+      }
     ];
 
     const uploadUrl = new URL(feedUrl);
@@ -175,7 +147,56 @@ export async function POST(req: NextRequest) {
     const outputs:any[] = [];
 
     for (const variant of variants) {
-      const processed = await sharp(master)
+      const imageForm = new FormData();
+      imageForm.append("model", "gpt-image-2.5-sunburst");
+      imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
+
+      if (reference instanceof File && reference.size > 0) {
+        imageForm.append("image[]", reference, reference.name || "reference.jpg");
+      }
+
+      const prompt = [
+        "Create a polished marketing/content visual for Giftly Art Print.",
+        "Image 1 is the primary source/product/customer project and must remain visually faithful.",
+        reference instanceof File && reference.size > 0
+          ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
+          : "",
+        "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
+        "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
+        variant.layout,
+        "Create a finished, share-ready promotional visual. Text must be legible and visually integrated into the design, not added as an afterthought.",
+        "Campaign concept:",
+        campaign.concept,
+        "Use these exact marketing words where text is appropriate:",
+        "Headline: " + campaign.headline,
+        "Supporting line: " + campaign.supporting,
+        "CTA: " + campaign.cta,
+        "User direction (optional):",
+        description || "No extra direction — use the campaign concept above."
+      ].filter(Boolean).join("\n");
+
+      imageForm.append("prompt", prompt);
+      imageForm.append("quality", "medium");
+      imageForm.append("size", variant.apiSize);
+
+      const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
+        method:"POST",
+        headers:{ Authorization:`Bearer ${apiKey}` },
+        body:imageForm
+      });
+
+      const aiData = await aiResponse.json();
+
+      if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
+        return Response.json({
+          ok:false,
+          message:aiData?.error?.message || `Content image generation failed for ${variant.key}.`
+        }, { status:502 });
+      }
+
+      const generated = Buffer.from(aiData.data[0].b64_json, "base64");
+
+      const processed = await sharp(generated)
         .resize(variant.width, variant.height, {
           fit:"cover",
           position:"centre"
