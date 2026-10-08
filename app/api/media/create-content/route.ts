@@ -760,6 +760,9 @@ export async function POST(req: NextRequest) {
 
         return {
           ...uploadData,
+          url:uploadData?.fileId
+            ? `/api/media/file?fileId=${encodeURIComponent(uploadData.fileId)}`
+            : uploadData?.url,
           preset:variant.key,
           width:variant.width,
           height:variant.height,
