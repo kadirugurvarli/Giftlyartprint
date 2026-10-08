@@ -94,3 +94,16 @@ h1{font:600 34px Georgia,serif;margin:0}.sub{color:var(--muted);margin-top:6px}
   .approvalCopy{grid-template-columns:1fr}
   .approvalCopy .field{grid-column:auto}
 }
+
+.campaignQueue{margin:18px 0 22px}
+.queueHeader{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.queueHeader h2{margin:0 0 2px;font-size:22px}
+.queueGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.queueCard{border:1px solid var(--border);background:#fff}
+.queueCard>img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#f2f2ef;display:block}
+.queueCardBody{padding:10px;display:flex;flex-direction:column;gap:5px}
+.queueCardBody>b{font-size:13px}
+.queueCardBody>span{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.queueCardBody>small{font-size:11px;color:#777}
+@media(max-width:1100px){.queueGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.queueGrid{grid-template-columns:1fr}}
