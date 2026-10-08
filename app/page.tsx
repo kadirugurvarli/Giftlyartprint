@@ -98,6 +98,15 @@ type CampaignOutput = MediaEntry & {
   preset: string;
   width: number;
   height: number;
+  revisionCount?: number;
+  qa?: {
+    decision: "PASS" | "REVISE" | "REJECT";
+    score: number;
+    hardFail: boolean;
+    issues: string[];
+    strengths: string[];
+    revisionInstruction: string;
+  };
 };
 
 type CampaignQueueStatus = "Approved" | "Scheduling" | "Scheduled" | "Publishing" | "Published";
@@ -881,6 +890,24 @@ export default function Home() {
                     <img src={output.url} alt={output.preset} />
                     <b>{output.preset.replaceAll("_"," ")}</b>
                     <span>{output.width}×{output.height}</span>
+                    {output.qa && (
+                      <>
+                        <div className={"qaBadge qa" + output.qa.decision}>
+                          Art Director: {output.qa.decision} · {output.qa.score}/100
+                        </div>
+                        {output.revisionCount ? (
+                          <small>Auto-revised {output.revisionCount}× before approval</small>
+                        ) : null}
+                        {output.qa.issues?.length ? (
+                          <details className="qaDetails">
+                            <summary>QA details</summary>
+                            <ul>
+                              {output.qa.issues.map((issue,i)=><li key={i}>{issue}</li>)}
+                            </ul>
+                          </details>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
