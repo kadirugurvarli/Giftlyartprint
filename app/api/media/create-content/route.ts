@@ -1,9 +1,5 @@
 import { NextRequest } from "next/server";
 import sharp from "sharp";
-import React from "react";
-import satori from "satori";
-import { readFile } from "fs/promises";
-import { createRequire } from "module";
 import {
   BRAND,
   CATEGORY_RULES,
@@ -22,7 +18,6 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const BRAND_LOGO_FILE_ID = "1viQoWbX4hakq03aCEi88hRvJsGA5GtqX";
-const require = createRequire(import.meta.url);
 
 function stripExt(name:string){
   return name.replace(/\.[^.]+$/,"");
@@ -50,18 +45,6 @@ async function fetchDriveImage(feedUrl:string,feedToken:string,fileId:string){
     fileName:data.fileName || "image.png",
     mimeType:data.mimeType || "image/png",
   };
-}
-
-let fontPromise:Promise<[Buffer,Buffer]>|null=null;
-
-async function loadFonts(){
-  if(!fontPromise){
-    fontPromise=Promise.all([
-      readFile(require.resolve("@fontsource/inter/files/inter-latin-400-normal.woff2")),
-      readFile(require.resolve("@fontsource/inter/files/inter-latin-700-normal.woff2")),
-    ]);
-  }
-  return fontPromise;
 }
 
 function outputText(data:any){
@@ -238,100 +221,84 @@ async function makeTextOverlay(
   cta:string,
   strict=false
 ){
-  const [regular,bold]=await loadFonts();
   const width=preset.width;
   const height=preset.height;
   const pad=Math.round(width*(preset.outerMarginRatio+(strict?0.018:0)));
+  const blockW=Math.round(width*(strict?0.56:0.64));
 
-  const fontScale=strict ? 0.038 : 0.044;
-  const headlineSize=Math.round(width*fontScale);
-  const smallSize=Math.round(width*(strict?0.019:0.021));
-  const ctaSize=Math.round(width*(strict?0.022:0.024));
-  const maxW=Math.round(width*(strict?0.58:0.66));
+  const headlineH=Math.round(height*(strict?0.060:0.070));
+  const ctaH=Math.round(height*(strict?0.040:0.046));
+  const webH=Math.round(height*(strict?0.032:0.036));
+  const gap=Math.round(height*0.008);
 
-  const node=React.createElement(
-    "div",
-    {
-      style:{
-        width:"100%",
-        height:"100%",
-        display:"flex",
-        alignItems:"flex-start",
-        justifyContent:"flex-start",
-        padding:`${pad}px`,
-        boxSizing:"border-box",
-        fontFamily:"Inter",
-      }
-    },
-    React.createElement(
-      "div",
-      {
-        style:{
-          display:"flex",
-          flexDirection:"column",
-          alignItems:"flex-start",
-          gap:Math.round(height*0.009),
-          maxWidth:maxW,
-        }
-      },
-      React.createElement(
-        "div",
-        {
-          style:{
-            display:"flex",
-            background:"rgba(255,255,255,0.92)",
-            color:"#171717",
-            padding:`${Math.round(height*0.009)}px ${Math.round(width*0.015)}px`,
-            fontSize:headlineSize,
-            fontWeight:700,
-            lineHeight:1.08,
-          }
-        },
-        headline
-      ),
-      React.createElement(
-        "div",
-        {
-          style:{
-            display:"flex",
-            background:"#171717",
-            color:"#ffffff",
-            padding:`${Math.round(height*0.008)}px ${Math.round(width*0.015)}px`,
-            fontSize:ctaSize,
-            fontWeight:700,
-            lineHeight:1,
-          }
-        },
-        cta
-      ),
-      React.createElement(
-        "div",
-        {
-          style:{
-            display:"flex",
-            background:"rgba(255,255,255,0.92)",
-            color:"#171717",
-            padding:`${Math.round(height*0.006)}px ${Math.round(width*0.012)}px`,
-            fontSize:smallSize,
-            fontWeight:400,
-            lineHeight:1,
-          }
-        },
-        BRAND.website
-      )
-    )
+  const headlineText=await sharp({
+    text:{
+      text:`<span foreground="#171717" font_weight="700">${headline}</span>`,
+      font:"sans",
+      width:blockW,
+      height:headlineH,
+      align:"left",
+      rgba:true,
+      wrap:"word"
+    }
+  }).png().toBuffer();
+
+  const ctaText=await sharp({
+    text:{
+      text:`<span foreground="#ffffff" font_weight="700">${cta}</span>`,
+      font:"sans",
+      width:Math.round(blockW*0.56),
+      height:ctaH,
+      align:"left",
+      rgba:true,
+      wrap:"word"
+    }
+  }).png().toBuffer();
+
+  const webText=await sharp({
+    text:{
+      text:`<span foreground="#171717">${BRAND.website}</span>`,
+      font:"sans",
+      width:Math.round(blockW*0.62),
+      height:webH,
+      align:"left",
+      rgba:true,
+      wrap:"none"
+    }
+  }).png().toBuffer();
+
+  const headBg=Buffer.from(
+    `<svg width="${blockW+Math.round(width*0.03)}" height="${headlineH+Math.round(height*0.016)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(255,255,255,0.92)"/></svg>`
+  );
+  const ctaBgW=Math.round(blockW*0.60);
+  const ctaBg=Buffer.from(
+    `<svg width="${ctaBgW}" height="${ctaH+Math.round(height*0.012)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#171717"/></svg>`
+  );
+  const webBgW=Math.round(blockW*0.66);
+  const webBg=Buffer.from(
+    `<svg width="${webBgW}" height="${webH+Math.round(height*0.010)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(255,255,255,0.92)"/></svg>`
   );
 
-  const svg=await satori(node,{
-    width,
-    height,
-    fonts:[
-      {name:"Inter",data:regular,weight:400,style:"normal"},
-      {name:"Inter",data:bold,weight:700,style:"normal"},
-    ]
+  const layer=sharp({
+    create:{
+      width,
+      height,
+      channels:4,
+      background:{r:0,g:0,b:0,alpha:0}
+    }
   });
 
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  const x=pad;
+  const y=pad;
+
+  return layer.composite([
+    {input:headBg,left:x,top:y},
+    {input:headlineText,left:x+Math.round(width*0.014),top:y+Math.round(height*0.007)},
+    {input:ctaBg,left:x,top:y+headlineH+gap},
+    {input:ctaText,left:x+Math.round(width*0.014),top:y+headlineH+gap+Math.round(height*0.005)},
+    {input:webBg,left:x,top:y+headlineH+ctaH+gap*2},
+    {input:webText,left:x+Math.round(width*0.012),top:y+headlineH+ctaH+gap*2+Math.round(height*0.004)},
+  ]).png().toBuffer();
 }
 
 async function applyBranding(args:{
