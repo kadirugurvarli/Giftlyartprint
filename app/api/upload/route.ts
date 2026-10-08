@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
       return Response.json({ ok: false, message: "Supported formats: JPG, PNG, WEBP, HEIC, HEIF." }, { status: 400 });
     }
 
-    if (file.size > 3 * 1024 * 1024) {
-      return Response.json({ ok: false, message: "Image is too large after preparation. Maximum upload size is 3 MB." }, { status: 400 });
+    if (file.size > 900 * 1024) {
+      return Response.json({ ok: false, message: "Image is too large after preparation. Maximum upload size is 900 KB." }, { status: 400 });
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
     const url = new URL(feedUrl);
     url.searchParams.set("token", feedToken);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -54,7 +57,10 @@ export async function POST(req: NextRequest) {
         base64,
       }),
       cache: "no-store",
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const raw = await response.text();
     let data: any = raw;
@@ -69,8 +75,15 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ ok: true, message: "Image uploaded to Google Drive.", data });
   } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? "Google Apps Script upload timed out after 20 seconds."
+        : error instanceof Error
+          ? error.message
+          : "Upload failed.";
+
     return Response.json(
-      { ok: false, message: error instanceof Error ? error.message : "Upload failed." },
+      { ok: false, message },
       { status: 500 }
     );
   }
