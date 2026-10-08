@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 import sharp from "sharp";
+import { CATEGORY_RULES, PLATFORM_PRESETS, normaliseCategory } from "@/lib/giftly-content-policy";
+import { reviewFinalAsset } from "@/lib/giftly-art-director";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -287,6 +289,8 @@ export async function POST(req: NextRequest) {
           "Create a polished marketing/content visual for Giftly Art Print.",
           "Permanent production rules:",
           GLOBAL_CONTENT_RULES,
+          "Category-specific rules:",
+          ...CATEGORY_RULES[normaliseCategory(category)],
           "Image 1 is the primary source/product/customer project and must remain visually faithful.",
           reference instanceof File && reference.size > 0
             ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
@@ -410,12 +414,55 @@ export async function POST(req: NextRequest) {
           .png()
           .toBuffer();
 
-        return { variant, processed };
+        const preset = PLATFORM_PRESETS.find((x)=>x.key===variant.key);
+        if (!preset) {
+          throw new Error("Unknown platform preset: " + variant.key);
+        }
+
+        let qa;
+        try {
+          qa = await reviewFinalAsset({
+            apiKey,
+            sourceImage: await sharp(source.buffer).rotate().png().toBuffer(),
+            finalImage: processed,
+            preset,
+            category,
+            headline: campaign.headline,
+            cta: campaign.cta,
+          });
+        } catch {
+          qa = {
+            decision: "REVISE" as const,
+            score: 0,
+            hardFail: false,
+            issues: ["Art Director review could not be completed."],
+            strengths: [],
+            revisionInstruction: "Human review required before publishing.",
+          };
+        }
+
+        return { variant, processed, qa };
       })
     );
 
+    const rejected = generatedVariants.filter(
+      ({qa}) => qa.hardFail || qa.decision === "REJECT" || qa.score < 70
+    );
+
+    if (rejected.length) {
+      return Response.json({
+        ok:false,
+        code:"ART_DIRECTOR_REJECTED",
+        message:"Art Director rejected one or more platform assets. Nothing was sent to Approval.",
+        reviews:rejected.map(({variant,qa})=>({
+          preset:variant.key,
+          qa
+        }))
+      }, { status:422 });
+    }
+
     const uploaded = await Promise.all(
-      generatedVariants.map(async ({variant,processed}) => {
+      generatedVariants.map(async ({variant,processed,qa}) => {
         const uploadResponse = await fetch(uploadUrl, {
           method:"POST",
           headers:{ "Content-Type":"text/plain;charset=utf-8" },
@@ -439,7 +486,8 @@ export async function POST(req: NextRequest) {
           ...uploadData,
           preset:variant.key,
           width:variant.width,
-          height:variant.height
+          height:variant.height,
+          qa
         };
       })
     );
