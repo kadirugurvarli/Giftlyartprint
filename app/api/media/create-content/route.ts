@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
               role:"system",
               content:[{
                 type:"input_text",
-                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Captions must be ready to publish, natural UK English, not spammy, and include a concise CTA. Do not mention your research."
+                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Brand style is minimal, premium, warm, trustworthy and never loud or salesy. Headline must be 2-5 words. supporting must be empty or at most 6 words. CTA must be 1-4 words. Captions must be short, natural UK English, no long paragraphs, no filler, and normally 1-3 short sentences. Do not mention your research."
               }]
             },
             {
@@ -164,13 +164,16 @@ export async function POST(req: NextRequest) {
         "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
         "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
         variant.layout,
-        "Create a finished, share-ready promotional visual. Text must be legible and visually integrated into the design, not added as an afterthought.",
+        "Create a finished, share-ready promotional visual with minimal copy. Never invent, redraw, recolour or imitate a Giftly Art Print logo. Do not create any fake logo or wordmark. The real logo will be applied separately by the system.",
+        "On-image copy is strictly limited to: one short headline, one short CTA, and one contact line. No paragraph text. No long supporting copy. No extra labels.",
+        "Use the exact contact line: giftlyartprint.co.uk",
+        "Keep the design clean, premium, warm and trustworthy with generous whitespace.",
         "Campaign concept:",
         campaign.concept,
-        "Use these exact marketing words where text is appropriate:",
+        "Use these exact marketing words:",
         "Headline: " + campaign.headline,
-        "Supporting line: " + campaign.supporting,
         "CTA: " + campaign.cta,
+        "Contact: giftlyartprint.co.uk",
         "User direction (optional):",
         description || "No extra direction — use the campaign concept above."
       ].filter(Boolean).join("\n");
