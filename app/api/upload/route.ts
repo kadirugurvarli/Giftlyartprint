@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
       return Response.json({ ok: false, message: "Supported formats: JPG, PNG, WEBP, HEIC, HEIF." }, { status: 400 });
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      return Response.json({ ok: false, message: "Maximum image size is 15 MB." }, { status: 400 });
+    if (file.size > 3 * 1024 * 1024) {
+      return Response.json({ ok: false, message: "Image is too large after preparation. Maximum upload size is 3 MB." }, { status: 400 });
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
