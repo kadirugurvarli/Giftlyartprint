@@ -152,6 +152,7 @@ export default function Home() {
   const [approvalCampaign, setApprovalCampaign] = useState<CampaignDraft | null>(null);
   const [approvalOutputs, setApprovalOutputs] = useState<CampaignOutput[]>([]);
   const [approvalStatus, setApprovalStatus] = useState("");
+  const [approvalScheduleAt, setApprovalScheduleAt] = useState("");
 
   const loadContent = async () => {
     setLoading(true);
@@ -732,6 +733,16 @@ export default function Home() {
                 </div>
               </div>
 
+              <div className="field">
+                <label>Schedule date & time (optional)</label>
+                <input
+                  type="datetime-local"
+                  value={approvalScheduleAt}
+                  onChange={(e)=>setApprovalScheduleAt(e.target.value)}
+                />
+                <div className="hint">Used only when you choose Approve & Schedule. Timezone: Europe/London.</div>
+              </div>
+
               {approvalStatus && <div className="hint"><b>{approvalStatus}</b></div>}
 
               <div className="row end">
@@ -740,32 +751,59 @@ export default function Home() {
                   setApprovalStatus("Regenerate from the source image if you want a different concept.");
                 }}>Regenerate later</button>
 
-                <button className="secondary" onClick={async()=>{
+                <button className="secondary" disabled={!approvalScheduleAt} onClick={async()=>{
+                  const feed=approvalOutputs.find((x)=>x.preset==="feed_4x5");
+                  const story=approvalOutputs.find((x)=>x.preset==="story_9x16");
+                  const google=approvalOutputs.find((x)=>x.preset==="google_business_1x1");
                   const brief=[
                     "Schedule this approved Giftly Art Print campaign via Metricool.",
-                    "Platforms: Instagram, Facebook, Google Business",
-                    "Instagram caption:",approvalCampaign.instagramCaption,
-                    "Facebook caption:",approvalCampaign.facebookCaption,
-                    "Google Business caption:",approvalCampaign.googleCaption,
-                    "Media:",
-                    ...approvalOutputs.map((x)=>x.driveUrl || x.url)
+                    "Timezone: Europe/London",
+                    "Schedule date/time: " + approvalScheduleAt,
+                    "",
+                    "Instagram + Facebook Feed 4:5:",
+                    feed?.driveUrl || feed?.url || "",
+                    "Caption:",
+                    approvalCampaign.instagramCaption,
+                    "",
+                    "Instagram Story 9:16:",
+                    story?.driveUrl || story?.url || "",
+                    "",
+                    "Google Business 1:1:",
+                    google?.driveUrl || google?.url || "",
+                    "Caption:",
+                    approvalCampaign.googleCaption,
+                    "",
+                    "Facebook caption:",
+                    approvalCampaign.facebookCaption
                   ].join("\n");
                   await navigator.clipboard.writeText(brief);
-                  setApprovalStatus("Approved scheduling brief copied. Paste it into ChatGPT and tell me the date/time.");
+                  setApprovalStatus("Approved schedule package copied. Paste it into ChatGPT and I will schedule it in Metricool.");
                 }}>Approve & Schedule</button>
 
                 <button className="primary" onClick={async()=>{
+                  const feed=approvalOutputs.find((x)=>x.preset==="feed_4x5");
+                  const story=approvalOutputs.find((x)=>x.preset==="story_9x16");
+                  const google=approvalOutputs.find((x)=>x.preset==="google_business_1x1");
                   const brief=[
                     "Publish this approved Giftly Art Print campaign now via Metricool.",
-                    "Platforms: Instagram, Facebook, Google Business",
-                    "Instagram caption:",approvalCampaign.instagramCaption,
-                    "Facebook caption:",approvalCampaign.facebookCaption,
-                    "Google Business caption:",approvalCampaign.googleCaption,
-                    "Media:",
-                    ...approvalOutputs.map((x)=>x.driveUrl || x.url)
+                    "",
+                    "Instagram + Facebook Feed 4:5:",
+                    feed?.driveUrl || feed?.url || "",
+                    "Instagram caption:",
+                    approvalCampaign.instagramCaption,
+                    "Facebook caption:",
+                    approvalCampaign.facebookCaption,
+                    "",
+                    "Instagram Story 9:16:",
+                    story?.driveUrl || story?.url || "",
+                    "",
+                    "Google Business 1:1:",
+                    google?.driveUrl || google?.url || "",
+                    "Google Business caption:",
+                    approvalCampaign.googleCaption
                   ].join("\n");
                   await navigator.clipboard.writeText(brief);
-                  setApprovalStatus("Approved publishing brief copied. Paste it into ChatGPT and I will publish it via Metricool.");
+                  setApprovalStatus("Approved publishing package copied. Paste it into ChatGPT and I will publish it via Metricool.");
                 }}>Approve & Publish</button>
               </div>
             </div>
@@ -849,6 +887,7 @@ export default function Home() {
                         setApprovalCampaign(data.campaign || null);
                         setApprovalOutputs(Array.isArray(data.outputs) ? data.outputs : []);
                         setApprovalStatus("");
+                        setApprovalScheduleAt("");
                         setApprovalOpen(true);
                         setContentTarget(null);
                         setContentReference(null);
