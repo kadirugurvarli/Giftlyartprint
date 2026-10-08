@@ -56,3 +56,8 @@ h1{font:600 34px Georgia,serif;margin:0}.sub{color:var(--muted);margin-top:6px}
 .mediaFilters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
 .mediaFilters button{border:1px solid var(--border);background:#fff;padding:7px 10px;cursor:pointer;font-size:12px}
 .mediaFilters button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.mediaActions{position:absolute;right:6px;bottom:6px;display:flex;gap:4px}
+.mediaActions .mediaDelete,.mediaActions .mediaMove{position:static}
+.mediaMove{border:1px solid rgba(0,0,0,.25);background:rgba(255,255,255,.92);padding:5px 8px;font-size:11px;cursor:pointer}
+.mediaMove:hover{background:#fff}
