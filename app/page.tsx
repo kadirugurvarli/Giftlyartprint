@@ -127,6 +127,12 @@ export default function Home() {
   const [enhanceLighting, setEnhanceLighting] = useState(true);
   const [enhanceBackground, setEnhanceBackground] = useState(false);
   const [enhanceStraighten, setEnhanceStraighten] = useState(true);
+  const [contentTarget, setContentTarget] = useState<MediaEntry | null>(null);
+  const [contentPrompt, setContentPrompt] = useState("");
+  const [contentReference, setContentReference] = useState<File | null>(null);
+  const [contentFormat, setContentFormat] = useState("portrait");
+  const [creatingContent, setCreatingContent] = useState(false);
+  const [contentStatus, setContentStatus] = useState("");
 
   const loadContent = async () => {
     setLoading(true);
@@ -518,6 +524,12 @@ export default function Home() {
                     <span>{entry.category}</span>
                     <div className="mediaInlineActions">
                       <button onClick={() => setPreviewMedia(entry)}>Preview</button>
+                      <button onClick={() => {
+                        setContentTarget(entry);
+                        setContentPrompt("");
+                        setContentReference(null);
+                        setContentStatus("");
+                      }}>Create Content</button>
                       <button
                         onClick={() => {
                           setMoveTarget(entry);
@@ -627,6 +639,18 @@ export default function Home() {
                   Delete
                 </button>
                 <button
+                  className="secondary"
+                  onClick={() => {
+                    setContentTarget(previewMedia);
+                    setContentPrompt("");
+                    setContentReference(null);
+                    setContentStatus("");
+                    setPreviewMedia(null);
+                  }}
+                >
+                  Create Content
+                </button>
+                <button
                   className="primary"
                   onClick={() => {
                     setEnhanceTarget(previewMedia);
@@ -635,6 +659,99 @@ export default function Home() {
                   }}
                 >
                   Enhance
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {contentTarget && (
+          <div className="modal">
+            <div className="dialog">
+              <h2>Create content visual</h2>
+              <div className="hint">
+                Source: <b>{contentTarget.fileName}</b>. The original image is preserved.
+              </div>
+
+              <div className="field">
+                <label>What should the new content visual look like?</label>
+                <textarea
+                  value={contentPrompt}
+                  onChange={(e)=>setContentPrompt(e.target.value)}
+                  placeholder="Example: Create a clean premium Instagram advert. Keep the framed artwork exactly as photographed. Put it in a bright modern interior, use subtle natural shadows and leave clear space at the top for a headline."
+                />
+              </div>
+
+              <div className="field">
+                <label>Reference image (optional)</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e)=>setContentReference(e.target.files?.[0] || null)}
+                />
+                <div className="hint">
+                  Use this when you want the new visual to follow another image's layout, background, mood or style.
+                </div>
+              </div>
+
+              <div className="field">
+                <label>Output format</label>
+                <select value={contentFormat} onChange={(e)=>setContentFormat(e.target.value)}>
+                  <option value="portrait">Portrait social post</option>
+                  <option value="square">Square post</option>
+                  <option value="landscape">Landscape post</option>
+                </select>
+              </div>
+
+              {contentStatus && <div className="hint"><b>{contentStatus}</b></div>}
+
+              <div className="row end">
+                <button className="secondary" disabled={creatingContent} onClick={()=>{
+                  setContentTarget(null);
+                  setContentReference(null);
+                  setContentPrompt("");
+                  setContentStatus("");
+                }}>Cancel</button>
+
+                <button
+                  className="primary"
+                  disabled={creatingContent || !contentPrompt.trim()}
+                  onClick={async()=>{
+                    setCreatingContent(true);
+                    setContentStatus("Preparing content visual...");
+                    try{
+                      const form=new FormData();
+                      form.append("fileId",contentTarget.fileId);
+                      form.append("category",contentTarget.category);
+                      form.append("description",contentPrompt);
+                      form.append("format",contentFormat);
+
+                      if(contentReference){
+                        setContentStatus("Preparing reference image...");
+                        const preparedRef=await prepareImageForUpload(contentReference);
+                        form.append("reference",preparedRef);
+                      }
+
+                      setContentStatus("Creating content visual...");
+                      const res=await fetch("/api/media/create-content",{
+                        method:"POST",
+                        body:form
+                      });
+                      const data=await res.json();
+                      setContentStatus(data.message || (res.ok ? "Content visual created." : "Content generation failed."));
+
+                      if(res.ok){
+                        await loadContent();
+                        setMessage("New content visual created. Source image preserved.");
+                      }
+                    }catch(error){
+                      setContentStatus(error instanceof Error ? error.message : "Content generation failed.");
+                    }finally{
+                      setCreatingContent(false);
+                    }
+                  }}
+                >
+                  {creatingContent ? "Creating..." : "Create visual"}
                 </button>
               </div>
             </div>
