@@ -105,6 +105,104 @@ function textOverlaySvg(
   </svg>`);
 }
 
+async function textOverlayPng(
+  width:number,
+  height:number,
+  headline:string,
+  cta:string,
+  contact:string,
+  dark:boolean
+){
+  try{
+    const fg=dark ? "#FFFFFF" : "#171717";
+    const panel=dark ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.92)";
+    const ctaBg=dark ? "#FFFFFF" : "#171717";
+    const ctaFg=dark ? "#171717" : "#FFFFFF";
+
+    const pad=Math.round(width*0.055);
+    const maxW=Math.round(width*0.62);
+    const headlineH=Math.round(height*0.060);
+    const ctaH=Math.round(height*0.040);
+    const webH=Math.round(height*0.032);
+    const gap=Math.round(height*0.008);
+
+    const headlineImg=await sharp({
+      text:{
+        text:`<span foreground="${fg}" font_weight="700">${escapeXml(headline)}</span>`,
+        font:"sans",
+        width:maxW,
+        height:headlineH,
+        align:"left",
+        rgba:true,
+        wrap:"word"
+      }
+    }).png().toBuffer();
+
+    const ctaImg=await sharp({
+      text:{
+        text:`<span foreground="${ctaFg}" font_weight="700">${escapeXml(cta)}</span>`,
+        font:"sans",
+        width:Math.round(maxW*0.52),
+        height:ctaH,
+        align:"left",
+        rgba:true,
+        wrap:"word"
+      }
+    }).png().toBuffer();
+
+    const webImg=await sharp({
+      text:{
+        text:`<span foreground="${fg}">${escapeXml(contact)}</span>`,
+        font:"sans",
+        width:Math.round(maxW*0.58),
+        height:webH,
+        align:"left",
+        rgba:true,
+        wrap:"none"
+      }
+    }).png().toBuffer();
+
+    const headlineMeta=await sharp(headlineImg).metadata();
+    const ctaMeta=await sharp(ctaImg).metadata();
+    const webMeta=await sharp(webImg).metadata();
+
+    const hW=Math.max(1,headlineMeta.width||maxW);
+    const hH=Math.max(1,headlineMeta.height||headlineH);
+    const cW=Math.max(1,ctaMeta.width||Math.round(maxW*0.52));
+    const cH=Math.max(1,ctaMeta.height||ctaH);
+    const wW=Math.max(1,webMeta.width||Math.round(maxW*0.58));
+    const wH=Math.max(1,webMeta.height||webH);
+
+    const headBg=Buffer.from(`<svg width="${hW+Math.round(width*0.03)}" height="${hH+Math.round(height*0.012)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="${panel}"/></svg>`);
+    const ctaBgSvg=Buffer.from(`<svg width="${cW+Math.round(width*0.03)}" height="${cH+Math.round(height*0.010)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="${ctaBg}"/></svg>`);
+    const webBg=Buffer.from(`<svg width="${wW+Math.round(width*0.024)}" height="${wH+Math.round(height*0.008)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="${panel}"/></svg>`);
+
+    const canvas=sharp({
+      create:{
+        width,
+        height,
+        channels:4,
+        background:{r:0,g:0,b:0,alpha:0}
+      }
+    });
+
+    const y1=pad;
+    const y2=y1+hH+Math.round(height*0.012)+gap;
+    const y3=y2+cH+Math.round(height*0.010)+gap;
+
+    return canvas.composite([
+      {input:headBg,left:pad,top:y1},
+      {input:headlineImg,left:pad+Math.round(width*0.015),top:y1+Math.round(height*0.006)},
+      {input:ctaBgSvg,left:pad,top:y2},
+      {input:ctaImg,left:pad+Math.round(width*0.015),top:y2+Math.round(height*0.005)},
+      {input:webBg,left:pad,top:y3},
+      {input:webImg,left:pad+Math.round(width*0.012),top:y3+Math.round(height*0.004)}
+    ]).png().toBuffer();
+  }catch{
+    return textOverlaySvg(width,height,headline,cta,contact,dark);
+  }
+}
+
 async function buildOriginalSafeBase(
   source:Buffer,
   preset:PlatformPreset,
@@ -218,7 +316,7 @@ async function applyBranding(
 
   return base.composite([
     {
-      input:textOverlaySvg(
+      input:await textOverlayPng(
         variant.width,
         variant.height,
         campaign.headline,
