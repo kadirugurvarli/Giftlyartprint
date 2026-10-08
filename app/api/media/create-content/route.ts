@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 import sharp from "sharp";
+import React from "react";
+import satori from "satori";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -56,7 +58,33 @@ function escapeXml(value:string) {
     .replace(/'/g,"&apos;");
 }
 
-function textOverlaySvg(
+
+let interRegularPromise: Promise<ArrayBuffer> | null = null;
+let interBoldPromise: Promise<ArrayBuffer> | null = null;
+
+async function loadInterFonts() {
+  if (!interRegularPromise) {
+    interRegularPromise = fetch(
+      "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.6/latin-400-normal.woff2"
+    ).then((r) => {
+      if (!r.ok) throw new Error("Could not load Inter Regular");
+      return r.arrayBuffer();
+    });
+  }
+
+  if (!interBoldPromise) {
+    interBoldPromise = fetch(
+      "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.6/latin-700-normal.woff2"
+    ).then((r) => {
+      if (!r.ok) throw new Error("Could not load Inter Bold");
+      return r.arrayBuffer();
+    });
+  }
+
+  return Promise.all([interRegularPromise, interBoldPromise]);
+}
+
+async function makeTextOverlayPng(
   width:number,
   height:number,
   headline:string,
@@ -64,84 +92,98 @@ function textOverlaySvg(
   contact:string,
   dark:boolean
 ) {
-  const fg=dark ? "#FFFFFF" : "#171717";
-  const panel=dark ? "rgba(0,0,0,0.46)" : "rgba(255,255,255,0.80)";
-  const ctaBg=dark ? "#FFFFFF" : "#171717";
-  const ctaFg=dark ? "#171717" : "#FFFFFF";
+  const [regular,bold] = await loadInterFonts();
 
-  const pad=Math.round(width*0.055);
-  const panelW=Math.min(Math.round(width*0.78), width-pad*2);
-  const headlineSize=Math.round(width*0.050);
-  const smallSize=Math.round(width*0.024);
-  const ctaSize=Math.round(width*0.026);
-  const panelH=Math.round(height*0.18);
-  const y=pad;
+  const fg = dark ? "#ffffff" : "#171717";
+  const chipBg = dark ? "rgba(0,0,0,0.68)" : "rgba(255,255,255,0.88)";
+  const ctaBg = dark ? "#ffffff" : "#171717";
+  const ctaFg = dark ? "#171717" : "#ffffff";
+  const pad = Math.round(width*0.055);
+  const maxW = Math.round(width*0.68);
 
-  return Buffer.from(`
-  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="${pad}" y="${y}" width="${panelW}" height="${Math.round(panelH*0.58)}" fill="${panel}"/>
-    <text x="${pad*1.28}" y="${y+headlineSize*1.15}"
-      font-family="DejaVu Sans, sans-serif"
-      font-size="${headlineSize}" font-weight="700"
-      fill="${fg}">${escapeXml(headline)}</text>
+  const element = React.createElement(
+    "div",
+    {
+      style:{
+        width:"100%",
+        height:"100%",
+        display:"flex",
+        alignItems:"flex-start",
+        justifyContent:"flex-start",
+        padding:`${pad}px`,
+        boxSizing:"border-box",
+        fontFamily:"Inter"
+      }
+    },
+    React.createElement(
+      "div",
+      {
+        style:{
+          display:"flex",
+          flexDirection:"column",
+          alignItems:"flex-start",
+          gap:Math.round(height*0.012),
+          maxWidth:maxW
+        }
+      },
+      React.createElement(
+        "div",
+        {
+          style:{
+            display:"flex",
+            background:chipBg,
+            color:fg,
+            padding:`${Math.round(height*0.012)}px ${Math.round(width*0.018)}px`,
+            fontSize:Math.round(width*0.047),
+            fontWeight:700,
+            lineHeight:1.05
+          }
+        },
+        headline
+      ),
+      React.createElement(
+        "div",
+        {
+          style:{
+            display:"flex",
+            background:ctaBg,
+            color:ctaFg,
+            padding:`${Math.round(height*0.010)}px ${Math.round(width*0.018)}px`,
+            fontSize:Math.round(width*0.025),
+            fontWeight:700,
+            lineHeight:1
+          }
+        },
+        cta
+      ),
+      React.createElement(
+        "div",
+        {
+          style:{
+            display:"flex",
+            background:chipBg,
+            color:fg,
+            padding:`${Math.round(height*0.007)}px ${Math.round(width*0.014)}px`,
+            fontSize:Math.round(width*0.021),
+            fontWeight:400,
+            lineHeight:1
+          }
+        },
+        contact
+      )
+    )
+  );
 
-    <rect x="${pad}" y="${y+Math.round(panelH*0.68)}"
-      width="${Math.round(width*0.24)}" height="${Math.round(height*0.043)}"
-      fill="${ctaBg}"/>
-    <text x="${pad+Math.round(width*0.016)}"
-      y="${y+Math.round(panelH*0.68)+Math.round(height*0.030)}"
-      font-family="DejaVu Sans, sans-serif"
-      font-size="${ctaSize}" font-weight="700" fill="${ctaFg}">
-      ${escapeXml(cta)}
-    </text>
+  const svg = await satori(element,{
+    width,
+    height,
+    fonts:[
+      {name:"Inter",data:regular,weight:400,style:"normal"},
+      {name:"Inter",data:bold,weight:700,style:"normal"}
+    ]
+  });
 
-    <text x="${pad}" y="${y+Math.round(panelH*0.68)+Math.round(height*0.070)}"
-      font-family="DejaVu Sans, sans-serif"
-      font-size="${smallSize}" fill="${fg}">
-      ${escapeXml(contact)}
-    </text>
-  </svg>`);
-}
-
-async function buildOriginalSafeBase(
-  source:Buffer,
-  width:number,
-  height:number
-) {
-  const topSpace=Math.round(height*0.24);
-  const sideMargin=Math.round(width*0.055);
-  const bottomMargin=Math.round(height*0.055);
-  const usableHeight=height-topSpace-bottomMargin;
-  const usableWidth=width-sideMargin*2;
-
-  const foreground=await sharp(source)
-    .rotate()
-    .resize(usableWidth,usableHeight,{
-      fit:"contain",
-      background:{r:244,g:242,b:237,alpha:1}
-    })
-    .png()
-    .toBuffer();
-
-  const meta=await sharp(foreground).metadata();
-  const fgW=meta.width || usableWidth;
-  const fgH=meta.height || usableHeight;
-
-  return sharp({
-    create:{
-      width,
-      height,
-      channels:4,
-      background:{r:244,g:242,b:237,alpha:1}
-    }
-  })
-    .composite([{
-      input:foreground,
-      left:Math.max(0,Math.round((width-fgW)/2)),
-      top:topSpace+Math.max(0,Math.round((usableHeight-fgH)/2))
-    }])
-    .png()
-    .toBuffer();
+  return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
 export async function POST(req: NextRequest) {
@@ -385,7 +427,7 @@ export async function POST(req: NextRequest) {
         const processed = await base
           .composite([
             {
-              input:textOverlaySvg(
+              input:await makeTextOverlayPng(
                 variant.width,
                 variant.height,
                 campaign.headline,
