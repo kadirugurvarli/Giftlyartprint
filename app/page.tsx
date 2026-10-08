@@ -130,7 +130,6 @@ export default function Home() {
   const [contentTarget, setContentTarget] = useState<MediaEntry | null>(null);
   const [contentPrompt, setContentPrompt] = useState("");
   const [contentReference, setContentReference] = useState<File | null>(null);
-  const [contentFormat, setContentFormat] = useState("portrait");
   const [creatingContent, setCreatingContent] = useState(false);
   const [contentStatus, setContentStatus] = useState("");
 
@@ -695,12 +694,11 @@ export default function Home() {
               </div>
 
               <div className="field">
-                <label>Output format</label>
-                <select value={contentFormat} onChange={(e)=>setContentFormat(e.target.value)}>
-                  <option value="portrait">Portrait social post</option>
-                  <option value="square">Square post</option>
-                  <option value="landscape">Landscape post</option>
-                </select>
+                <label>Output package</label>
+                <div className="platformPack">
+                  <b>Standard Platform Pack</b>
+                  <span>Feed 4:5 · Story/Reel 9:16 · Google Business 1:1</span>
+                </div>
               </div>
 
               {contentStatus && <div className="hint"><b>{contentStatus}</b></div>}
@@ -724,7 +722,6 @@ export default function Home() {
                       form.append("fileId",contentTarget.fileId);
                       form.append("category",contentTarget.category);
                       form.append("description",contentPrompt);
-                      form.append("format",contentFormat);
 
                       if(contentReference){
                         setContentStatus("Preparing reference image...");
