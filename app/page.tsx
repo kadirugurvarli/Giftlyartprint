@@ -84,6 +84,22 @@ type MediaEntry = {
   createdDate?: string;
 };
 
+type CampaignDraft = {
+  concept: string;
+  headline: string;
+  supporting: string;
+  cta: string;
+  instagramCaption: string;
+  facebookCaption: string;
+  googleCaption: string;
+};
+
+type CampaignOutput = MediaEntry & {
+  preset: string;
+  width: number;
+  height: number;
+};
+
 const MEDIA_BY_ID: Record<string, string[]> = {
   "GAP-0003": [
     "https://drive.google.com/thumbnail?id=14wK2A5acg9iBC76Uuze3psCKxv79euen&sz=w1400",
@@ -132,6 +148,10 @@ export default function Home() {
   const [contentReference, setContentReference] = useState<File | null>(null);
   const [creatingContent, setCreatingContent] = useState(false);
   const [contentStatus, setContentStatus] = useState("");
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [approvalCampaign, setApprovalCampaign] = useState<CampaignDraft | null>(null);
+  const [approvalOutputs, setApprovalOutputs] = useState<CampaignOutput[]>([]);
+  const [approvalStatus, setApprovalStatus] = useState("");
 
   const loadContent = async () => {
     setLoading(true);
@@ -664,6 +684,90 @@ export default function Home() {
           </div>
         )}
 
+        {approvalOpen && approvalCampaign && (
+          <div className="modal">
+            <div className="dialog approvalDialog">
+              <div className="approvalHead">
+                <div>
+                  <h2>Approve campaign</h2>
+                  <div className="hint">Review the finished platform pack and captions before publishing.</div>
+                </div>
+                <button className="secondary" onClick={()=>setApprovalOpen(false)}>Close</button>
+              </div>
+
+              <div className="approvalVisuals">
+                {approvalOutputs.map((output)=>(
+                  <div className="approvalVisual" key={output.fileId}>
+                    <img src={output.url} alt={output.preset} />
+                    <b>{output.preset.replaceAll("_"," ")}</b>
+                    <span>{output.width}×{output.height}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="approvalCopy">
+                <div className="field">
+                  <label>Headline</label>
+                  <input value={approvalCampaign.headline} onChange={(e)=>setApprovalCampaign({...approvalCampaign,headline:e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>Supporting line</label>
+                  <input value={approvalCampaign.supporting} onChange={(e)=>setApprovalCampaign({...approvalCampaign,supporting:e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>Instagram caption</label>
+                  <textarea value={approvalCampaign.instagramCaption} onChange={(e)=>setApprovalCampaign({...approvalCampaign,instagramCaption:e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>Facebook caption</label>
+                  <textarea value={approvalCampaign.facebookCaption} onChange={(e)=>setApprovalCampaign({...approvalCampaign,facebookCaption:e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>Google Business caption</label>
+                  <textarea value={approvalCampaign.googleCaption} onChange={(e)=>setApprovalCampaign({...approvalCampaign,googleCaption:e.target.value})} />
+                </div>
+              </div>
+
+              {approvalStatus && <div className="hint"><b>{approvalStatus}</b></div>}
+
+              <div className="row end">
+                <button className="secondary" onClick={()=>{
+                  setApprovalOpen(false);
+                  setApprovalStatus("Regenerate from the source image if you want a different concept.");
+                }}>Regenerate later</button>
+
+                <button className="secondary" onClick={async()=>{
+                  const brief=[
+                    "Schedule this approved Giftly Art Print campaign via Metricool.",
+                    "Platforms: Instagram, Facebook, Google Business",
+                    "Instagram caption:",approvalCampaign.instagramCaption,
+                    "Facebook caption:",approvalCampaign.facebookCaption,
+                    "Google Business caption:",approvalCampaign.googleCaption,
+                    "Media:",
+                    ...approvalOutputs.map((x)=>x.driveUrl || x.url)
+                  ].join("\n");
+                  await navigator.clipboard.writeText(brief);
+                  setApprovalStatus("Approved scheduling brief copied. Paste it into ChatGPT and tell me the date/time.");
+                }}>Approve & Schedule</button>
+
+                <button className="primary" onClick={async()=>{
+                  const brief=[
+                    "Publish this approved Giftly Art Print campaign now via Metricool.",
+                    "Platforms: Instagram, Facebook, Google Business",
+                    "Instagram caption:",approvalCampaign.instagramCaption,
+                    "Facebook caption:",approvalCampaign.facebookCaption,
+                    "Google Business caption:",approvalCampaign.googleCaption,
+                    "Media:",
+                    ...approvalOutputs.map((x)=>x.driveUrl || x.url)
+                  ].join("\n");
+                  await navigator.clipboard.writeText(brief);
+                  setApprovalStatus("Approved publishing brief copied. Paste it into ChatGPT and I will publish it via Metricool.");
+                }}>Approve & Publish</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {contentTarget && (
           <div className="modal">
             <div className="dialog">
@@ -673,11 +777,11 @@ export default function Home() {
               </div>
 
               <div className="field">
-                <label>What should the new content visual look like?</label>
+                <label>Visual idea (optional)</label>
                 <textarea
                   value={contentPrompt}
                   onChange={(e)=>setContentPrompt(e.target.value)}
-                  placeholder="Example: Create a clean premium Instagram advert. Keep the framed artwork exactly as photographed. Put it in a bright modern interior, use subtle natural shadows and leave clear space at the top for a headline."
+                  placeholder="Optional. Example: Show the frame being held in a warm modern interior. Leave blank and the system will choose the strongest concept automatically."
                 />
               </div>
 
@@ -713,7 +817,7 @@ export default function Home() {
 
                 <button
                   className="primary"
-                  disabled={creatingContent || !contentPrompt.trim()}
+                  disabled={creatingContent}
                   onClick={async()=>{
                     setCreatingContent(true);
                     setContentStatus("Preparing content visual...");
@@ -738,8 +842,15 @@ export default function Home() {
                       setContentStatus(data.message || (res.ok ? "Content visual created." : "Content generation failed."));
 
                       if(res.ok){
+                        setApprovalCampaign(data.campaign || null);
+                        setApprovalOutputs(Array.isArray(data.outputs) ? data.outputs : []);
+                        setApprovalStatus("");
+                        setApprovalOpen(true);
+                        setContentTarget(null);
+                        setContentReference(null);
+                        setContentPrompt("");
                         await loadContent();
-                        setMessage("New content visual created. Source image preserved.");
+                        setMessage("Platform pack created and ready for approval.");
                       }
                     }catch(error){
                       setContentStatus(error instanceof Error ? error.message : "Content generation failed.");
