@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const fileId = extractDriveId(String(body.url || ""));
+    const fileId = String(body.fileId || extractDriveId(String(body.url || ""))).trim();
     const category = String(body.category || "").trim();
 
     if (!fileId || !category) {
