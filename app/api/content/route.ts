@@ -34,10 +34,29 @@ export async function GET(req: NextRequest) {
     if (!response.ok) throw new Error(`Feed returned ${response.status}`);
     const data = await response.json();
 
+    const mediaUrl = new URL(feedUrl);
+    if (feedToken) mediaUrl.searchParams.set("token", feedToken);
+    mediaUrl.searchParams.set("action", "media");
+
+    let mediaByProject: Record<string, string[]> = {};
+    try {
+      const mediaResponse = await fetch(mediaUrl, { cache: "no-store" });
+      if (mediaResponse.ok) {
+        const mediaData = await mediaResponse.json();
+        mediaByProject = mediaData?.mediaByProject ?? {};
+      }
+    } catch {}
+
+    const rawItems = Array.isArray(data) ? data : (data.items ?? []);
+    const items = rawItems.map((item: any) => ({
+      ...item,
+      media: Array.isArray(mediaByProject[item.id]) ? mediaByProject[item.id] : (item.media ?? []),
+    }));
+
     return Response.json({
       configured: true,
       source: "google-drive",
-      items: Array.isArray(data) ? data : (data.items ?? []),
+      items,
       syncedAt: new Date().toISOString()
     });
   } catch (error) {
