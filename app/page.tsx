@@ -106,6 +106,7 @@ export default function Home() {
   const [uploadStatus, setUploadStatus] = useState("");
   const [testingUpload, setTestingUpload] = useState(false);
   const [uploadTestStatus, setUploadTestStatus] = useState("");
+  const [mediaCategory, setMediaCategory] = useState("All");
 
   const loadContent = async () => {
     setLoading(true);
@@ -159,10 +160,21 @@ export default function Home() {
 
   const allMedia = useMemo(
     () =>
-      items.flatMap((item) =>
-        (item.media || []).map((url, index) => ({ url, index, item }))
-      ),
-    [items]
+      items
+        .filter((item) => {
+          if (mediaCategory === "All") return true;
+          const category = (item.category || "").toLowerCase();
+          if (mediaCategory === "Framing") return category.includes("framing");
+          if (mediaCategory === "Fine Art Print") return category.includes("fine art");
+          if (mediaCategory === "Photo Gifts") return category.includes("gift");
+          if (mediaCategory === "Iris Photo") return category.includes("iris");
+          if (mediaCategory === "Business Print") return category.includes("business");
+          return true;
+        })
+        .flatMap((item) =>
+          (item.media || []).map((url, index) => ({ url, index, item }))
+        ),
+    [items, mediaCategory]
   );
 
   const update = (id: string, patch: Partial<Item>) =>
@@ -464,6 +476,18 @@ export default function Home() {
                 {uploadTestStatus}
               </div>
             )}
+
+            <div className="mediaFilters">
+              {["All","Framing","Fine Art Print","Photo Gifts","Iris Photo","Business Print"].map((name)=>(
+                <button
+                  key={name}
+                  className={mediaCategory===name ? "active" : ""}
+                  onClick={()=>setMediaCategory(name)}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
 
             <div className="mediaGrid">
               {allMedia.map(({ url, index, item }) => (
