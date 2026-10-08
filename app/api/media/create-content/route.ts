@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     const sourceBlob = new Blob([sourceBytes], { type: source.mimeType || "image/jpeg" });
 
     const stamp = new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
-    const baseName = stripExt(source.fileName || "image") + "_content_" + stamp;
+    const baseName = "generated_content_" + stripExt(source.fileName || "image") + "_" + stamp;
 
     const variants = [
       {
