@@ -187,6 +187,32 @@ export default function Home() {
     );
   };
 
+  const deleteMedia = async (item: Item, url: string) => {
+    const ok = window.confirm("Delete this image from the Media Library? This action cannot be undone.");
+    if (!ok) return;
+
+    try {
+      const res = await fetch("/api/media/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: item.id, url }),
+      });
+      const data = await res.json();
+      setMessage(data.message || (res.ok ? "Image deleted." : "Delete failed."));
+      if (res.ok) {
+        setItems((xs) =>
+          xs.map((x) =>
+            x.id === item.id
+              ? { ...x, media: (x.media || []).filter((m) => m !== url) }
+              : x
+          )
+        );
+      }
+    } catch {
+      setMessage("Delete failed.");
+    }
+  };
+
   const copyScheduleBrief = async (item: Item, when: string) => {
     const brief = [
       "Schedule Giftly Art Print content via Metricool:",
@@ -417,12 +443,19 @@ export default function Home() {
             <div className="mediaGrid">
               {allMedia.map(({ url, index, item }) => (
                 <article className="mediaTile" key={url}>
-                  <img src={url} alt={item.title + " " + (index + 1)} />
+                  <div className="mediaImageWrap">
+                    <img src={url} alt={item.title + " " + (index + 1)} />
+                    <button
+                      className="mediaDelete"
+                      onClick={() => void deleteMedia(item, url)}
+                      title="Delete image"
+                    >
+                      Delete
+                    </button>
+                  </div>
                   <div className="mediaTileInfo">
                     <b>{item.title}</b>
-                    <span>
-                      {item.id} · Image {index + 1}
-                    </span>
+                    <span>{item.id} · Image {index + 1}</span>
                   </div>
                 </article>
               ))}
