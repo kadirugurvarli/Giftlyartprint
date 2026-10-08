@@ -119,6 +119,14 @@ export default function Home() {
   const [moveTarget, setMoveTarget] = useState<MediaEntry | null>(null);
   const [moveFolder, setMoveFolder] = useState("Bespoke Framing");
   const [previewMedia, setPreviewMedia] = useState<MediaEntry | null>(null);
+  const [enhanceTarget, setEnhanceTarget] = useState<MediaEntry | null>(null);
+  const [enhancePrompt, setEnhancePrompt] = useState("");
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanceStatus, setEnhanceStatus] = useState("");
+  const [enhancePerspective, setEnhancePerspective] = useState(true);
+  const [enhanceLighting, setEnhanceLighting] = useState(true);
+  const [enhanceBackground, setEnhanceBackground] = useState(false);
+  const [enhanceStraighten, setEnhanceStraighten] = useState(true);
 
   const loadContent = async () => {
     setLoading(true);
@@ -621,12 +629,80 @@ export default function Home() {
                 <button
                   className="primary"
                   onClick={() => {
-                    setMessage("Enhance workflow is the next step: perspective, lighting, background and angle corrections will create a new version while preserving the original.");
+                    setEnhanceTarget(previewMedia);
+                    setEnhanceStatus("");
                     setPreviewMedia(null);
                   }}
                 >
                   Enhance
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {enhanceTarget && (
+          <div className="modal">
+            <div className="dialog">
+              <h2>Enhance image</h2>
+              <div className="hint">
+                Original file will be preserved. A new <b>_enhanced</b> version will be created.
+              </div>
+
+              <div className="field enhanceChecks">
+                <label><input type="checkbox" checked={enhancePerspective} onChange={(e)=>setEnhancePerspective(e.target.checked)} /> Correct perspective</label>
+                <label><input type="checkbox" checked={enhanceStraighten} onChange={(e)=>setEnhanceStraighten(e.target.checked)} /> Straighten angle</label>
+                <label><input type="checkbox" checked={enhanceLighting} onChange={(e)=>setEnhanceLighting(e.target.checked)} /> Improve lighting / white balance</label>
+                <label><input type="checkbox" checked={enhanceBackground} onChange={(e)=>setEnhanceBackground(e.target.checked)} /> Clean distracting background</label>
+              </div>
+
+              <div className="field">
+                <label>Additional instruction (optional)</label>
+                <textarea
+                  value={enhancePrompt}
+                  onChange={(e)=>setEnhancePrompt(e.target.value)}
+                  placeholder="Example: keep the black frame exactly as it is; remove only the distracting item on the left."
+                />
+              </div>
+
+              {enhanceStatus && <div className="hint"><b>{enhanceStatus}</b></div>}
+
+              <div className="row end">
+                <button className="secondary" disabled={enhancing} onClick={()=>{
+                  setEnhanceTarget(null);
+                  setEnhancePrompt("");
+                  setEnhanceStatus("");
+                }}>Cancel</button>
+
+                <button className="primary" disabled={enhancing} onClick={async()=>{
+                  setEnhancing(true);
+                  setEnhanceStatus("Creating enhanced version...");
+                  try{
+                    const res=await fetch("/api/media/enhance",{
+                      method:"POST",
+                      headers:{"Content-Type":"application/json"},
+                      body:JSON.stringify({
+                        fileId:enhanceTarget.fileId,
+                        category:enhanceTarget.category,
+                        prompt:enhancePrompt,
+                        perspective:enhancePerspective,
+                        lighting:enhanceLighting,
+                        background:enhanceBackground,
+                        straighten:enhanceStraighten
+                      })
+                    });
+                    const data=await res.json();
+                    setEnhanceStatus(data.message || (res.ok ? "Enhanced version created." : "Enhancement failed."));
+                    if(res.ok){
+                      await loadContent();
+                      setMessage("Enhanced version created. Original preserved.");
+                    }
+                  }catch(error){
+                    setEnhanceStatus(error instanceof Error ? error.message : "Enhancement failed.");
+                  }finally{
+                    setEnhancing(false);
+                  }
+                }}>{enhancing ? "Enhancing..." : "Create enhanced version"}</button>
               </div>
             </div>
           </div>
