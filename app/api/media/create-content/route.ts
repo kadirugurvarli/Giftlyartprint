@@ -101,6 +101,47 @@ function textOverlaySvg(
   </svg>`);
 }
 
+async function buildOriginalSafeBase(
+  source:Buffer,
+  width:number,
+  height:number
+) {
+  const topSpace=Math.round(height*0.24);
+  const sideMargin=Math.round(width*0.055);
+  const bottomMargin=Math.round(height*0.055);
+  const usableHeight=height-topSpace-bottomMargin;
+  const usableWidth=width-sideMargin*2;
+
+  const foreground=await sharp(source)
+    .rotate()
+    .resize(usableWidth,usableHeight,{
+      fit:"contain",
+      background:{r:244,g:242,b:237,alpha:1}
+    })
+    .png()
+    .toBuffer();
+
+  const meta=await sharp(foreground).metadata();
+  const fgW=meta.width || usableWidth;
+  const fgH=meta.height || usableHeight;
+
+  return sharp({
+    create:{
+      width,
+      height,
+      channels:4,
+      background:{r:244,g:242,b:237,alpha:1}
+    }
+  })
+    .composite([{
+      input:foreground,
+      left:Math.max(0,Math.round((width-fgW)/2)),
+      top:topSpace+Math.max(0,Math.round((usableHeight-fgH)/2))
+    }])
+    .png()
+    .toBuffer();
+}
+
 export async function POST(req: NextRequest) {
   const feedUrl = process.env.CONTENT_FEED_URL;
   const feedToken = process.env.CONTENT_FEED_TOKEN;
@@ -225,6 +266,7 @@ export async function POST(req: NextRequest) {
     uploadUrl.searchParams.set("token", feedToken);
 
     const outputs:any[] = [];
+    let usedOriginalSafeFallback = false;
 
     for (const variant of variants) {
       const imageForm = new FormData();
@@ -267,20 +309,27 @@ export async function POST(req: NextRequest) {
 
       const aiData = await aiResponse.json();
 
+      let generated:Buffer;
+      let originalSafe=false;
+
       if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
-        return Response.json({
-          ok:false,
-          message:aiData?.error?.message || `Content image generation failed for ${variant.key}.`
-        }, { status:502 });
+        originalSafe=true;
+        usedOriginalSafeFallback=true;
+        generated=await buildOriginalSafeBase(
+          source.buffer,
+          variant.width,
+          variant.height
+        );
+      } else {
+        generated=Buffer.from(aiData.data[0].b64_json, "base64");
       }
 
-      const generated = Buffer.from(aiData.data[0].b64_json, "base64");
-
-      const base = sharp(generated)
-        .resize(variant.width, variant.height, {
-          fit:"cover",
-          position:"centre"
-        });
+      const base = originalSafe
+        ? sharp(generated)
+        : sharp(generated).resize(variant.width, variant.height, {
+            fit:"cover",
+            position:"centre"
+          });
 
       const cornerW=Math.max(1,Math.round(variant.width*0.42));
       const cornerH=Math.max(1,Math.round(variant.height*0.18));
@@ -368,7 +417,10 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       ok:true,
-      message:"Platform pack created and ready for approval.",
+      message:usedOriginalSafeFallback
+        ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
+        : "Platform pack created and ready for approval.",
+      mode:usedOriginalSafeFallback ? "original-safe" : "ai-assisted",
       campaign,
       outputs
     });
