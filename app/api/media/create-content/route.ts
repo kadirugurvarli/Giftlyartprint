@@ -167,6 +167,10 @@ export async function POST(req: NextRequest) {
     const category = String(formData.get("category") || "").trim();
     const description = String(formData.get("description") || "").trim();
     const reference = formData.get("reference");
+    const creativeMode =
+      Boolean(description.trim()) ||
+      (reference instanceof File && reference.size > 0);
+
 
     if (!fileId || !category) {
       return Response.json({ ok:false, message:"Source image and category are required." }, { status:400 });
@@ -304,31 +308,40 @@ export async function POST(req: NextRequest) {
         imageForm.append("size", variant.apiSize);
 
         let generated:Buffer;
-        let originalSafe=false;
+        let originalSafe=!creativeMode;
 
-        try {
-          const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
-            method:"POST",
-            headers:{ Authorization:`Bearer ${apiKey}` },
-            body:imageForm,
-            signal:AbortSignal.timeout(42000)
-          });
-
-          const aiData = await aiResponse.json();
-
-          if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
-            throw new Error(aiData?.error?.message || "Image generation failed");
-          }
-
-          generated=Buffer.from(aiData.data[0].b64_json, "base64");
-        } catch {
-          originalSafe=true;
+        if (!creativeMode) {
           usedOriginalSafeFallback=true;
           generated=await buildOriginalSafeBase(
             source.buffer,
             variant.width,
             variant.height
           );
+        } else {
+          try {
+            const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
+              method:"POST",
+              headers:{ Authorization:`Bearer ${apiKey}` },
+              body:imageForm,
+              signal:AbortSignal.timeout(42000)
+            });
+
+            const aiData = await aiResponse.json();
+
+            if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
+              throw new Error(aiData?.error?.message || "Image generation failed");
+            }
+
+            generated=Buffer.from(aiData.data[0].b64_json, "base64");
+          } catch {
+            originalSafe=true;
+            usedOriginalSafeFallback=true;
+            generated=await buildOriginalSafeBase(
+              source.buffer,
+              variant.width,
+              variant.height
+            );
+          }
         }
 
         const base = originalSafe
@@ -438,7 +451,7 @@ export async function POST(req: NextRequest) {
       message:usedOriginalSafeFallback
         ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
         : "Platform pack created and ready for approval.",
-      mode:usedOriginalSafeFallback ? "original-safe" : "ai-assisted",
+      mode:creativeMode && !usedOriginalSafeFallback ? "creative-ai" : "original-safe",
       campaign,
       outputs
     });
