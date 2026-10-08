@@ -2,6 +2,63 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+async function prepareImageForUpload(file: File): Promise<File> {
+  const maxBytes = 2.5 * 1024 * 1024;
+  const supported = /^image\/(jpeg|png|webp)$/i.test(file.type || "");
+
+  if (!supported) {
+    if (file.size > maxBytes) {
+      throw new Error("HEIC/HEIF files larger than 2.5 MB should be converted to JPEG before upload.");
+    }
+    return file;
+  }
+
+  if (file.size <= maxBytes) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const maxSide = 1800;
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not prepare image for upload.");
+
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const toBlob = (quality: number) =>
+    new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Could not compress image."))),
+        "image/jpeg",
+        quality
+      );
+    });
+
+  let quality = 0.86;
+  let blob = await toBlob(quality);
+
+  while (blob.size > maxBytes && quality > 0.55) {
+    quality -= 0.08;
+    blob = await toBlob(quality);
+  }
+
+  if (blob.size > maxBytes) {
+    throw new Error("Image is still too large after compression. Please use a smaller JPEG.");
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, "");
+  return new File([blob], baseName + ".jpg", {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+
 type Platform = "Instagram" | "Facebook" | "Google Business";
 type Status = "New" | "Ready" | "Scheduled" | "Published";
 
@@ -46,6 +103,7 @@ export default function Home() {
   const [uploadProjectId, setUploadProjectId] = useState("GAP-0003");
   const [uploadCategory, setUploadCategory] = useState("Bespoke Framing");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   const loadContent = async () => {
     setLoading(true);
@@ -395,7 +453,7 @@ export default function Home() {
                 <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e)=>setUploadFile(e.target.files?.[0] || null)} />
               </div>
               <div className="row end">
-                <button className="secondary" onClick={()=>{setUploadOpen(false);setUploadFile(null)}}>Cancel</button>
+                <button className="secondary" onClick={()=>{setUploadOpen(false);setUploadFile(null);setUploadStatus("")}}>Cancel</button>
                 <button className="primary" disabled={uploading || !uploadFile} onClick={async()=>{
                   if(!uploadFile) return;
                   setUploading(true);
