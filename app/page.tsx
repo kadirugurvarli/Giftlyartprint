@@ -75,6 +75,15 @@ type Item = {
   media?: string[];
 };
 
+type MediaEntry = {
+  fileId: string;
+  fileName: string;
+  category: string;
+  url: string;
+  driveUrl?: string;
+  createdDate?: string;
+};
+
 const MEDIA_BY_ID: Record<string, string[]> = {
   "GAP-0003": [
     "https://drive.google.com/thumbnail?id=14wK2A5acg9iBC76Uuze3psCKxv79euen&sz=w1400",
@@ -106,7 +115,8 @@ export default function Home() {
   const [testingUpload, setTestingUpload] = useState(false);
   const [uploadTestStatus, setUploadTestStatus] = useState("");
   const [mediaCategory, setMediaCategory] = useState("All");
-  const [moveTarget, setMoveTarget] = useState<{item: Item; url: string} | null>(null);
+  const [mediaLibrary, setMediaLibrary] = useState<MediaEntry[]>([]);
+  const [moveTarget, setMoveTarget] = useState<MediaEntry | null>(null);
   const [moveFolder, setMoveFolder] = useState("Bespoke Framing");
 
   const loadContent = async () => {
@@ -115,6 +125,7 @@ export default function Home() {
       const res = await fetch("/api/content", { cache: "no-store" });
       const data = await res.json();
       const raw = Array.isArray(data.items) ? data.items : [];
+      setMediaLibrary(Array.isArray(data.mediaLibrary) ? data.mediaLibrary : []);
       setItems(
         raw.map((item: Item) => ({
           ...item,
@@ -161,21 +172,17 @@ export default function Home() {
 
   const allMedia = useMemo(
     () =>
-      items
-        .filter((item) => {
-          if (mediaCategory === "All") return true;
-          const category = (item.category || "").toLowerCase();
-          if (mediaCategory === "Framing") return category.includes("framing");
-          if (mediaCategory === "Fine Art Print") return category.includes("fine art");
-          if (mediaCategory === "Photo Gifts") return category.includes("gift");
-          if (mediaCategory === "Iris Photo") return category.includes("iris");
-          if (mediaCategory === "Business Print") return category.includes("business");
-          return true;
-        })
-        .flatMap((item) =>
-          (item.media || []).map((url, index) => ({ url, index, item }))
-        ),
-    [items, mediaCategory]
+      mediaLibrary.filter((entry) => {
+        if (mediaCategory === "All") return true;
+        const category = (entry.category || "").toLowerCase();
+        if (mediaCategory === "Framing") return category.includes("framing");
+        if (mediaCategory === "Fine Art Print") return category.includes("fine art");
+        if (mediaCategory === "Photo Gifts") return category.includes("gift");
+        if (mediaCategory === "Iris Photo") return category.includes("iris");
+        if (mediaCategory === "Business Print") return category.includes("business");
+        return true;
+      }),
+    [mediaLibrary, mediaCategory]
   );
 
   const update = (id: string, patch: Partial<Item>) =>
@@ -202,26 +209,20 @@ export default function Home() {
     );
   };
 
-  const deleteMedia = async (item: Item, url: string) => {
-    const ok = window.confirm("Delete this image from the Media Library? This action cannot be undone.");
+  const deleteMedia = async (entry: MediaEntry) => {
+    const ok = window.confirm("Delete this image from the Media Library? It will be moved to Google Drive Trash.");
     if (!ok) return;
 
     try {
       const res = await fetch("/api/media/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: item.id, url }),
+        body: JSON.stringify({ fileId: entry.fileId }),
       });
       const data = await res.json();
       setMessage(data.message || (res.ok ? "Image deleted." : "Delete failed."));
       if (res.ok) {
-        setItems((xs) =>
-          xs.map((x) =>
-            x.id === item.id
-              ? { ...x, media: (x.media || []).filter((m) => m !== url) }
-              : x
-          )
-        );
+        setMediaLibrary((xs) => xs.filter((x) => x.fileId !== entry.fileId));
       }
     } catch {
       setMessage("Delete failed.");
@@ -492,16 +493,16 @@ export default function Home() {
             </div>
 
             <div className="mediaGrid">
-              {allMedia.map(({ url, index, item }) => (
-                <article className="mediaTile" key={url}>
+              {allMedia.map((entry) => (
+                <article className="mediaTile" key={entry.fileId}>
                   <div className="mediaImageWrap">
-                    <img src={url} alt={item.title + " " + (index + 1)} />
+                    <img src={entry.url} alt={entry.fileName} />
                     <div className="mediaActions">
                       <button
                         className="mediaMove"
                         onClick={() => {
-                          setMoveTarget({item, url});
-                          setMoveFolder(item.category || "Bespoke Framing");
+                          setMoveTarget(entry);
+                          setMoveFolder(entry.category || "Bespoke Framing");
                         }}
                         title="Move image"
                       >
@@ -509,7 +510,7 @@ export default function Home() {
                       </button>
                       <button
                         className="mediaDelete"
-                        onClick={() => void deleteMedia(item, url)}
+                        onClick={() => void deleteMedia(entry)}
                         title="Delete image"
                       >
                         Delete
@@ -517,8 +518,8 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="mediaTileInfo">
-                    <b>{item.title}</b>
-                    <span>{item.id} · Image {index + 1}</span>
+                    <b>{entry.fileName}</b>
+                    <span>{entry.category}</span>
                   </div>
                 </article>
               ))}
@@ -610,13 +611,14 @@ export default function Home() {
                       method:"POST",
                       headers:{"Content-Type":"application/json"},
                       body:JSON.stringify({
-                        url:moveTarget.url,
+                        fileId:moveTarget.fileId,
                         category:moveFolder
                       })
                     });
                     const data=await res.json();
                     setMessage(data.message || (res.ok ? "Image moved." : "Move failed."));
                     if(res.ok){
+                      setMediaLibrary((xs)=>xs.map((x)=>x.fileId===moveTarget.fileId ? {...x,category:moveFolder} : x));
                       setMoveTarget(null);
                       await loadContent();
                     }
