@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import sharp from "sharp";
-import { CATEGORY_RULES, PLATFORM_PRESETS, normaliseCategory, type PlatformPreset } from "@/lib/giftly-content-policy";
+import { BRAND, CATEGORY_RULES, PLATFORM_PRESETS, normaliseCategory, wordLimit, type PlatformPreset } from "@/lib/giftly-content-policy";
 import { reviewFinalAsset } from "@/lib/giftly-art-director";
 
 export const runtime = "nodejs";
@@ -395,6 +395,7 @@ export async function POST(req: NextRequest) {
         },
         body:JSON.stringify({
           model:"gpt-5.6-luna",
+          tools:[{type:"web_search"}],
           input:[
             {
               role:"system",
@@ -407,10 +408,31 @@ export async function POST(req: NextRequest) {
               role:"user",
               content:[{
                 type:"input_text",
-                text:`Category: ${category}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story 9:16 and Google Business 1:1.`
+                text:`Category: ${category}\nCategory rules:\n${CATEGORY_RULES[normaliseCategory(category)].join("\\n")}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story 9:16 and Google Business 1:1. Use current successful social content patterns only as inspiration; never copy another brand or post. Keep headline and CTA extremely short.`
               }]
             }
-          ]
+          ],
+          text:{
+            format:{
+              type:"json_schema",
+              name:"giftly_campaign_copy",
+              strict:true,
+              schema:{
+                type:"object",
+                additionalProperties:false,
+                properties:{
+                  concept:{type:"string"},
+                  headline:{type:"string"},
+                  supporting:{type:"string"},
+                  cta:{type:"string"},
+                  instagramCaption:{type:"string"},
+                  facebookCaption:{type:"string"},
+                  googleCaption:{type:"string"}
+                },
+                required:["concept","headline","supporting","cta","instagramCaption","facebookCaption","googleCaption"]
+              }
+            }
+          }
         })
       });
 
@@ -422,7 +444,13 @@ export async function POST(req: NextRequest) {
 
       if (outputText) {
         const cleaned = outputText.replace(/^```json\s*/i,"").replace(/```$/,"").trim();
-        campaign = { ...campaign, ...JSON.parse(cleaned) };
+        const parsed=JSON.parse(cleaned);
+        campaign = {
+          ...campaign,
+          ...parsed,
+          headline:wordLimit(String(parsed.headline || campaign.headline),BRAND.maxHeadlineWords),
+          cta:wordLimit(String(parsed.cta || campaign.cta),BRAND.maxCtaWords)
+        };
       }
     } catch {
       // Safe fallback copy above keeps generation working if research/copy generation fails.
