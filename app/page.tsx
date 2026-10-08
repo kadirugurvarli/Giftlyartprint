@@ -106,6 +106,8 @@ export default function Home() {
   const [testingUpload, setTestingUpload] = useState(false);
   const [uploadTestStatus, setUploadTestStatus] = useState("");
   const [mediaCategory, setMediaCategory] = useState("All");
+  const [moveTarget, setMoveTarget] = useState<{item: Item; url: string} | null>(null);
+  const [moveFolder, setMoveFolder] = useState("Bespoke Framing");
 
   const loadContent = async () => {
     setLoading(true);
@@ -419,7 +421,8 @@ export default function Home() {
                     <b>Website</b> — include in Recent Work
                   </label>
 
-                  <div className="row end">
+                  {uploadStatus && <div className="hint"><b>{uploadStatus}</b></div>}
+              <div className="row end">
                     <button className="secondary" onClick={() => setEdit(item)}>
                       Edit
                     </button>
@@ -493,13 +496,25 @@ export default function Home() {
                 <article className="mediaTile" key={url}>
                   <div className="mediaImageWrap">
                     <img src={url} alt={item.title + " " + (index + 1)} />
-                    <button
-                      className="mediaDelete"
-                      onClick={() => void deleteMedia(item, url)}
-                      title="Delete image"
-                    >
-                      Delete
-                    </button>
+                    <div className="mediaActions">
+                      <button
+                        className="mediaMove"
+                        onClick={() => {
+                          setMoveTarget({item, url});
+                          setMoveFolder(item.category || "Bespoke Framing");
+                        }}
+                        title="Move image"
+                      >
+                        Move
+                      </button>
+                      <button
+                        className="mediaDelete"
+                        onClick={() => void deleteMedia(item, url)}
+                        title="Delete image"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                   <div className="mediaTileInfo">
                     <b>{item.title}</b>
@@ -539,10 +554,13 @@ export default function Home() {
                   if(!uploadFile) return;
                   setUploading(true);
                   setMessage("");
-                  const form=new FormData();
-                  form.append("file",uploadFile);
-                  form.append("category",uploadCategory);
-                  try{
+                  setUploadStatus("Preparing image...");
+                  try {
+                    const prepared=await prepareImageForUpload(uploadFile);
+                    setUploadStatus("Uploading...");
+                    const form=new FormData();
+                    form.append("file",prepared);
+                    form.append("category",uploadCategory);
                     const controller=new AbortController();
                   const timeoutId=window.setTimeout(()=>controller.abort(),25000);
                   const res=await fetch("/api/upload",{method:"POST",body:form,signal:controller.signal});
@@ -554,12 +572,58 @@ export default function Home() {
                       setUploadFile(null);
                       await loadContent();
                     }
-                  }catch{
-                    setMessage("Upload failed.");
-                  }finally{
+                  } catch(error) {
+                    const text = error instanceof DOMException && error.name==="AbortError"
+                      ? "Upload timed out after 25 seconds."
+                      : error instanceof Error ? error.message : "Upload failed.";
+                    setMessage(text);
+                    setUploadStatus(text);
+                  } finally {
                     setUploading(false);
                   }
                 }}>{uploading?"Uploading...":"Upload to Drive"}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {moveTarget && (
+          <div className="modal">
+            <div className="dialog">
+              <h2>Move image</h2>
+              <div className="hint">Choose the destination folder.</div>
+              <div className="field">
+                <label>Move to</label>
+                <select value={moveFolder} onChange={(e)=>setMoveFolder(e.target.value)}>
+                  <option value="Bespoke Framing">Framing</option>
+                  <option value="Fine Art Printing">Fine Art Print</option>
+                  <option value="Photo Gifts">Photo Gifts</option>
+                  <option value="Iris Photography">Iris Photo</option>
+                  <option value="Business Printing">Business Print</option>
+                </select>
+              </div>
+              <div className="row end">
+                <button className="secondary" onClick={()=>setMoveTarget(null)}>Cancel</button>
+                <button className="primary" onClick={async()=>{
+                  try{
+                    const res=await fetch("/api/media/move",{
+                      method:"POST",
+                      headers:{"Content-Type":"application/json"},
+                      body:JSON.stringify({
+                        url:moveTarget.url,
+                        category:moveFolder
+                      })
+                    });
+                    const data=await res.json();
+                    setMessage(data.message || (res.ok ? "Image moved." : "Move failed."));
+                    if(res.ok){
+                      setMoveTarget(null);
+                      await loadContent();
+                    }
+                  }catch(error){
+                    setMessage(error instanceof Error ? error.message : "Move failed.");
+                  }
+                }}>Move image</button>
               </div>
             </div>
           </div>
