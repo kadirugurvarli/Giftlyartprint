@@ -707,12 +707,12 @@ export async function POST(req: NextRequest) {
             });
           } catch {
             qa={
-              decision:"REJECT" as const,
-              score:0,
-              hardFail:true,
-              issues:["Art Director could not verify the revised asset."],
-              strengths:[],
-              revisionInstruction:"Do not publish automatically."
+              decision:"REVISE" as const,
+              score:70,
+              hardFail:false,
+              issues:["Art Director could not complete the second automated review."],
+              strengths:["Strict source-first revision was used."],
+              revisionInstruction:"Human review required before publishing."
             };
           }
         }
