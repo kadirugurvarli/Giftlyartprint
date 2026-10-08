@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function stripExt(name: string) {
   return name.replace(/\.[^.]+$/, "");
@@ -193,7 +193,6 @@ export async function POST(req: NextRequest) {
         },
         body:JSON.stringify({
           model:"gpt-5.6-luna",
-          tools:[{type:"web_search"}],
           input:[
             {
               role:"system",
@@ -268,152 +267,163 @@ export async function POST(req: NextRequest) {
     const outputs:any[] = [];
     let usedOriginalSafeFallback = false;
 
-    for (const variant of variants) {
-      const imageForm = new FormData();
-      imageForm.append("model", "gpt-image-2.5-sunburst");
-      imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
+    const generatedVariants = await Promise.all(
+      variants.map(async (variant) => {
+        const imageForm = new FormData();
+        imageForm.append("model", "gpt-image-2.5-sunburst");
+        imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
 
-      if (reference instanceof File && reference.size > 0) {
-        imageForm.append("image[]", reference, reference.name || "reference.jpg");
-      }
+        if (reference instanceof File && reference.size > 0) {
+          imageForm.append("image[]", reference, reference.name || "reference.jpg");
+        }
 
-      const prompt = [
-        "Create a polished marketing/content visual for Giftly Art Print.",
-        "Permanent production rules:",
-        GLOBAL_CONTENT_RULES,
-        "Image 1 is the primary source/product/customer project and must remain visually faithful.",
-        reference instanceof File && reference.size > 0
-          ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
-          : "",
-        "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
-        "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
-        variant.layout,
-        "Create only the photographic/design scene. Do not render any text, captions, labels, CTA buttons, website text, logos or wordmarks in the image. Leave clean negative space for the system to add brand elements afterwards.",
-        "Keep the design clean, premium, warm and trustworthy with generous whitespace.",
-        "Campaign concept:",
-        campaign.concept,
-        "Reserve clean negative space suitable for a short headline, CTA and website added later by the system.",
-        "User direction (optional):",
-        description || "No extra direction — use the campaign concept above."
-      ].filter(Boolean).join("\n");
+        const prompt = [
+          "Create a polished marketing/content visual for Giftly Art Print.",
+          "Permanent production rules:",
+          GLOBAL_CONTENT_RULES,
+          "Image 1 is the primary source/product/customer project and must remain visually faithful.",
+          reference instanceof File && reference.size > 0
+            ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
+            : "",
+          "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
+          "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
+          variant.layout,
+          "Create only the photographic/design scene. Do not render any text, captions, labels, CTA buttons, website text, logos or wordmarks in the image. Leave clean negative space for the system to add brand elements afterwards.",
+          "Keep the design clean, premium, warm and trustworthy with generous whitespace.",
+          "Campaign concept:",
+          campaign.concept,
+          "Reserve clean negative space suitable for a short headline, CTA and website added later by the system.",
+          "User direction (optional):",
+          description || "No extra direction — use the campaign concept above."
+        ].filter(Boolean).join("\n");
 
-      imageForm.append("prompt", prompt);
-      imageForm.append("quality", "medium");
-      imageForm.append("size", variant.apiSize);
+        imageForm.append("prompt", prompt);
+        imageForm.append("quality", "medium");
+        imageForm.append("size", variant.apiSize);
 
-      const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
-        method:"POST",
-        headers:{ Authorization:`Bearer ${apiKey}` },
-        body:imageForm
-      });
+        let generated:Buffer;
+        let originalSafe=false;
 
-      const aiData = await aiResponse.json();
-
-      let generated:Buffer;
-      let originalSafe=false;
-
-      if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
-        originalSafe=true;
-        usedOriginalSafeFallback=true;
-        generated=await buildOriginalSafeBase(
-          source.buffer,
-          variant.width,
-          variant.height
-        );
-      } else {
-        generated=Buffer.from(aiData.data[0].b64_json, "base64");
-      }
-
-      const base = originalSafe
-        ? sharp(generated)
-        : sharp(generated).resize(variant.width, variant.height, {
-            fit:"cover",
-            position:"centre"
+        try {
+          const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
+            method:"POST",
+            headers:{ Authorization:`Bearer ${apiKey}` },
+            body:imageForm,
+            signal:AbortSignal.timeout(42000)
           });
 
-      const cornerW=Math.max(1,Math.round(variant.width*0.42));
-      const cornerH=Math.max(1,Math.round(variant.height*0.18));
-      const stats=await base
-        .clone()
-        .extract({
-          left:variant.width-cornerW,
-          top:variant.height-cornerH,
-          width:cornerW,
-          height:cornerH
-        })
-        .stats();
+          const aiData = await aiResponse.json();
 
-      const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
-      const darkBackground=brightness<145;
-
-      const logoBase=logoSource.buffer;
-      const logoWidth=Math.round(variant.width*0.28);
-      const logo=await sharp(logoBase)
-        .resize({width:logoWidth,withoutEnlargement:true})
-        .png()
-        .toBuffer();
-
-      const logoMeta=await sharp(logo).metadata();
-      const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
-      const margin=Math.round(variant.width*0.045);
-
-      const processed = await base
-        .composite([
-          {
-            input:textOverlaySvg(
-              variant.width,
-              variant.height,
-              campaign.headline,
-              campaign.cta,
-              "giftlyartprint.co.uk",
-              darkBackground
-            ),
-            top:0,
-            left:0
-          },
-          {
-            input:Buffer.from(`<svg width="${logoWidth+Math.round(margin*0.7)}" height="${logoHeight+Math.round(margin*0.5)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
-            left:variant.width-logoWidth-margin-Math.round(margin*0.35),
-            top:variant.height-logoHeight-margin-Math.round(margin*0.25)
-          },
-          {
-            input:logo,
-            left:variant.width-logoWidth-margin,
-            top:variant.height-logoHeight-margin
+          if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
+            throw new Error(aiData?.error?.message || "Image generation failed");
           }
-        ])
-        .png()
-        .toBuffer();
 
-      const uploadResponse = await fetch(uploadUrl, {
-        method:"POST",
-        headers:{ "Content-Type":"text/plain;charset=utf-8" },
-        body:JSON.stringify({
-          action:"upload",
-          category,
-          fileName:`${baseName}_${variant.suffix}.png`,
-          mimeType:"image/png",
-          base64:processed.toString("base64")
-        }),
-        cache:"no-store"
-      });
+          generated=Buffer.from(aiData.data[0].b64_json, "base64");
+        } catch {
+          originalSafe=true;
+          usedOriginalSafeFallback=true;
+          generated=await buildOriginalSafeBase(
+            source.buffer,
+            variant.width,
+            variant.height
+          );
+        }
 
-      const uploadData = await uploadResponse.json();
+        const base = originalSafe
+          ? sharp(generated)
+          : sharp(generated).resize(variant.width, variant.height, {
+              fit:"cover",
+              position:"centre"
+            });
 
-      if (!uploadResponse.ok || uploadData?.ok === false) {
-        return Response.json({
-          ok:false,
-          message:uploadData?.error || uploadData?.message || `Could not save ${variant.key} output to Drive.`
-        }, { status:502 });
-      }
+        const cornerW=Math.max(1,Math.round(variant.width*0.42));
+        const cornerH=Math.max(1,Math.round(variant.height*0.18));
+        const stats=await base
+          .clone()
+          .extract({
+            left:variant.width-cornerW,
+            top:variant.height-cornerH,
+            width:cornerW,
+            height:cornerH
+          })
+          .stats();
 
-      outputs.push({
-        ...uploadData,
-        preset:variant.key,
-        width:variant.width,
-        height:variant.height
-      });
-    }
+        const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
+        const darkBackground=brightness<145;
+
+        const logoWidth=Math.round(variant.width*0.28);
+        const logo=await sharp(logoSource.buffer)
+          .resize({width:logoWidth,withoutEnlargement:true})
+          .png()
+          .toBuffer();
+
+        const logoMeta=await sharp(logo).metadata();
+        const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
+        const margin=Math.round(variant.width*0.045);
+
+        const processed = await base
+          .composite([
+            {
+              input:textOverlaySvg(
+                variant.width,
+                variant.height,
+                campaign.headline,
+                campaign.cta,
+                "giftlyartprint.co.uk",
+                darkBackground
+              ),
+              top:0,
+              left:0
+            },
+            {
+              input:Buffer.from(`<svg width="${logoWidth+Math.round(margin*0.7)}" height="${logoHeight+Math.round(margin*0.5)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
+              left:variant.width-logoWidth-margin-Math.round(margin*0.35),
+              top:variant.height-logoHeight-margin-Math.round(margin*0.25)
+            },
+            {
+              input:logo,
+              left:variant.width-logoWidth-margin,
+              top:variant.height-logoHeight-margin
+            }
+          ])
+          .png()
+          .toBuffer();
+
+        return { variant, processed };
+      })
+    );
+
+    const uploaded = await Promise.all(
+      generatedVariants.map(async ({variant,processed}) => {
+        const uploadResponse = await fetch(uploadUrl, {
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+          body:JSON.stringify({
+            action:"upload",
+            category,
+            fileName:`${baseName}_${variant.suffix}.png`,
+            mimeType:"image/png",
+            base64:processed.toString("base64")
+          }),
+          cache:"no-store"
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok || uploadData?.ok === false) {
+          throw new Error(uploadData?.error || uploadData?.message || `Could not save ${variant.key} output to Drive.`);
+        }
+
+        return {
+          ...uploadData,
+          preset:variant.key,
+          width:variant.width,
+          height:variant.height
+        };
+      })
+    );
+
+    outputs.push(...uploaded);
 
     return Response.json({
       ok:true,
