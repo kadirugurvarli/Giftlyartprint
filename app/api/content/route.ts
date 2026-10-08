@@ -45,7 +45,14 @@ export async function GET(req: NextRequest) {
       if (mediaResponse.ok) {
         const mediaData = await mediaResponse.json();
         mediaByProject = mediaData?.mediaByProject ?? {};
-        mediaLibrary = Array.isArray(mediaData?.media) ? mediaData.media : [];
+        mediaLibrary = Array.isArray(mediaData?.media)
+          ? mediaData.media.map((entry:any)=>({
+              ...entry,
+              url:entry?.fileId
+                ? `/api/media/file?fileId=${encodeURIComponent(entry.fileId)}`
+                : (entry?.url || entry?.thumbnailUrl || "")
+            }))
+          : [];
       }
     } catch {}
 
