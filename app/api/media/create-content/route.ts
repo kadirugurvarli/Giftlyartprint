@@ -374,16 +374,26 @@ export async function POST(req: NextRequest) {
 
     let campaign = {
       concept: description || "Create a polished premium social media campaign from this real customer/project image.",
-      headline: category === "Iris Photography" ? "Your Iris, Reimagined as Art" :
-        category === "Fine Art Printing" ? "Fine Art Printing, Made Beautifully" :
-        category === "Photo Gifts" ? "Turn a Favourite Photo into Something Special" :
-        category === "Business Printing" ? "Professional Print, Made Locally" :
+      headline: category === "Iris Photography" ? "Your Iris as Art" :
+        category === "Fine Art Printing" ? "Fine Art, Beautifully Printed" :
+        category === "Photo Gifts" ? "Make It Personal" :
+        category === "Business Printing" ? "Professional Print, Made Local" :
         "Bespoke Framing",
-      supporting: category === "Bespoke Framing" ? "Made to showcase what matters to you" : "Made with care by Giftly Art Print",
-      cta: "Send us a photo for a quote",
+      supporting: "",
+      cta: category === "Iris Photography" ? "Book your session" : "Get a quote",
       instagramCaption: "",
       facebookCaption: "",
       googleCaption: ""
+    };
+
+    let marketIntelligence = {
+      dominantPatterns: [] as string[],
+      compositionPattern: "",
+      hookPattern: "",
+      trustPattern: "",
+      ctaPattern: "",
+      adaptationBrief: "",
+      avoidCopying: ""
     };
 
     try {
@@ -401,35 +411,85 @@ export async function POST(req: NextRequest) {
               role:"system",
               content:[{
                 type:"input_text",
-                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Brand style is minimal, premium, warm, trustworthy and never loud or salesy. Headline must be 2-5 words. supporting must be empty or at most 6 words. CTA must be 1-4 words. Captions must be short, natural UK English, no long paragraphs, no filler, and normally 1-3 short sentences. Do not mention your research. Permanent production rules:\n"+GLOBAL_CONTENT_RULES
+                text:[
+                  "You are the Market Intelligence Lead and Creative Director for Giftly Art Print in Maidstone, UK.",
+                  "Before proposing creative, research current public real-world examples in the same service category, prioritising 2025-2026 social posts, reels, studio websites, campaign examples and public trend/engagement evidence.",
+                  "Study successful examples for their transferable mechanics only: subject scale, crop, visual hierarchy, process/reveal structure, craftsmanship proof, background treatment, human presence, emotional hook, trust cue, CTA style, text density and platform composition.",
+                  "Do not copy a competitor's exact layout, wording, logo, colours, artwork, photograph or distinctive trade dress.",
+                  "Do not name competitors in the final customer-facing copy.",
+                  "The goal is pattern imitation: reproduce the successful mechanism with Giftly's own real source image and brand system.",
+                  "Treat the uploaded source/product as protected. Never suggest inventing extra products, eyes, frames, artwork or customer objects.",
+                  "Brand tone: minimal, premium, warm, trustworthy, clean, local, not loud or salesy.",
+                  `Headline maximum: ${BRAND.maxHeadlineWords} words. CTA maximum: ${BRAND.maxCtaWords} words.`,
+                  "On-image copy must remain only headline + CTA + website.",
+                  "Permanent production rules:",
+                  GLOBAL_CONTENT_RULES
+                ].join("\n")
               }]
             },
             {
               role:"user",
               content:[{
                 type:"input_text",
-                text:`Category: ${category}\nCategory rules:\n${CATEGORY_RULES[normaliseCategory(category)].join("\\n")}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story 9:16 and Google Business 1:1. Use current successful social content patterns only as inspiration; never copy another brand or post. Keep headline and CTA extremely short.`
+                text:[
+                  `Category: ${category}`,
+                  "Category rules:",
+                  ...CATEGORY_RULES[normaliseCategory(category)],
+                  `User idea (optional): ${description || "None. Choose the strongest current market pattern for this source."}`,
+                  "Research several current examples first. Prefer evidence of real engagement/performance where available.",
+                  "Distil recurring patterns rather than following a single post.",
+                  "Then create one original Giftly campaign that uses the strongest transferable pattern.",
+                  "The campaign must work as Feed 4:5, Story 9:16 and Google Business 1:1."
+                ].join("\n")
               }]
             }
           ],
           text:{
             format:{
               type:"json_schema",
-              name:"giftly_campaign_copy",
+              name:"giftly_market_led_campaign",
               strict:true,
               schema:{
                 type:"object",
                 additionalProperties:false,
                 properties:{
-                  concept:{type:"string"},
-                  headline:{type:"string"},
-                  supporting:{type:"string"},
-                  cta:{type:"string"},
-                  instagramCaption:{type:"string"},
-                  facebookCaption:{type:"string"},
-                  googleCaption:{type:"string"}
+                  dominantPatterns:{
+                    type:"array",
+                    items:{type:"string"},
+                    minItems:3,
+                    maxItems:5
+                  },
+                  compositionPattern:{type:"string"},
+                  hookPattern:{type:"string"},
+                  trustPattern:{type:"string"},
+                  ctaPattern:{type:"string"},
+                  adaptationBrief:{type:"string"},
+                  avoidCopying:{type:"string"},
+                  campaign:{
+                    type:"object",
+                    additionalProperties:false,
+                    properties:{
+                      concept:{type:"string"},
+                      headline:{type:"string"},
+                      supporting:{type:"string"},
+                      cta:{type:"string"},
+                      instagramCaption:{type:"string"},
+                      facebookCaption:{type:"string"},
+                      googleCaption:{type:"string"}
+                    },
+                    required:["concept","headline","supporting","cta","instagramCaption","facebookCaption","googleCaption"]
+                  }
                 },
-                required:["concept","headline","supporting","cta","instagramCaption","facebookCaption","googleCaption"]
+                required:[
+                  "dominantPatterns",
+                  "compositionPattern",
+                  "hookPattern",
+                  "trustPattern",
+                  "ctaPattern",
+                  "adaptationBrief",
+                  "avoidCopying",
+                  "campaign"
+                ]
               }
             }
           }
@@ -445,15 +505,27 @@ export async function POST(req: NextRequest) {
       if (outputText) {
         const cleaned = outputText.replace(/^```json\s*/i,"").replace(/```$/,"").trim();
         const parsed=JSON.parse(cleaned);
+
+        marketIntelligence = {
+          dominantPatterns:Array.isArray(parsed.dominantPatterns) ? parsed.dominantPatterns.slice(0,5) : [],
+          compositionPattern:String(parsed.compositionPattern || ""),
+          hookPattern:String(parsed.hookPattern || ""),
+          trustPattern:String(parsed.trustPattern || ""),
+          ctaPattern:String(parsed.ctaPattern || ""),
+          adaptationBrief:String(parsed.adaptationBrief || ""),
+          avoidCopying:String(parsed.avoidCopying || "")
+        };
+
+        const p=parsed.campaign || {};
         campaign = {
           ...campaign,
-          ...parsed,
-          headline:wordLimit(String(parsed.headline || campaign.headline),BRAND.maxHeadlineWords),
-          cta:wordLimit(String(parsed.cta || campaign.cta),BRAND.maxCtaWords)
+          ...p,
+          headline:wordLimit(String(p.headline || campaign.headline),BRAND.maxHeadlineWords),
+          cta:wordLimit(String(p.cta || campaign.cta),BRAND.maxCtaWords)
         };
       }
     } catch {
-      // Safe fallback copy above keeps generation working if research/copy generation fails.
+      // Fallback campaign keeps content production working if market research is unavailable.
     }
 
     const source = await fetchDriveImage(feedUrl, feedToken, fileId);
@@ -527,6 +599,12 @@ export async function POST(req: NextRequest) {
           "Keep the design clean, premium, warm and trustworthy with generous whitespace.",
           "Campaign concept:",
           campaign.concept,
+          "Market-intelligence creative pattern to adapt:",
+          marketIntelligence.adaptationBrief || marketIntelligence.compositionPattern || "Use a source-first premium product showcase.",
+          "Transferable successful patterns:",
+          ...(marketIntelligence.dominantPatterns || []),
+          "Do not copy exact competitor layout/wording/branding:",
+          marketIntelligence.avoidCopying || "Create an original Giftly composition.",
           "Reserve clean negative space suitable for a short headline, CTA and website added later by the system.",
           "User direction (optional):",
           description || "No extra direction — use the campaign concept above."
@@ -700,6 +778,7 @@ export async function POST(req: NextRequest) {
         : "Platform pack created and ready for approval.",
       mode:creativeMode && !usedOriginalSafeFallback ? "creative-ai" : "original-safe",
       campaign,
+      marketIntelligence,
       outputs
     });
   } catch (error) {
