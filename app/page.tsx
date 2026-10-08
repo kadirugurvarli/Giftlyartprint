@@ -715,6 +715,10 @@ export default function Home() {
                   <input value={approvalCampaign.supporting} onChange={(e)=>setApprovalCampaign({...approvalCampaign,supporting:e.target.value})} />
                 </div>
                 <div className="field">
+                  <label>CTA</label>
+                  <input value={approvalCampaign.cta} onChange={(e)=>setApprovalCampaign({...approvalCampaign,cta:e.target.value})} />
+                </div>
+                <div className="field">
                   <label>Instagram caption</label>
                   <textarea value={approvalCampaign.instagramCaption} onChange={(e)=>setApprovalCampaign({...approvalCampaign,instagramCaption:e.target.value})} />
                 </div>
