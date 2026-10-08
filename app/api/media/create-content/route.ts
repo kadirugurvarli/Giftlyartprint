@@ -10,6 +10,23 @@ function stripExt(name: string) {
 
 const BRAND_LOGO_FILE_ID = "1viQoWbX4hakq03aCEi88hRvJsGA5GtqX";
 
+
+const GLOBAL_CONTENT_RULES = [
+  "Use only the uploaded source image(s) as the real product/project subject.",
+  "Never invent, add, duplicate or replace physical products, irises, frames, artworks, mounts, prints, props or decorative objects unless the user explicitly asks for them.",
+  "Do not create extra iris discs, extra framed copies, fake products or foreground product props.",
+  "Preserve the real subject's shape, proportions, colours, artwork, frame moulding, mount and visible details faithfully.",
+  "Allowed improvements: straighten, perspective correction, lighting, white balance, contrast, cleanup, background simplification and careful reframing.",
+  "Background edits must remain realistic and must not imply a different product.",
+  "Do not render any logo or wordmark inside the AI-generated scene. The real GiftlyArtPrint logo is applied later by the system.",
+  "Do not render paragraphs or dense marketing copy inside the AI-generated scene.",
+  "The final branded layout is minimal: one short headline, one short CTA and giftlyartprint.co.uk only.",
+  "Headline should normally be 2-5 words. CTA should normally be 1-4 words.",
+  "Overall tone: minimal, premium, warm, trustworthy, clean and not loud or salesy.",
+  "Keep generous negative space for the system-applied headline, CTA, website and real logo.",
+  "Platform outputs are fixed to Feed 4:5, Story 9:16 and Google Business 1:1."
+].join("\n");
+
 async function fetchDriveImage(feedUrl:string, feedToken:string, fileId:string) {
   const url = new URL(feedUrl);
   url.searchParams.set("token", feedToken);
@@ -141,7 +158,7 @@ export async function POST(req: NextRequest) {
               role:"system",
               content:[{
                 type:"input_text",
-                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Brand style is minimal, premium, warm, trustworthy and never loud or salesy. Headline must be 2-5 words. supporting must be empty or at most 6 words. CTA must be 1-4 words. Captions must be short, natural UK English, no long paragraphs, no filler, and normally 1-3 short sentences. Do not mention your research."
+                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Brand style is minimal, premium, warm, trustworthy and never loud or salesy. Headline must be 2-5 words. supporting must be empty or at most 6 words. CTA must be 1-4 words. Captions must be short, natural UK English, no long paragraphs, no filler, and normally 1-3 short sentences. Do not mention your research. Permanent production rules:\n"+GLOBAL_CONTENT_RULES
               }]
             },
             {
@@ -220,6 +237,8 @@ export async function POST(req: NextRequest) {
 
       const prompt = [
         "Create a polished marketing/content visual for Giftly Art Print.",
+        "Permanent production rules:",
+        GLOBAL_CONTENT_RULES,
         "Image 1 is the primary source/product/customer project and must remain visually faithful.",
         reference instanceof File && reference.size > 0
           ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
