@@ -72,3 +72,7 @@ h1{font:600 34px Georgia,serif;margin:0}.sub{color:var(--muted);margin-top:6px}
 .mediaLightboxTop{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
 .mediaFullPreview{background:#efefef;display:flex;align-items:center;justify-content:center;min-height:50vh;max-height:72vh;overflow:auto}
 .mediaFullPreview img{max-width:100%;max-height:70vh;width:auto;height:auto;object-fit:contain;display:block}
+
+.enhanceChecks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+.enhanceChecks label{display:flex;align-items:center;gap:7px;font-size:13px}
+@media(max-width:700px){.enhanceChecks{grid-template-columns:1fr}}
