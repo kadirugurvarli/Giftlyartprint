@@ -32,8 +32,65 @@ export async function POST(req: NextRequest) {
     const description = String(formData.get("description") || "").trim();
     const reference = formData.get("reference");
 
-    if (!fileId || !category || !description) {
-      return Response.json({ ok:false, message:"Source image, category and description are required." }, { status:400 });
+    if (!fileId || !category) {
+      return Response.json({ ok:false, message:"Source image and category are required." }, { status:400 });
+    }
+
+    let campaign = {
+      concept: description || "Create a polished premium social media campaign from this real customer/project image.",
+      headline: category === "Iris Photography" ? "Your Iris, Reimagined as Art" :
+        category === "Fine Art Printing" ? "Fine Art Printing, Made Beautifully" :
+        category === "Photo Gifts" ? "Turn a Favourite Photo into Something Special" :
+        category === "Business Printing" ? "Professional Print, Made Locally" :
+        "Bespoke Framing",
+      supporting: category === "Bespoke Framing" ? "Made to showcase what matters to you" : "Made with care by Giftly Art Print",
+      cta: "Send us a photo for a quote",
+      instagramCaption: "",
+      facebookCaption: "",
+      googleCaption: ""
+    };
+
+    try {
+      const strategyResponse = await fetch("https://api.openai.com/v1/responses", {
+        method:"POST",
+        headers:{
+          Authorization:`Bearer ${apiKey}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          model:"gpt-5.6-luna",
+          tools:[{type:"web_search"}],
+          input:[
+            {
+              role:"system",
+              content:[{
+                type:"input_text",
+                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Captions must be ready to publish, natural UK English, not spammy, and include a concise CTA. Do not mention your research."
+              }]
+            },
+            {
+              role:"user",
+              content:[{
+                type:"input_text",
+                text:`Category: ${category}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story/Reel 9:16 and Google Business 1:1.`
+              }]
+            }
+          ]
+        })
+      });
+
+      const strategyData = await strategyResponse.json();
+      const outputText = Array.isArray(strategyData?.output)
+        ? strategyData.output.flatMap((o:any)=>Array.isArray(o?.content)?o.content:[])
+            .find((x:any)=>x?.type==="output_text")?.text
+        : "";
+
+      if (outputText) {
+        const cleaned = outputText.replace(/^```json\s*/i,"").replace(/```$/,"").trim();
+        campaign = { ...campaign, ...JSON.parse(cleaned) };
+      }
+    } catch {
+      // Safe fallback copy above keeps generation working if research/copy generation fails.
     }
 
     const sourceUrl = new URL(feedUrl);
@@ -73,8 +130,14 @@ export async function POST(req: NextRequest) {
       "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
       "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
       "Create a finished, share-ready promotional visual with polished headline/supporting copy/CTA when appropriate. Keep all essential subject matter and all text inside a central safe area so the same composition can be adapted cleanly to 4:5, 9:16 and 1:1 platform outputs.",
-      "User brief:",
-      description
+      "Campaign concept:",
+      campaign.concept,
+      "Use these exact marketing words where text is appropriate:",
+      "Headline: " + campaign.headline,
+      "Supporting line: " + campaign.supporting,
+      "CTA: " + campaign.cta,
+      "User direction (optional):",
+      description || "No extra direction — use the campaign concept above."
     ].filter(Boolean).join("\n");
 
     imageForm.append("prompt", prompt);
@@ -152,7 +215,8 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       ok:true,
-      message:"Platform pack created: Feed 4:5, Story/Reel 9:16 and Google Business 1:1. Original source preserved.",
+      message:"Platform pack created and ready for approval.",
+      campaign,
       outputs
     });
   } catch (error) {
