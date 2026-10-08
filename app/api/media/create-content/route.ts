@@ -71,17 +71,17 @@ function textOverlaySvg(
 
   const pad=Math.round(width*0.055);
   const panelW=Math.min(Math.round(width*0.78), width-pad*2);
-  const headlineSize=Math.round(width*0.062);
-  const smallSize=Math.round(width*0.028);
-  const ctaSize=Math.round(width*0.031);
-  const panelH=Math.round(height*0.22);
+  const headlineSize=Math.round(width*0.050);
+  const smallSize=Math.round(width*0.024);
+  const ctaSize=Math.round(width*0.026);
+  const panelH=Math.round(height*0.18);
   const y=pad;
 
   return Buffer.from(`
   <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     <rect x="${pad}" y="${y}" width="${panelW}" height="${panelH}" rx="0" fill="${panel}"/>
     <text x="${pad*1.35}" y="${y+headlineSize*1.35}"
-      font-family="Arial, Helvetica, sans-serif"
+      font-family="DejaVu Sans, sans-serif"
       font-size="${headlineSize}" font-weight="700"
       fill="${fg}">${escapeXml(headline)}</text>
     <rect x="${pad*1.35}" y="${y+panelH-Math.round(height*0.068)}"
@@ -89,12 +89,12 @@ function textOverlaySvg(
       rx="0" fill="${ctaBg}"/>
     <text x="${pad*1.35+Math.round(width*0.018)}"
       y="${y+panelH-Math.round(height*0.037)}"
-      font-family="Arial, Helvetica, sans-serif"
+      font-family="DejaVu Sans, sans-serif"
       font-size="${ctaSize}" font-weight="700" fill="${ctaFg}">
       ${escapeXml(cta)}
     </text>
     <text x="${pad*1.35}" y="${y+panelH-Math.round(height*0.012)}"
-      font-family="Arial, Helvetica, sans-serif"
+      font-family="DejaVu Sans, sans-serif"
       font-size="${smallSize}" fill="${fg}">
       ${escapeXml(contact)}
     </text>
@@ -351,7 +351,11 @@ export async function POST(req: NextRequest) {
         const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
         const darkBackground=brightness<145;
 
-        const logoWidth=Math.round(variant.width*0.28);
+        const logoScale =
+          variant.key==="story_9x16" ? 0.34 :
+          variant.key==="google_business_1x1" ? 0.24 :
+          0.28;
+        const logoWidth=Math.round(variant.width*logoScale);
         const logo=await sharp(logoSource.buffer)
           .resize({width:logoWidth,withoutEnlargement:true})
           .png()
@@ -359,7 +363,9 @@ export async function POST(req: NextRequest) {
 
         const logoMeta=await sharp(logo).metadata();
         const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
-        const margin=Math.round(variant.width*0.045);
+        const margin=Math.round(
+          variant.width * (variant.key==="story_9x16" ? 0.055 : 0.045)
+        );
 
         const processed = await base
           .composite([
