@@ -1074,10 +1074,22 @@ export default function Home() {
                         method:"POST",
                         body:form
                       });
-                      const data=await res.json();
+
+                      const responseText=await res.text();
+                      let data:any={};
+
+                      try{
+                        data=responseText ? JSON.parse(responseText) : {};
+                      }catch{
+                        data={
+                          ok:false,
+                          message:responseText || "Content generation returned an invalid response."
+                        };
+                      }
+
                       setContentStatus(data.message || (res.ok ? "Content visual created." : "Content generation failed."));
 
-                      if(res.ok){
+                      if(res.ok && data?.ok !== false){
                         setApprovalCampaign(data.campaign || null);
                         setApprovalOutputs(Array.isArray(data.outputs) ? data.outputs : []);
                         setApprovalStatus("");
