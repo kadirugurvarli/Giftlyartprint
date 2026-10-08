@@ -441,8 +441,8 @@ export async function POST(req: NextRequest) {
             usedOriginalSafeFallback=true;
             generated=await buildOriginalSafeBase(
               source.buffer,
-              variant.width,
-              variant.height
+              preset,
+              false
             );
           }
         }
