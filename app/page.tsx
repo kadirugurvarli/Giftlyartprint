@@ -1120,6 +1120,10 @@ export default function Home() {
               <div className="hint">
                 Source: <b>{contentTarget.fileName}</b>. The original image is preserved.
               </div>
+              <div className="platformPack" style={{marginTop:10}}>
+                <b>V2 Protected Product Pipeline</b>
+                <span>Source pixels protected · reference used as style only · AI generates background only · logo/text rendered by code</span>
+              </div>
 
               <div className="field">
                 <label>Visual idea (optional)</label>
@@ -1138,7 +1142,7 @@ export default function Home() {
                   onChange={(e)=>setContentReference(e.target.files?.[0] || null)}
                 />
                 <div className="hint">
-                  Use this when you want the new visual to follow another image's layout, background, mood or style.
+                  V2 analyses this into a StyleSpec only. The reference image is never sent to the background image generator.
                 </div>
               </div>
 
