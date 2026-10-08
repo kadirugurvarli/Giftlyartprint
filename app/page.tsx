@@ -435,6 +435,21 @@ export default function Home() {
                 </div>
               </div>
               <div className="row">
+                <button className="secondary" onClick={async()=>{
+                  setMessage("Testing upload connection...");
+                  try{
+                    const res=await fetch("/api/upload/self-test",{cache:"no-store"});
+                    const data=await res.json();
+                    const upstream=data?.upstream;
+                    if(res.ok && data.ok){
+                      setMessage("Upload connection OK" + (upstream?.fileId ? " · Test file created in Drive." : ""));
+                    }else{
+                      setMessage("Upload test failed: " + (upstream?.error || data?.message || JSON.stringify(upstream || data)));
+                    }
+                  }catch(error){
+                    setMessage("Upload test failed: " + (error instanceof Error ? error.message : "Unknown error"));
+                  }
+                }}>Test Upload Connection</button>
                 <button className="primary" onClick={() => setUploadOpen(true)}>Upload Images</button>
                 <button className="secondary" onClick={() => setView("dashboard")}>Back to Dashboard</button>
               </div>
