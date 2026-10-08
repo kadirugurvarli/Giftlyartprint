@@ -2,106 +2,254 @@ import { NextRequest } from "next/server";
 import sharp from "sharp";
 import React from "react";
 import satori from "satori";
+import { readFile } from "fs/promises";
+import { createRequire } from "module";
+import {
+  BRAND,
+  CATEGORY_RULES,
+  GLOBAL_CONTENT_RULES,
+  PLATFORM_PRESETS,
+  PlatformPreset,
+  normaliseCategory,
+  wordLimit,
+} from "@/lib/giftly-content-policy";
+import {
+  ArtDirectorReview,
+  reviewFinalAsset,
+} from "@/lib/giftly-art-director";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-function stripExt(name: string) {
-  return name.replace(/\.[^.]+$/, "");
+const BRAND_LOGO_FILE_ID = "1viQoWbX4hakq03aCEi88hRvJsGA5GtqX";
+const require = createRequire(import.meta.url);
+
+function stripExt(name:string){
+  return name.replace(/\.[^.]+$/,"");
 }
 
-const BRAND_LOGO_FILE_ID = "1viQoWbX4hakq03aCEi88hRvJsGA5GtqX";
+async function fetchDriveImage(feedUrl:string,feedToken:string,fileId:string){
+  const url=new URL(feedUrl);
+  url.searchParams.set("token",feedToken);
+  url.searchParams.set("action","file");
+  url.searchParams.set("fileId",fileId);
 
+  const response=await fetch(url,{cache:"no-store"});
+  const text=await response.text();
+  let data:any={};
 
-const GLOBAL_CONTENT_RULES = [
-  "Use only the uploaded source image(s) as the real product/project subject.",
-  "Never invent, add, duplicate or replace physical products, irises, frames, artworks, mounts, prints, props or decorative objects unless the user explicitly asks for them.",
-  "Do not create extra iris discs, extra framed copies, fake products or foreground product props.",
-  "Preserve the real subject's shape, proportions, colours, artwork, frame moulding, mount and visible details faithfully.",
-  "Allowed improvements: straighten, perspective correction, lighting, white balance, contrast, cleanup, background simplification and careful reframing.",
-  "Background edits must remain realistic and must not imply a different product.",
-  "Do not render any logo or wordmark inside the AI-generated scene. The real GiftlyArtPrint logo is applied later by the system.",
-  "Do not render paragraphs or dense marketing copy inside the AI-generated scene.",
-  "The final branded layout is minimal: one short headline, one short CTA and giftlyartprint.co.uk only.",
-  "Headline should normally be 2-5 words. CTA should normally be 1-4 words.",
-  "Overall tone: minimal, premium, warm, trustworthy, clean and not loud or salesy.",
-  "Keep generous negative space for the system-applied headline, CTA, website and real logo.",
-  "Platform outputs are fixed to Feed 4:5, Story 9:16 and Google Business 1:1."
-].join("\n");
+  try{ data=text ? JSON.parse(text) : {}; }
+  catch{ throw new Error(text || "Drive returned an invalid response."); }
 
-async function fetchDriveImage(feedUrl:string, feedToken:string, fileId:string) {
-  const url = new URL(feedUrl);
-  url.searchParams.set("token", feedToken);
-  url.searchParams.set("action", "file");
-  url.searchParams.set("fileId", fileId);
-
-  const response = await fetch(url, { cache:"no-store" });
-  const data = await response.json();
-
-  if (!response.ok || data?.ok === false || !data?.base64) {
+  if(!response.ok || data?.ok===false || !data?.base64){
     throw new Error(data?.error || data?.message || "Could not read image asset from Drive.");
   }
 
   return {
-    buffer: Buffer.from(data.base64, "base64"),
-    fileName: data.fileName || "image.png",
-    mimeType: data.mimeType || "image/png",
+    buffer:Buffer.from(data.base64,"base64"),
+    fileName:data.fileName || "image.png",
+    mimeType:data.mimeType || "image/png",
   };
 }
 
-function escapeXml(value:string) {
-  return value
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&apos;");
+let fontPromise:Promise<[Buffer,Buffer]>|null=null;
+
+async function loadFonts(){
+  if(!fontPromise){
+    fontPromise=Promise.all([
+      readFile(require.resolve("@fontsource/inter/files/inter-latin-400-normal.woff2")),
+      readFile(require.resolve("@fontsource/inter/files/inter-latin-700-normal.woff2")),
+    ]);
+  }
+  return fontPromise;
 }
 
-
-let interRegularPromise: Promise<ArrayBuffer> | null = null;
-let interBoldPromise: Promise<ArrayBuffer> | null = null;
-
-async function loadInterFonts() {
-  if (!interRegularPromise) {
-    interRegularPromise = fetch(
-      "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.6/latin-400-normal.woff2"
-    ).then((r) => {
-      if (!r.ok) throw new Error("Could not load Inter Regular");
-      return r.arrayBuffer();
-    });
+function outputText(data:any){
+  if(typeof data?.output_text==="string") return data.output_text;
+  if(!Array.isArray(data?.output)) return "";
+  for(const item of data.output){
+    if(!Array.isArray(item?.content)) continue;
+    for(const part of item.content){
+      if(part?.type==="output_text" && typeof part?.text==="string") return part.text;
+    }
   }
-
-  if (!interBoldPromise) {
-    interBoldPromise = fetch(
-      "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.6/latin-700-normal.woff2"
-    ).then((r) => {
-      if (!r.ok) throw new Error("Could not load Inter Bold");
-      return r.arrayBuffer();
-    });
-  }
-
-  return Promise.all([interRegularPromise, interBoldPromise]);
+  return "";
 }
 
-async function makeTextOverlayPng(
-  width:number,
-  height:number,
+async function generateCampaign(args:{
+  apiKey:string;
+  category:string;
+  description:string;
+}){
+  const category=normaliseCategory(args.category);
+
+  const fallback={
+    concept:args.description || "Source-first premium showcase",
+    headline:
+      category==="Iris Photography" ? "Your Iris as Art" :
+      category==="Fine Art Printing" ? "Fine Art, Beautifully Printed" :
+      category==="Photo Gifts" ? "Make It Personal" :
+      category==="Business Printing" ? "Professional Print, Made Local" :
+      "Bespoke Framing",
+    cta:
+      category==="Iris Photography" ? "Book your session" :
+      category==="Photo Gifts" ? "Order yours" :
+      "Get a quote",
+    instagramCaption:"",
+    facebookCaption:"",
+    googleCaption:"",
+  };
+
+  const schema={
+    type:"object",
+    additionalProperties:false,
+    properties:{
+      concept:{type:"string"},
+      headline:{type:"string"},
+      cta:{type:"string"},
+      instagramCaption:{type:"string"},
+      facebookCaption:{type:"string"},
+      googleCaption:{type:"string"},
+    },
+    required:["concept","headline","cta","instagramCaption","facebookCaption","googleCaption"],
+  };
+
+  try{
+    const response=await fetch("https://api.openai.com/v1/responses",{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${args.apiKey}`,
+        "Content-Type":"application/json",
+      },
+      body:JSON.stringify({
+        model:"gpt-5.6-luna",
+        tools:[{type:"web_search"}],
+        input:[{
+          role:"user",
+          content:[{
+            type:"input_text",
+            text:[
+              "You are Giftly Art Print's senior Creative Director.",
+              "Create a concise social campaign strategy, not a finished visual.",
+              "Use current successful social design/copy patterns as inspiration when useful, but never copy a competitor, brand, caption or campaign.",
+              `Category: ${category}`,
+              `Optional user direction: ${args.description || "None. Choose the strongest concept yourself."}`,
+              "Permanent production rules:",
+              ...GLOBAL_CONTENT_RULES,
+              "Category rules:",
+              ...CATEGORY_RULES[category],
+              `Brand tone: ${BRAND.tone.join(", ")}.`,
+              `Headline maximum: ${BRAND.maxHeadlineWords} words.`,
+              `CTA maximum: ${BRAND.maxCtaWords} words.`,
+              `Captions maximum: ${BRAND.maxCaptionSentences} short sentences.`,
+              "Do not mention research or competitors in the output.",
+            ].join("\n")
+          }]
+        }],
+        text:{
+          format:{
+            type:"json_schema",
+            name:"giftly_campaign_strategy",
+            strict:true,
+            schema,
+          }
+        }
+      })
+    });
+
+    const data=await response.json();
+    if(!response.ok) throw new Error(data?.error?.message || "Creative Director failed.");
+
+    const raw=outputText(data);
+    if(!raw) return fallback;
+
+    const parsed=JSON.parse(raw);
+    return {
+      ...fallback,
+      ...parsed,
+      headline:wordLimit(String(parsed.headline || fallback.headline),BRAND.maxHeadlineWords),
+      cta:wordLimit(String(parsed.cta || fallback.cta),BRAND.maxCtaWords),
+    };
+  }catch{
+    return fallback;
+  }
+}
+
+async function buildSourceFirstCanvas(
+  source:Buffer,
+  preset:PlatformPreset,
+  strict=false
+){
+  const width=preset.width;
+  const height=preset.height;
+
+  const topSafe=Math.round(height*(preset.topSafeRatio + (strict?0.035:0)));
+  const bottomSafe=Math.round(height*(preset.bottomSafeRatio + (strict?0.025:0)));
+  const side=Math.round(width*(preset.outerMarginRatio + (strict?0.018:0)));
+
+  const subjectMaxWidth=Math.round(width*(preset.subjectMaxWidth-(strict?0.07:0)));
+  const subjectMaxHeight=Math.round(height*(preset.subjectMaxHeight-(strict?0.07:0)));
+
+  const background=await sharp(source)
+    .rotate()
+    .resize(width,height,{fit:"cover",position:"centre"})
+    .blur(32)
+    .modulate({brightness:0.62,saturation:0.72})
+    .png()
+    .toBuffer();
+
+  const foreground=await sharp(source)
+    .rotate()
+    .resize(subjectMaxWidth,subjectMaxHeight,{
+      fit:"contain",
+      withoutEnlargement:false,
+      background:{r:247,g:245,b:240,alpha:1}
+    })
+    .png()
+    .toBuffer();
+
+  const meta=await sharp(foreground).metadata();
+  const fgW=meta.width || subjectMaxWidth;
+  const fgH=meta.height || subjectMaxHeight;
+
+  const usableTop=Math.max(
+    topSafe,
+    Math.round(height*0.19)
+  );
+  const usableBottom=height-bottomSafe-Math.round(height*0.06);
+  const usableH=Math.max(1,usableBottom-usableTop);
+
+  const left=Math.max(side,Math.round((width-fgW)/2));
+  const top=usableTop+Math.max(0,Math.round((usableH-fgH)/2));
+
+  return sharp(background)
+    .composite([{
+      input:foreground,
+      left:Math.min(left,width-fgW-side),
+      top:Math.min(top,height-fgH-bottomSafe),
+    }])
+    .png()
+    .toBuffer();
+}
+
+async function makeTextOverlay(
+  preset:PlatformPreset,
   headline:string,
   cta:string,
-  contact:string,
-  dark:boolean
-) {
-  const [regular,bold] = await loadInterFonts();
+  strict=false
+){
+  const [regular,bold]=await loadFonts();
+  const width=preset.width;
+  const height=preset.height;
+  const pad=Math.round(width*(preset.outerMarginRatio+(strict?0.018:0)));
 
-  const fg = dark ? "#ffffff" : "#171717";
-  const chipBg = dark ? "rgba(0,0,0,0.68)" : "rgba(255,255,255,0.88)";
-  const ctaBg = dark ? "#ffffff" : "#171717";
-  const ctaFg = dark ? "#171717" : "#ffffff";
-  const pad = Math.round(width*0.055);
-  const maxW = Math.round(width*0.68);
+  const fontScale=strict ? 0.038 : 0.044;
+  const headlineSize=Math.round(width*fontScale);
+  const smallSize=Math.round(width*(strict?0.019:0.021));
+  const ctaSize=Math.round(width*(strict?0.022:0.024));
+  const maxW=Math.round(width*(strict?0.58:0.66));
 
-  const element = React.createElement(
+  const node=React.createElement(
     "div",
     {
       style:{
@@ -112,7 +260,7 @@ async function makeTextOverlayPng(
         justifyContent:"flex-start",
         padding:`${pad}px`,
         boxSizing:"border-box",
-        fontFamily:"Inter"
+        fontFamily:"Inter",
       }
     },
     React.createElement(
@@ -122,8 +270,8 @@ async function makeTextOverlayPng(
           display:"flex",
           flexDirection:"column",
           alignItems:"flex-start",
-          gap:Math.round(height*0.012),
-          maxWidth:maxW
+          gap:Math.round(height*0.009),
+          maxWidth:maxW,
         }
       },
       React.createElement(
@@ -131,12 +279,12 @@ async function makeTextOverlayPng(
         {
           style:{
             display:"flex",
-            background:chipBg,
-            color:fg,
-            padding:`${Math.round(height*0.012)}px ${Math.round(width*0.018)}px`,
-            fontSize:Math.round(width*0.047),
+            background:"rgba(255,255,255,0.92)",
+            color:"#171717",
+            padding:`${Math.round(height*0.009)}px ${Math.round(width*0.015)}px`,
+            fontSize:headlineSize,
             fontWeight:700,
-            lineHeight:1.05
+            lineHeight:1.08,
           }
         },
         headline
@@ -146,12 +294,12 @@ async function makeTextOverlayPng(
         {
           style:{
             display:"flex",
-            background:ctaBg,
-            color:ctaFg,
-            padding:`${Math.round(height*0.010)}px ${Math.round(width*0.018)}px`,
-            fontSize:Math.round(width*0.025),
+            background:"#171717",
+            color:"#ffffff",
+            padding:`${Math.round(height*0.008)}px ${Math.round(width*0.015)}px`,
+            fontSize:ctaSize,
             fontWeight:700,
-            lineHeight:1
+            lineHeight:1,
           }
         },
         cta
@@ -161,346 +309,377 @@ async function makeTextOverlayPng(
         {
           style:{
             display:"flex",
-            background:chipBg,
-            color:fg,
-            padding:`${Math.round(height*0.007)}px ${Math.round(width*0.014)}px`,
-            fontSize:Math.round(width*0.021),
+            background:"rgba(255,255,255,0.92)",
+            color:"#171717",
+            padding:`${Math.round(height*0.006)}px ${Math.round(width*0.012)}px`,
+            fontSize:smallSize,
             fontWeight:400,
-            lineHeight:1
+            lineHeight:1,
           }
         },
-        contact
+        BRAND.website
       )
     )
   );
 
-  const svg = await satori(element,{
+  const svg=await satori(node,{
     width,
     height,
     fonts:[
       {name:"Inter",data:regular,weight:400,style:"normal"},
-      {name:"Inter",data:bold,weight:700,style:"normal"}
+      {name:"Inter",data:bold,weight:700,style:"normal"},
     ]
   });
 
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-export async function POST(req: NextRequest) {
-  const feedUrl = process.env.CONTENT_FEED_URL;
-  const feedToken = process.env.CONTENT_FEED_TOKEN;
-  const apiKey = process.env.OPENAI_API_KEY;
+async function applyBranding(args:{
+  base:Buffer;
+  logo:Buffer;
+  preset:PlatformPreset;
+  headline:string;
+  cta:string;
+  strict?:boolean;
+}){
+  const strict=Boolean(args.strict);
+  const width=args.preset.width;
+  const height=args.preset.height;
 
-  if (!feedUrl || !feedToken) {
-    return Response.json({ ok:false, message:"Google content feed is not configured." }, { status:503 });
-  }
+  const textLayer=await makeTextOverlay(
+    args.preset,
+    args.headline,
+    args.cta,
+    strict
+  );
 
-  if (!apiKey) {
-    return Response.json({
-      ok:false,
-      code:"OPENAI_NOT_CONFIGURED",
-      message:"OpenAI image generation is not configured yet."
-    }, { status:503 });
-  }
+  const logoRatio=Math.max(
+    0.15,
+    args.preset.logoWidthRatio-(strict?0.045:0)
+  );
+  const logoWidth=Math.round(width*logoRatio);
+  const logo=await sharp(args.logo)
+    .resize({width:logoWidth,withoutEnlargement:true})
+    .png()
+    .toBuffer();
 
-  try {
-    const formData = await req.formData();
-    const fileId = String(formData.get("fileId") || "").trim();
-    const category = String(formData.get("category") || "").trim();
-    const description = String(formData.get("description") || "").trim();
-    const reference = formData.get("reference");
-    const creativeMode =
-      Boolean(description.trim()) ||
-      (reference instanceof File && reference.size > 0);
+  const logoMeta=await sharp(logo).metadata();
+  const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
+  const margin=Math.round(width*(args.preset.outerMarginRatio+(strict?0.015:0)));
+  const backingPad=Math.round(width*0.012);
 
+  const backing=Buffer.from(
+    `<svg width="${logoWidth+backingPad*2}" height="${logoHeight+backingPad*2}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.94)"/></svg>`
+  );
 
-    if (!fileId || !category) {
-      return Response.json({ ok:false, message:"Source image and category are required." }, { status:400 });
-    }
-
-    let campaign = {
-      concept: description || "Create a polished premium social media campaign from this real customer/project image.",
-      headline: category === "Iris Photography" ? "Your Iris, Reimagined as Art" :
-        category === "Fine Art Printing" ? "Fine Art Printing, Made Beautifully" :
-        category === "Photo Gifts" ? "Turn a Favourite Photo into Something Special" :
-        category === "Business Printing" ? "Professional Print, Made Locally" :
-        "Bespoke Framing",
-      supporting: category === "Bespoke Framing" ? "Made to showcase what matters to you" : "Made with care by Giftly Art Print",
-      cta: "Send us a photo for a quote",
-      instagramCaption: "",
-      facebookCaption: "",
-      googleCaption: ""
-    };
-
-    try {
-      const strategyResponse = await fetch("https://api.openai.com/v1/responses", {
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${apiKey}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          model:"gpt-5.6-luna",
-          input:[
-            {
-              role:"system",
-              content:[{
-                type:"input_text",
-                text:"You are the social content strategist for Giftly Art Print, a Maidstone, UK framing, fine-art printing, iris photography, photo-gift and business-printing studio. Research current successful visual/copy patterns for this service category when useful, but do not copy any brand or post. Return only valid JSON with keys concept, headline, supporting, cta, instagramCaption, facebookCaption, googleCaption. Keep claims factual and local. Brand style is minimal, premium, warm, trustworthy and never loud or salesy. Headline must be 2-5 words. supporting must be empty or at most 6 words. CTA must be 1-4 words. Captions must be short, natural UK English, no long paragraphs, no filler, and normally 1-3 short sentences. Do not mention your research. Permanent production rules:\n"+GLOBAL_CONTENT_RULES
-              }]
-            },
-            {
-              role:"user",
-              content:[{
-                type:"input_text",
-                text:`Category: ${category}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story 9:16 and Google Business 1:1.`
-              }]
-            }
-          ]
-        })
-      });
-
-      const strategyData = await strategyResponse.json();
-      const outputText = Array.isArray(strategyData?.output)
-        ? strategyData.output.flatMap((o:any)=>Array.isArray(o?.content)?o.content:[])
-            .find((x:any)=>x?.type==="output_text")?.text
-        : "";
-
-      if (outputText) {
-        const cleaned = outputText.replace(/^```json\s*/i,"").replace(/```$/,"").trim();
-        campaign = { ...campaign, ...JSON.parse(cleaned) };
-      }
-    } catch {
-      // Safe fallback copy above keeps generation working if research/copy generation fails.
-    }
-
-    const source = await fetchDriveImage(feedUrl, feedToken, fileId);
-    const logoSource = await fetchDriveImage(feedUrl, feedToken, BRAND_LOGO_FILE_ID);
-
-    const sourceBlob = new Blob([source.buffer], { type: source.mimeType || "image/jpeg" });
-
-    const stamp = new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
-    const baseName = "generated_content_" + stripExt(source.fileName || "image") + "_" + stamp;
-
-    const variants = [
+  return sharp(args.base)
+    .resize(width,height,{fit:"fill"})
+    .composite([
+      {input:textLayer,left:0,top:0},
       {
-        key:"feed_4x5",
-        width:1080,
-        height:1350,
-        suffix:"feed_4x5",
-        apiSize:"1024x1536",
-        layout:"Design specifically for a 4:5 social feed post. Keep headline, supporting copy, CTA and the main subject comfortably inside the 4:5 safe area with balanced top and bottom breathing room."
+        input:backing,
+        left:width-logoWidth-margin-backingPad,
+        top:height-logoHeight-margin-backingPad,
       },
       {
-        key:"story_9x16",
-        width:1080,
-        height:1920,
-        suffix:"story_9x16",
-        apiSize:"1024x1536",
-        layout:"Design specifically for a vertical 9:16 Story. Use a taller composition, keep all important text away from the extreme top and bottom UI zones, and make the subject visually strong in the centre."
-      },
-      {
-        key:"google_business_1x1",
-        width:720,
-        height:720,
-        suffix:"google_business_1x1",
-        apiSize:"1024x1024",
-        layout:"Design specifically for a square 1:1 Google Business post. Use a compact square composition with readable text, a prominent subject and a clear CTA without crowding."
+        input:logo,
+        left:width-logoWidth-margin,
+        top:height-logoHeight-margin,
       }
-    ];
+    ])
+    .png()
+    .toBuffer();
+}
 
-    const uploadUrl = new URL(feedUrl);
-    uploadUrl.searchParams.set("token", feedToken);
+async function buildCreativeScene(args:{
+  apiKey:string;
+  source:Buffer;
+  sourceName:string;
+  sourceMime:string;
+  reference:File|null;
+  preset:PlatformPreset;
+  category:string;
+  concept:string;
+  userDirection:string;
+}){
+  const form=new FormData();
+  form.append("model","gpt-image-2.5-sunburst");
+  form.append(
+    "image[]",
+    new Blob([args.source],{type:args.sourceMime || "image/jpeg"}),
+    args.sourceName || "source.jpg"
+  );
 
-    const outputs:any[] = [];
-    let usedOriginalSafeFallback = false;
+  if(args.reference && args.reference.size>0){
+    form.append("image[]",args.reference,args.reference.name || "reference.jpg");
+  }
 
-    const generatedVariants = await Promise.all(
-      variants.map(async (variant) => {
-        const imageForm = new FormData();
-        imageForm.append("model", "gpt-image-2.5-sunburst");
-        imageForm.append("image[]", sourceBlob, source.fileName || "source.jpg");
+  const category=normaliseCategory(args.category);
+  const prompt=[
+    "Create only the visual scene for a Giftly Art Print social asset.",
+    "Do not render any logo, words, captions, CTA, website, labels or typography.",
+    "Permanent rules:",
+    ...GLOBAL_CONTENT_RULES,
+    "Category rules:",
+    ...CATEGORY_RULES[category],
+    `Platform: ${args.preset.label}, exact final ratio ${args.preset.width}:${args.preset.height}.`,
+    "Leave protected negative space near the top-left for later branding and near the bottom-right for the real logo.",
+    `Campaign concept: ${args.concept}`,
+    `Explicit user direction: ${args.userDirection || "None"}`,
+  ].join("\n");
 
-        if (reference instanceof File && reference.size > 0) {
-          imageForm.append("image[]", reference, reference.name || "reference.jpg");
+  form.append("prompt",prompt);
+  form.append("quality","medium");
+  form.append("size",args.preset.apiSize);
+
+  const response=await fetch("https://api.openai.com/v1/images/edits",{
+    method:"POST",
+    headers:{Authorization:`Bearer ${args.apiKey}`},
+    body:form,
+    signal:AbortSignal.timeout(45000),
+  });
+
+  const data=await response.json();
+  if(!response.ok || !data?.data?.[0]?.b64_json){
+    throw new Error(data?.error?.message || "Creative scene generation failed.");
+  }
+
+  return Buffer.from(data.data[0].b64_json,"base64");
+}
+
+async function uploadAsset(args:{
+  uploadUrl:URL;
+  category:string;
+  fileName:string;
+  image:Buffer;
+}){
+  const response=await fetch(args.uploadUrl,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({
+      action:"upload",
+      category:args.category,
+      fileName:args.fileName,
+      mimeType:"image/png",
+      base64:args.image.toString("base64"),
+    }),
+    cache:"no-store",
+  });
+
+  const text=await response.text();
+  let data:any={};
+  try{ data=text ? JSON.parse(text) : {}; }
+  catch{ throw new Error(text || "Drive upload returned an invalid response."); }
+
+  if(!response.ok || data?.ok===false){
+    throw new Error(data?.error || data?.message || "Could not save generated asset.");
+  }
+
+  return data;
+}
+
+export async function POST(req:NextRequest){
+  const feedUrl=process.env.CONTENT_FEED_URL;
+  const feedToken=process.env.CONTENT_FEED_TOKEN;
+  const apiKey=process.env.OPENAI_API_KEY;
+
+  if(!feedUrl || !feedToken){
+    return Response.json(
+      {ok:false,message:"Google content feed is not configured."},
+      {status:503}
+    );
+  }
+
+  if(!apiKey){
+    return Response.json(
+      {ok:false,code:"OPENAI_NOT_CONFIGURED",message:"OpenAI content director is not configured yet."},
+      {status:503}
+    );
+  }
+
+  try{
+    const formData=await req.formData();
+    const fileId=String(formData.get("fileId") || "").trim();
+    const category=String(formData.get("category") || "").trim();
+    const description=String(formData.get("description") || "").trim();
+    const referenceValue=formData.get("reference");
+    const reference=referenceValue instanceof File && referenceValue.size>0
+      ? referenceValue
+      : null;
+
+    if(!fileId || !category){
+      return Response.json(
+        {ok:false,message:"Source image and category are required."},
+        {status:400}
+      );
+    }
+
+    const creativeMode=Boolean(description) || Boolean(reference);
+
+    const [source,logo,campaign]=await Promise.all([
+      fetchDriveImage(feedUrl,feedToken,fileId),
+      fetchDriveImage(feedUrl,feedToken,BRAND_LOGO_FILE_ID),
+      generateCampaign({apiKey,category,description}),
+    ]);
+
+    const protectedSource=await sharp(source.buffer)
+      .rotate()
+      .png()
+      .toBuffer();
+
+    const produced=await Promise.all(
+      PLATFORM_PRESETS.map(async(preset)=>{
+        let productionMode:"source-first"|"creative-ai"="source-first";
+        let base:Buffer;
+
+        if(creativeMode){
+          try{
+            base=await buildCreativeScene({
+              apiKey,
+              source:source.buffer,
+              sourceName:source.fileName,
+              sourceMime:source.mimeType,
+              reference,
+              preset,
+              category,
+              concept:campaign.concept,
+              userDirection:description,
+            });
+            base=await sharp(base)
+              .resize(preset.width,preset.height,{fit:"cover",position:"centre"})
+              .png()
+              .toBuffer();
+            productionMode="creative-ai";
+          }catch{
+            base=await buildSourceFirstCanvas(source.buffer,preset,false);
+          }
+        }else{
+          base=await buildSourceFirstCanvas(source.buffer,preset,false);
         }
 
-        const prompt = [
-          "Create a polished marketing/content visual for Giftly Art Print.",
-          "Permanent production rules:",
-          GLOBAL_CONTENT_RULES,
-          "Image 1 is the primary source/product/customer project and must remain visually faithful.",
-          reference instanceof File && reference.size > 0
-            ? "Image 2 is reference only. Use it for layout, mood, styling, background treatment or composition. Do not replace the subject from image 1."
-            : "",
-          "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
-          "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
-          variant.layout,
-          "Create only the photographic/design scene. Do not render any text, captions, labels, CTA buttons, website text, logos or wordmarks in the image. Leave clean negative space for the system to add brand elements afterwards.",
-          "Keep the design clean, premium, warm and trustworthy with generous whitespace.",
-          "Campaign concept:",
-          campaign.concept,
-          "Reserve clean negative space suitable for a short headline, CTA and website added later by the system.",
-          "User direction (optional):",
-          description || "No extra direction — use the campaign concept above."
-        ].filter(Boolean).join("\n");
+        let finalImage=await applyBranding({
+          base,
+          logo:logo.buffer,
+          preset,
+          headline:campaign.headline,
+          cta:campaign.cta,
+        });
 
-        imageForm.append("prompt", prompt);
-        imageForm.append("quality", "medium");
-        imageForm.append("size", variant.apiSize);
+        let qa:ArtDirectorReview;
 
-        let generated:Buffer;
-        let originalSafe=!creativeMode;
+        try{
+          qa=await reviewFinalAsset({
+            apiKey,
+            sourceImage:protectedSource,
+            finalImage,
+            preset,
+            category,
+            headline:campaign.headline,
+            cta:campaign.cta,
+          });
+        }catch{
+          qa={
+            decision:"REVISE",
+            score:0,
+            hardFail:false,
+            issues:["Art Director review was unavailable on the first pass."],
+            strengths:[],
+            revisionInstruction:"Use the strict source-first layout.",
+          };
+        }
 
-        if (!creativeMode) {
-          usedOriginalSafeFallback=true;
-          generated=await buildOriginalSafeBase(
-            source.buffer,
-            variant.width,
-            variant.height
-          );
-        } else {
-          try {
-            const aiResponse = await fetch("https://api.openai.com/v1/images/edits", {
-              method:"POST",
-              headers:{ Authorization:`Bearer ${apiKey}` },
-              body:imageForm,
-              signal:AbortSignal.timeout(42000)
+        if(qa.decision!=="PASS" || qa.hardFail || qa.score<85){
+          productionMode="source-first";
+          const strictBase=await buildSourceFirstCanvas(source.buffer,preset,true);
+          finalImage=await applyBranding({
+            base:strictBase,
+            logo:logo.buffer,
+            preset,
+            headline:campaign.headline,
+            cta:campaign.cta,
+            strict:true,
+          });
+
+          try{
+            qa=await reviewFinalAsset({
+              apiKey,
+              sourceImage:protectedSource,
+              finalImage,
+              preset,
+              category,
+              headline:campaign.headline,
+              cta:campaign.cta,
             });
-
-            const aiData = await aiResponse.json();
-
-            if (!aiResponse.ok || !aiData?.data?.[0]?.b64_json) {
-              throw new Error(aiData?.error?.message || "Image generation failed");
-            }
-
-            generated=Buffer.from(aiData.data[0].b64_json, "base64");
-          } catch {
-            originalSafe=true;
-            usedOriginalSafeFallback=true;
-            generated=await buildOriginalSafeBase(
-              source.buffer,
-              variant.width,
-              variant.height
-            );
+          }catch{
+            qa={
+              decision:"REVISE",
+              score:70,
+              hardFail:false,
+              issues:["Art Director could not complete the second automated review."],
+              strengths:["Strict source-first layout was used."],
+              revisionInstruction:"Human review required.",
+            };
           }
         }
 
-        const base = originalSafe
-          ? sharp(generated)
-          : sharp(generated).resize(variant.width, variant.height, {
-              fit:"cover",
-              position:"centre"
-            });
-
-        const cornerW=Math.max(1,Math.round(variant.width*0.42));
-        const cornerH=Math.max(1,Math.round(variant.height*0.18));
-        const stats=await base
-          .clone()
-          .extract({
-            left:variant.width-cornerW,
-            top:variant.height-cornerH,
-            width:cornerW,
-            height:cornerH
-          })
-          .stats();
-
-        const brightness=(stats.channels[0].mean+stats.channels[1].mean+stats.channels[2].mean)/3;
-        const darkBackground=brightness<145;
-
-        const logoScale =
-          variant.key==="story_9x16" ? 0.34 :
-          variant.key==="google_business_1x1" ? 0.24 :
-          0.28;
-        const logoWidth=Math.round(variant.width*logoScale);
-        const logo=await sharp(logoSource.buffer)
-          .resize({width:logoWidth,withoutEnlargement:true})
-          .png()
-          .toBuffer();
-
-        const logoMeta=await sharp(logo).metadata();
-        const logoHeight=logoMeta.height || Math.round(logoWidth*0.28);
-        const margin=Math.round(
-          variant.width * (variant.key==="story_9x16" ? 0.055 : 0.045)
-        );
-
-        const processed = await base
-          .composite([
-            {
-              input:await makeTextOverlayPng(
-                variant.width,
-                variant.height,
-                campaign.headline,
-                campaign.cta,
-                "giftlyartprint.co.uk",
-                darkBackground
-              ),
-              top:0,
-              left:0
-            },
-            {
-              input:Buffer.from(`<svg width="${logoWidth+Math.round(margin*0.7)}" height="${logoHeight+Math.round(margin*0.5)}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="rgba(70,70,70,0.92)"/></svg>`),
-              left:variant.width-logoWidth-margin-Math.round(margin*0.35),
-              top:variant.height-logoHeight-margin-Math.round(margin*0.25)
-            },
-            {
-              input:logo,
-              left:variant.width-logoWidth-margin,
-              top:variant.height-logoHeight-margin
-            }
-          ])
-          .png()
-          .toBuffer();
-
-        return { variant, processed };
+        return {preset,finalImage,qa,productionMode};
       })
     );
 
-    const uploaded = await Promise.all(
-      generatedVariants.map(async ({variant,processed}) => {
-        const uploadResponse = await fetch(uploadUrl, {
-          method:"POST",
-          headers:{ "Content-Type":"text/plain;charset=utf-8" },
-          body:JSON.stringify({
-            action:"upload",
-            category,
-            fileName:`${baseName}_${variant.suffix}.png`,
-            mimeType:"image/png",
-            base64:processed.toString("base64")
-          }),
-          cache:"no-store"
+    const failed=produced.filter(
+      x=>x.qa.hardFail || x.qa.decision==="REJECT" || x.qa.score<70
+    );
+
+    if(failed.length){
+      return Response.json({
+        ok:false,
+        code:"ART_DIRECTOR_REJECTED",
+        message:"Art Director rejected one or more platform assets. Nothing was sent to Approval.",
+        reviews:failed.map(x=>({
+          preset:x.preset.key,
+          qa:x.qa,
+        })),
+      },{status:422});
+    }
+
+    const uploadUrl=new URL(feedUrl);
+    uploadUrl.searchParams.set("token",feedToken);
+
+    const stamp=new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
+    const baseName="generated_content_"+stripExt(source.fileName)+"_"+stamp;
+
+    const outputs=await Promise.all(
+      produced.map(async(item)=>{
+        const fileName=`${baseName}_${item.preset.key}.png`;
+        const uploaded=await uploadAsset({
+          uploadUrl,
+          category,
+          fileName,
+          image:item.finalImage,
         });
 
-        const uploadData = await uploadResponse.json();
-
-        if (!uploadResponse.ok || uploadData?.ok === false) {
-          throw new Error(uploadData?.error || uploadData?.message || `Could not save ${variant.key} output to Drive.`);
-        }
-
         return {
-          ...uploadData,
-          preset:variant.key,
-          width:variant.width,
-          height:variant.height
+          ...uploaded,
+          preset:item.preset.key,
+          width:item.preset.width,
+          height:item.preset.height,
+          productionMode:item.productionMode,
+          qa:item.qa,
         };
       })
     );
 
-    outputs.push(...uploaded);
-
     return Response.json({
       ok:true,
-      message:usedOriginalSafeFallback
-        ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
-        : "Platform pack created and ready for approval.",
-      mode:creativeMode && !usedOriginalSafeFallback ? "creative-ai" : "original-safe",
+      message:"Creative Director produced the platform pack and Art Director completed QA.",
+      mode:creativeMode ? "directed" : "source-first",
       campaign,
-      outputs
+      outputs,
     });
-  } catch (error) {
+  }catch(error){
     return Response.json({
       ok:false,
-      message:error instanceof Error ? error.message : "Content generation failed."
-    }, { status:500 });
+      message:error instanceof Error ? error.message : "Content production failed.",
+    },{status:500});
   }
 }
