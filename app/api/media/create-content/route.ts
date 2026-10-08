@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
               role:"user",
               content:[{
                 type:"input_text",
-                text:`Category: ${category}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story/Reel 9:16 and Google Business 1:1.`
+                text:`Category: ${category}\nUser idea (optional): ${description || "No idea supplied — choose the strongest concept yourself."}\nCreate one cohesive campaign concept suitable for Feed 4:5, Story 9:16 and Google Business 1:1.`
               }]
             }
           ]
@@ -124,12 +124,12 @@ export async function POST(req: NextRequest) {
         layout:"Design specifically for a 4:5 social feed post. Keep headline, supporting copy, CTA and the main subject comfortably inside the 4:5 safe area with balanced top and bottom breathing room."
       },
       {
-        key:"story_reel_9x16",
+        key:"story_9x16",
         width:1080,
         height:1920,
-        suffix:"story_reel_9x16",
+        suffix:"story_9x16",
         apiSize:"1024x1536",
-        layout:"Design specifically for a vertical 9:16 Story/Reel. Use a taller composition, keep all important text away from the extreme top and bottom UI zones, and make the subject visually strong in the centre."
+        layout:"Design specifically for a vertical 9:16 Story. Use a taller composition, keep all important text away from the extreme top and bottom UI zones, and make the subject visually strong in the centre."
       },
       {
         key:"google_business_1x1",
