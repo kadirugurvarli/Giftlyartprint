@@ -39,11 +39,13 @@ export async function GET(req: NextRequest) {
     mediaUrl.searchParams.set("action", "media");
 
     let mediaByProject: Record<string, string[]> = {};
+    let mediaLibrary: any[] = [];
     try {
       const mediaResponse = await fetch(mediaUrl, { cache: "no-store" });
       if (mediaResponse.ok) {
         const mediaData = await mediaResponse.json();
         mediaByProject = mediaData?.mediaByProject ?? {};
+        mediaLibrary = Array.isArray(mediaData?.media) ? mediaData.media : [];
       }
     } catch {}
 
@@ -71,6 +73,7 @@ export async function GET(req: NextRequest) {
       configured: true,
       source: "google-drive",
       items,
+      mediaLibrary,
       syncedAt: new Date().toISOString()
     });
   } catch (error) {
