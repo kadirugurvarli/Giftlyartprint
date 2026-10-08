@@ -100,7 +100,6 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProjectId, setUploadProjectId] = useState("GAP-0003");
   const [uploadCategory, setUploadCategory] = useState("Bespoke Framing");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -519,16 +518,16 @@ export default function Home() {
           <div className="modal">
             <div className="dialog">
               <h2>Upload image</h2>
-              <div className="hint">Upload a project image to Google Drive. It will be placed in 00 - UPLOAD HERE and linked to the selected project.</div>
+              <div className="hint">Choose the service folder and upload the image. No Project ID is required.</div>
               <div className="field">
-                <label>Project ID</label>
-                <select value={uploadProjectId} onChange={(e)=>setUploadProjectId(e.target.value)}>
-                  {items.map((item)=><option key={item.id} value={item.id}>{item.id} — {item.title}</option>)}
+                <label>Upload folder</label>
+                <select value={uploadCategory} onChange={(e)=>setUploadCategory(e.target.value)}>
+                  <option value="Bespoke Framing">Framing</option>
+                  <option value="Fine Art Printing">Fine Art Print</option>
+                  <option value="Photo Gifts">Photo Gifts</option>
+                  <option value="Iris Photography">Iris Photo</option>
+                  <option value="Business Printing">Business Print</option>
                 </select>
-              </div>
-              <div className="field">
-                <label>Category</label>
-                <input value={uploadCategory} onChange={(e)=>setUploadCategory(e.target.value)} />
               </div>
               <div className="field">
                 <label>Image</label>
@@ -542,7 +541,6 @@ export default function Home() {
                   setMessage("");
                   const form=new FormData();
                   form.append("file",uploadFile);
-                  form.append("projectId",uploadProjectId);
                   form.append("category",uploadCategory);
                   try{
                     const controller=new AbortController();
