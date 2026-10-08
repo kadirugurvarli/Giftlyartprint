@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 async function prepareImageForUpload(file: File): Promise<File> {
-  const maxBytes = 2.5 * 1024 * 1024;
+  const maxBytes = 700 * 1024;
   const supported = /^image\/(jpeg|png|webp)$/i.test(file.type || "");
 
   if (!supported) {
     if (file.size > maxBytes) {
-      throw new Error("HEIC/HEIF files larger than 2.5 MB should be converted to JPEG before upload.");
+      throw new Error("HEIC/HEIF files larger than 700 KB should be converted to JPEG before upload.");
     }
     return file;
   }
@@ -16,7 +16,7 @@ async function prepareImageForUpload(file: File): Promise<File> {
   if (file.size <= maxBytes) return file;
 
   const bitmap = await createImageBitmap(file);
-  const maxSide = 1800;
+  const maxSide = 1400;
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));
   const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -40,16 +40,16 @@ async function prepareImageForUpload(file: File): Promise<File> {
       );
     });
 
-  let quality = 0.86;
+  let quality = 0.78;
   let blob = await toBlob(quality);
 
-  while (blob.size > maxBytes && quality > 0.55) {
-    quality -= 0.08;
+  while (blob.size > maxBytes && quality > 0.42) {
+    quality -= 0.07;
     blob = await toBlob(quality);
   }
 
   if (blob.size > maxBytes) {
-    throw new Error("Image is still too large after compression. Please use a smaller JPEG.");
+    throw new Error("Image is still too large after compression. Please use a smaller JPEG or PNG.");
   }
 
   const baseName = file.name.replace(/\.[^.]+$/, "");
@@ -521,7 +521,10 @@ export default function Home() {
                   form.append("projectId",uploadProjectId);
                   form.append("category",uploadCategory);
                   try{
-                    const res=await fetch("/api/upload",{method:"POST",body:form});
+                    const controller=new AbortController();
+                  const timeoutId=window.setTimeout(()=>controller.abort(),25000);
+                  const res=await fetch("/api/upload",{method:"POST",body:form,signal:controller.signal});
+                  window.clearTimeout(timeoutId);
                     const data=await res.json();
                     setMessage(data.message || (res.ok?"Upload complete.":"Upload failed."));
                     if(res.ok){
