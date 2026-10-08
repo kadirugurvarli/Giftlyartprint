@@ -143,6 +143,7 @@ export default function Home() {
   const [testingUpload, setTestingUpload] = useState(false);
   const [uploadTestStatus, setUploadTestStatus] = useState("");
   const [mediaCategory, setMediaCategory] = useState("All");
+  const [mediaKind, setMediaKind] = useState<"source" | "generated">("source");
   const [mediaLibrary, setMediaLibrary] = useState<MediaEntry[]>([]);
   const [moveTarget, setMoveTarget] = useState<MediaEntry | null>(null);
   const [moveFolder, setMoveFolder] = useState("Bespoke Framing");
@@ -250,6 +251,14 @@ export default function Home() {
   const allMedia = useMemo(
     () =>
       mediaLibrary.filter((entry) => {
+        const isGenerated =
+          entry.fileName.startsWith("generated_content_") ||
+          entry.fileName.includes("_content_") ||
+          entry.fileName.includes("_enhanced");
+
+        if (mediaKind === "source" && isGenerated) return false;
+        if (mediaKind === "generated" && !isGenerated) return false;
+
         if (mediaCategory === "All") return true;
         const category = (entry.category || "").toLowerCase();
         if (mediaCategory === "Framing") return category.includes("framing");
@@ -259,7 +268,7 @@ export default function Home() {
         if (mediaCategory === "Business Print") return category.includes("business");
         return true;
       }),
-    [mediaLibrary, mediaCategory]
+    [mediaLibrary, mediaCategory, mediaKind]
   );
 
   const update = (id: string, patch: Partial<Item>) =>
@@ -669,6 +678,21 @@ export default function Home() {
                 {uploadTestStatus}
               </div>
             )}
+
+            <div className="libraryTabs">
+              <button
+                className={mediaKind==="source" ? "active" : ""}
+                onClick={()=>setMediaKind("source")}
+              >
+                Uploaded Originals
+              </button>
+              <button
+                className={mediaKind==="generated" ? "active" : ""}
+                onClick={()=>setMediaKind("generated")}
+              >
+                Generated Content
+              </button>
+            </div>
 
             <div className="mediaFilters">
               {["All","Framing","Fine Art Print","Photo Gifts","Iris Photo","Business Print"].map((name)=>(
