@@ -31,7 +31,7 @@ export default function Home(){
   const [edit,setEdit]=useState<Item|null>(null);
   const [prompt,setPrompt]=useState("");
   const [publish,setPublish]=useState<Item|null>(null);
-  const [schedule,setSchedule]=useState<Item|null>(null);\n  const [metricoolMessage,setMetricoolMessage]=useState("");
+  const [schedule,setSchedule]=useState<Item|null>(null);\n  const [metricoolMessage,setMetricoolMessage]=useState("Free plan mode: publishing is handed off to ChatGPT + Metricool MCP.");
   const [loading,setLoading]=useState(true);
   const [syncing,setSyncing]=useState(false);
   const [source,setSource]=useState("Loading...");
@@ -181,13 +181,30 @@ export default function Home(){
         <div className="hint">Platforms: {schedule.platforms.join(" + ")}</div>
         <div className="row end">
           <button className="secondary" onClick={()=>setSchedule(null)}>Cancel</button>
-          <button className="primary" onClick={async()=>{\n            const input=document.getElementById("when") as HTMLInputElement|null;\n            const when=input?.value;\n            if(!when){setMetricoolMessage("Choose a date and time first.");return;}\n            const map:{[key:string]:string}={Instagram:"instagram",Facebook:"facebook","Google Business":"gmb"};\n            const res=await fetch("/api/metricool/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:schedule.caption,providers:schedule.platforms.map(p=>map[p]),publicationDate:when})});\n            const data=await res.json();\n            setMetricoolMessage(data.message||"Metricool response received.");\n            if(res.ok) update(schedule.id,{status:"Scheduled"});\n            setSchedule(null);\n          }}>Confirm schedule</button>
+          <button className="primary" onClick={async()=>{
+            const input=document.getElementById("when") as HTMLInputElement|null;
+            const when=input?.value;
+            if(!when){setMetricoolMessage("Choose a date and time first.");return;}
+            const brief=[
+              "Schedule Giftly Art Print content via Metricool:",
+              "ID: "+schedule.id,
+              "Title: "+schedule.title,
+              "Platforms: "+schedule.platforms.join(", "),
+              "Date/time (Europe/London): "+when,
+              "Caption:",
+              schedule.caption
+            ].join("\n");
+            await navigator.clipboard.writeText(brief);
+            update(schedule.id,{status:"Ready",scheduled:when});
+            setMetricoolMessage("Scheduling brief copied. Paste it into ChatGPT and I will schedule it through Metricool.");
+            setSchedule(null);
+          }}>Copy schedule brief</button>
         </div>
       </div></div>}
 
       {publish&&<div className="modal"><div className="dialog">
         <h2>Publish now?</h2>
-        <p>This will publish the approved image and caption to: <b>{publish.platforms.join(" + ")}</b>.</p>
+        <p>Free plan mode: this prepares the approved post for <b>{publish.platforms.join(" + ")}</b>. The publishing brief will be copied so ChatGPT can send it through Metricool MCP.</p>
         <div className="field">
           <label><input type="checkbox" defaultChecked/> Instagram</label>
           <label><input type="checkbox" defaultChecked/> Facebook</label>
@@ -195,7 +212,21 @@ export default function Home(){
         </div>
         <div className="row end">
           <button className="secondary" onClick={()=>setPublish(null)}>Cancel</button>
-          <button className="primary" onClick={async()=>{\n            const now=new Date(Date.now()+2*60*1000);\n            const local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,19);\n            const map:{[key:string]:string}={Instagram:"instagram",Facebook:"facebook","Google Business":"gmb"};\n            const res=await fetch("/api/metricool/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:publish.caption,providers:publish.platforms.map(p=>map[p]),publicationDate:local})});\n            const data=await res.json();\n            setMetricoolMessage(res.ok?"Queued in Metricool for immediate publishing.":(data.message||"Metricool connection required."));\n            if(res.ok) update(publish.id,{status:"Scheduled"});\n            setPublish(null);\n          }}>Confirm & Publish</button>
+          <button className="primary" onClick={async()=>{
+            const brief=[
+              "Publish Giftly Art Print content now via Metricool:",
+              "ID: "+publish.id,
+              "Title: "+publish.title,
+              "Platforms: "+publish.platforms.join(", "),
+              "Website Recent Work: "+(publish.website?"Yes":"No"),
+              "Caption:",
+              publish.caption
+            ].join("\n");
+            await navigator.clipboard.writeText(brief);
+            update(publish.id,{status:"Ready"});
+            setMetricoolMessage("Publishing brief copied. Paste it into ChatGPT and I will publish it through Metricool.");
+            setPublish(null);
+          }}>Copy & publish with ChatGPT</button>
         </div>
       </div></div>}
     </main>
