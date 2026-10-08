@@ -153,6 +153,7 @@ export default function Home() {
   const [approvalOutputs, setApprovalOutputs] = useState<CampaignOutput[]>([]);
   const [approvalStatus, setApprovalStatus] = useState("");
   const [approvalScheduleAt, setApprovalScheduleAt] = useState("");
+  const [hasSavedApproval, setHasSavedApproval] = useState(false);
 
   const loadContent = async () => {
     setLoading(true);
@@ -183,7 +184,32 @@ export default function Home() {
 
   useEffect(() => {
     void loadContent();
+
+    try {
+      const saved = localStorage.getItem("giftly-latest-approval-v1");
+      setHasSavedApproval(Boolean(saved));
+    } catch {
+      setHasSavedApproval(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!approvalOpen || !approvalCampaign || approvalOutputs.length === 0) return;
+
+    try {
+      localStorage.setItem(
+        "giftly-latest-approval-v1",
+        JSON.stringify({
+          campaign: approvalCampaign,
+          outputs: approvalOutputs,
+          scheduleAt: approvalScheduleAt,
+        })
+      );
+      setHasSavedApproval(true);
+    } catch {
+      // Approval still works even if browser storage is unavailable.
+    }
+  }, [approvalOpen, approvalCampaign, approvalOutputs, approvalScheduleAt]);
 
   const runSync = async () => {
     setSyncing(true);
@@ -506,6 +532,22 @@ export default function Home() {
                   }
                 }}>{testingUpload?"Testing...":"Test Upload Connection"}</button>
                 <button className="primary" onClick={() => setUploadOpen(true)}>Upload Images</button>
+                {hasSavedApproval && (
+                  <button className="secondary" onClick={()=>{
+                    try{
+                      const raw=localStorage.getItem("giftly-latest-approval-v1");
+                      if(!raw) return;
+                      const saved=JSON.parse(raw);
+                      setApprovalCampaign(saved.campaign || null);
+                      setApprovalOutputs(Array.isArray(saved.outputs) ? saved.outputs : []);
+                      setApprovalScheduleAt(saved.scheduleAt || "");
+                      setApprovalStatus("");
+                      setApprovalOpen(true);
+                    }catch{
+                      setMessage("Saved approval could not be restored.");
+                    }
+                  }}>Resume Approval</button>
+                )}
                 <button className="secondary" onClick={() => setView("dashboard")}>Back to Dashboard</button>
               </div>
             </div>
@@ -746,6 +788,14 @@ export default function Home() {
               {approvalStatus && <div className="hint"><b>{approvalStatus}</b></div>}
 
               <div className="row end">
+                <button className="secondary" onClick={()=>{
+                  try{ localStorage.removeItem("giftly-latest-approval-v1"); }catch{}
+                  setHasSavedApproval(false);
+                  setApprovalOpen(false);
+                  setApprovalCampaign(null);
+                  setApprovalOutputs([]);
+                  setApprovalScheduleAt("");
+                }}>Discard Draft</button>
                 <button className="secondary" onClick={()=>{
                   setApprovalOpen(false);
                   setApprovalStatus("Regenerate from the source image if you want a different concept.");
