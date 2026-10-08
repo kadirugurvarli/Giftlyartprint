@@ -721,21 +721,9 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    const rejected = generatedVariants.filter(
+    const criticalReview = generatedVariants.some(
       ({qa}) => qa.hardFail || qa.decision === "REJECT" || qa.score < 55
     );
-
-    if (rejected.length) {
-      return Response.json({
-        ok:false,
-        code:"ART_DIRECTOR_HARD_FAIL",
-        message:"Art Director found a critical visual problem in one or more platform assets. Nothing was sent to Approval.",
-        reviews:rejected.map(({variant,qa})=>({
-          preset:variant.key,
-          qa
-        }))
-      }, { status:422 });
-    }
 
     const needsReview = generatedVariants.some(
       ({qa}) => qa.decision !== "PASS" || qa.score < 85
@@ -772,7 +760,8 @@ export async function POST(req: NextRequest) {
           height:variant.height,
           qa,
           revisionCount,
-          needsReview: qa.decision !== "PASS" || qa.score < 85
+          needsReview: qa.decision !== "PASS" || qa.score < 85,
+          criticalReview: qa.hardFail || qa.decision === "REJECT" || qa.score < 55
         };
       })
     );
@@ -781,15 +770,18 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       ok:true,
-      message:needsReview
-        ? "Platform pack created. Art Director recommends human review on one or more variants before publishing."
-        : (usedOriginalSafeFallback
-          ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
-          : "Platform pack created and ready for approval."),
+      message:criticalReview
+        ? "Platform pack created. Art Director flagged one or more variants for critical human review."
+        : (needsReview
+          ? "Platform pack created. Art Director recommends human review on one or more variants before publishing."
+          : (usedOriginalSafeFallback
+            ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
+            : "Platform pack created and ready for approval.")),
       mode:creativeMode && !usedOriginalSafeFallback ? "creative-ai" : "original-safe",
       campaign,
       marketIntelligence,
       needsReview,
+      criticalReview,
       outputs
     });
   } catch (error) {
