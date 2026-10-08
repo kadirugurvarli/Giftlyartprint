@@ -104,6 +104,8 @@ export default function Home() {
   const [uploadCategory, setUploadCategory] = useState("Bespoke Framing");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [testingUpload, setTestingUpload] = useState(false);
+  const [uploadTestStatus, setUploadTestStatus] = useState("");
 
   const loadContent = async () => {
     setLoading(true);
@@ -435,25 +437,33 @@ export default function Home() {
                 </div>
               </div>
               <div className="row">
-                <button className="secondary" onClick={async()=>{
-                  setMessage("Testing upload connection...");
+                <button className="secondary" disabled={testingUpload} onClick={async()=>{
+                  setTestingUpload(true);
+                  setUploadTestStatus("Testing upload connection...");
                   try{
                     const res=await fetch("/api/upload/self-test",{cache:"no-store"});
                     const data=await res.json();
                     const upstream=data?.upstream;
                     if(res.ok && data.ok){
-                      setMessage("Upload connection OK" + (upstream?.fileId ? " · Test file created in Drive." : ""));
+                      setUploadTestStatus("Upload connection OK" + (upstream?.fileId ? " · Test file created in Drive." : ""));
                     }else{
-                      setMessage("Upload test failed: " + (upstream?.error || data?.message || JSON.stringify(upstream || data)));
+                      setUploadTestStatus("Upload test failed: " + (upstream?.error || data?.message || JSON.stringify(upstream || data)));
                     }
                   }catch(error){
-                    setMessage("Upload test failed: " + (error instanceof Error ? error.message : "Unknown error"));
+                    setUploadTestStatus("Upload test failed: " + (error instanceof Error ? error.message : "Unknown error"));
+                  }finally{
+                    setTestingUpload(false);
                   }
-                }}>Test Upload Connection</button>
+                }}>{testingUpload?"Testing...":"Test Upload Connection"}</button>
                 <button className="primary" onClick={() => setUploadOpen(true)}>Upload Images</button>
                 <button className="secondary" onClick={() => setView("dashboard")}>Back to Dashboard</button>
               </div>
             </div>
+            {uploadTestStatus && (
+              <div className="stat" style={{marginBottom:12}}>
+                {uploadTestStatus}
+              </div>
+            )}
 
             <div className="mediaGrid">
               {allMedia.map(({ url, index, item }) => (
