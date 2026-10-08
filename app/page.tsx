@@ -41,6 +41,11 @@ export default function Home() {
   const [syncing, setSyncing] = useState(false);
   const [source, setSource] = useState("Loading...");
   const [message, setMessage] = useState("");
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProjectId, setUploadProjectId] = useState("GAP-0003");
+  const [uploadCategory, setUploadCategory] = useState("Bespoke Framing");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   const loadContent = async () => {
     setLoading(true);
@@ -215,11 +220,7 @@ export default function Home() {
                 </button>
                 <button
                   className="primary"
-                  onClick={() =>
-                    alert(
-                      "Upload integration will connect directly to 00 - UPLOAD HERE."
-                    )
-                  }
+                  onClick={() => setUploadOpen(true)}
                 >
                   + New Content
                 </button>
@@ -349,12 +350,10 @@ export default function Home() {
                   Studio.
                 </div>
               </div>
-              <button
-                className="secondary"
-                onClick={() => setView("dashboard")}
-              >
-                Back to Dashboard
-              </button>
+              <div className="row">
+                <button className="primary" onClick={() => setUploadOpen(true)}>Upload Images</button>
+                <button className="secondary" onClick={() => setView("dashboard")}>Back to Dashboard</button>
+              </div>
             </div>
 
             <div className="mediaGrid">
@@ -374,6 +373,55 @@ export default function Home() {
               )}
             </div>
           </>
+        )}
+
+        {uploadOpen && (
+          <div className="modal">
+            <div className="dialog">
+              <h2>Upload image</h2>
+              <div className="hint">Upload a project image to Google Drive. It will be placed in 00 - UPLOAD HERE and linked to the selected project.</div>
+              <div className="field">
+                <label>Project ID</label>
+                <select value={uploadProjectId} onChange={(e)=>setUploadProjectId(e.target.value)}>
+                  {items.map((item)=><option key={item.id} value={item.id}>{item.id} — {item.title}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label>Category</label>
+                <input value={uploadCategory} onChange={(e)=>setUploadCategory(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>Image</label>
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e)=>setUploadFile(e.target.files?.[0] || null)} />
+              </div>
+              <div className="row end">
+                <button className="secondary" onClick={()=>{setUploadOpen(false);setUploadFile(null)}}>Cancel</button>
+                <button className="primary" disabled={uploading || !uploadFile} onClick={async()=>{
+                  if(!uploadFile) return;
+                  setUploading(true);
+                  setMessage("");
+                  const form=new FormData();
+                  form.append("file",uploadFile);
+                  form.append("projectId",uploadProjectId);
+                  form.append("category",uploadCategory);
+                  try{
+                    const res=await fetch("/api/upload",{method:"POST",body:form});
+                    const data=await res.json();
+                    setMessage(data.message || (res.ok?"Upload complete.":"Upload failed."));
+                    if(res.ok){
+                      setUploadOpen(false);
+                      setUploadFile(null);
+                      await loadContent();
+                    }
+                  }catch{
+                    setMessage("Upload failed.");
+                  }finally{
+                    setUploading(false);
+                  }
+                }}>{uploading?"Uploading...":"Upload to Drive"}</button>
+              </div>
+            </div>
+          </div>
         )}
 
         {edit && (
