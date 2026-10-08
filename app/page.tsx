@@ -118,6 +118,7 @@ export default function Home() {
   const [mediaLibrary, setMediaLibrary] = useState<MediaEntry[]>([]);
   const [moveTarget, setMoveTarget] = useState<MediaEntry | null>(null);
   const [moveFolder, setMoveFolder] = useState("Bespoke Framing");
+  const [previewMedia, setPreviewMedia] = useState<MediaEntry | null>(null);
 
   const loadContent = async () => {
     setLoading(true);
@@ -495,31 +496,30 @@ export default function Home() {
             <div className="mediaGrid">
               {allMedia.map((entry) => (
                 <article className="mediaTile" key={entry.fileId}>
-                  <div className="mediaImageWrap">
-                    <img src={entry.url} alt={entry.fileName} />
-                    <div className="mediaActions">
+                  <button
+                    className="mediaPreviewButton"
+                    onClick={() => setPreviewMedia(entry)}
+                    title="Open full preview"
+                  >
+                    <div className="mediaImageWrap">
+                      <img src={entry.url} alt={entry.fileName} />
+                    </div>
+                  </button>
+                  <div className="mediaTileInfo">
+                    <b>{entry.fileName}</b>
+                    <span>{entry.category}</span>
+                    <div className="mediaInlineActions">
+                      <button onClick={() => setPreviewMedia(entry)}>Preview</button>
                       <button
-                        className="mediaMove"
                         onClick={() => {
                           setMoveTarget(entry);
                           setMoveFolder(entry.category || "Bespoke Framing");
                         }}
-                        title="Move image"
                       >
                         Move
                       </button>
-                      <button
-                        className="mediaDelete"
-                        onClick={() => void deleteMedia(entry)}
-                        title="Delete image"
-                      >
-                        Delete
-                      </button>
+                      <button onClick={() => void deleteMedia(entry)}>Delete</button>
                     </div>
-                  </div>
-                  <div className="mediaTileInfo">
-                    <b>{entry.fileName}</b>
-                    <span>{entry.category}</span>
                   </div>
                 </article>
               ))}
@@ -583,6 +583,50 @@ export default function Home() {
                     setUploading(false);
                   }
                 }}>{uploading?"Uploading...":"Upload to Drive"}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {previewMedia && (
+          <div className="modal mediaLightbox" onClick={() => setPreviewMedia(null)}>
+            <div className="dialog mediaLightboxDialog" onClick={(e) => e.stopPropagation()}>
+              <div className="mediaLightboxTop">
+                <div>
+                  <h2>{previewMedia.fileName}</h2>
+                  <div className="hint">{previewMedia.category}</div>
+                </div>
+                <button className="secondary" onClick={() => setPreviewMedia(null)}>Close</button>
+              </div>
+              <div className="mediaFullPreview">
+                <img src={previewMedia.url} alt={previewMedia.fileName} />
+              </div>
+              <div className="row end">
+                <button
+                  className="secondary"
+                  onClick={() => {
+                    setMoveTarget(previewMedia);
+                    setMoveFolder(previewMedia.category || "Bespoke Framing");
+                    setPreviewMedia(null);
+                  }}
+                >
+                  Move
+                </button>
+                <button
+                  className="secondary"
+                  onClick={() => void deleteMedia(previewMedia)}
+                >
+                  Delete
+                </button>
+                <button
+                  className="primary"
+                  onClick={() => {
+                    setMessage("Enhance workflow is the next step: perspective, lighting, background and angle corrections will create a new version while preserving the original.");
+                    setPreviewMedia(null);
+                  }}
+                >
+                  Enhance
+                </button>
               </div>
             </div>
           </div>
