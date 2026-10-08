@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import sharp from "sharp";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -29,7 +30,6 @@ export async function POST(req: NextRequest) {
     const fileId = String(formData.get("fileId") || "").trim();
     const category = String(formData.get("category") || "").trim();
     const description = String(formData.get("description") || "").trim();
-    const format = String(formData.get("format") || "portrait").trim();
     const reference = formData.get("reference");
 
     if (!fileId || !category || !description) {
@@ -62,10 +62,7 @@ export async function POST(req: NextRequest) {
       imageForm.append("image[]", reference, reference.name || "reference.jpg");
     }
 
-    const size =
-      format === "square" ? "1024x1024" :
-      format === "landscape" ? "1536x1024" :
-      "1024x1536";
+    const size = "1024x1536";
 
     const prompt = [
       "Create a polished marketing/content visual for Giftly Art Print.",
@@ -75,7 +72,7 @@ export async function POST(req: NextRequest) {
         : "",
       "Preserve the real subject accurately: artwork, iris artwork, framed object, print, frame moulding, mount, colours, text and proportions should not be invented or materially changed.",
       "Improve presentation only as needed: perspective, lighting, cleanliness, natural shadows, believable background, premium commercial finish.",
-      "Do not add logos or marketing text unless explicitly requested.",
+      "Create a finished, share-ready promotional visual with polished headline/supporting copy/CTA when appropriate. Keep all essential subject matter and all text inside a central safe area so the same composition can be adapted cleanly to 4:5, 9:16 and 1:1 platform outputs.",
       "User brief:",
       description
     ].filter(Boolean).join("\n");
@@ -99,38 +96,64 @@ export async function POST(req: NextRequest) {
       }, { status:502 });
     }
 
+    const master = Buffer.from(aiData.data[0].b64_json, "base64");
     const stamp = new Date().toISOString().replace(/[-:TZ.]/g,"").slice(0,14);
-    const outputName = stripExt(source.fileName || "image") + "_content_" + stamp + ".png";
+    const baseName = stripExt(source.fileName || "image") + "_content_" + stamp;
+
+    const variants = [
+      { key:"feed_4x5", width:1080, height:1350, suffix:"feed_4x5" },
+      { key:"story_reel_9x16", width:1080, height:1920, suffix:"story_reel_9x16" },
+      { key:"google_business_1x1", width:720, height:720, suffix:"google_business_1x1" }
+    ];
 
     const uploadUrl = new URL(feedUrl);
     uploadUrl.searchParams.set("token", feedToken);
 
-    const uploadResponse = await fetch(uploadUrl, {
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body:JSON.stringify({
-        action:"upload",
-        category,
-        fileName:outputName,
-        mimeType:"image/png",
-        base64:aiData.data[0].b64_json
-      }),
-      cache:"no-store"
-    });
+    const outputs:any[] = [];
 
-    const uploadData = await uploadResponse.json();
+    for (const variant of variants) {
+      const processed = await sharp(master)
+        .resize(variant.width, variant.height, {
+          fit:"cover",
+          position:"centre"
+        })
+        .png()
+        .toBuffer();
 
-    if (!uploadResponse.ok || uploadData?.ok === false) {
-      return Response.json({
-        ok:false,
-        message:uploadData?.error || uploadData?.message || "Visual was created but could not be saved to Drive."
-      }, { status:502 });
+      const uploadResponse = await fetch(uploadUrl, {
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:JSON.stringify({
+          action:"upload",
+          category,
+          fileName:`${baseName}_${variant.suffix}.png`,
+          mimeType:"image/png",
+          base64:processed.toString("base64")
+        }),
+        cache:"no-store"
+      });
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadResponse.ok || uploadData?.ok === false) {
+        return Response.json({
+          ok:false,
+          message:uploadData?.error || uploadData?.message || `Could not save ${variant.key} output to Drive.`
+        }, { status:502 });
+      }
+
+      outputs.push({
+        ...uploadData,
+        preset:variant.key,
+        width:variant.width,
+        height:variant.height
+      });
     }
 
     return Response.json({
       ok:true,
-      message:"Content visual created and saved. Original source preserved.",
-      output:uploadData
+      message:"Platform pack created: Feed 4:5, Story/Reel 9:16 and Google Business 1:1. Original source preserved.",
+      outputs
     });
   } catch (error) {
     return Response.json({
