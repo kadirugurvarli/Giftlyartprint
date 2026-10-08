@@ -722,20 +722,24 @@ export async function POST(req: NextRequest) {
     );
 
     const rejected = generatedVariants.filter(
-      ({qa}) => qa.hardFail || qa.decision !== "PASS" || qa.score < 85
+      ({qa}) => qa.hardFail || qa.decision === "REJECT" || qa.score < 55
     );
 
     if (rejected.length) {
       return Response.json({
         ok:false,
-        code:"ART_DIRECTOR_REJECTED",
-        message:"Art Director rejected one or more platform assets. Nothing was sent to Approval.",
+        code:"ART_DIRECTOR_HARD_FAIL",
+        message:"Art Director found a critical visual problem in one or more platform assets. Nothing was sent to Approval.",
         reviews:rejected.map(({variant,qa})=>({
           preset:variant.key,
           qa
         }))
       }, { status:422 });
     }
+
+    const needsReview = generatedVariants.some(
+      ({qa}) => qa.decision !== "PASS" || qa.score < 85
+    );
 
     const uploaded = await Promise.all(
       generatedVariants.map(async ({variant,processed,qa,revisionCount}) => {
@@ -767,7 +771,8 @@ export async function POST(req: NextRequest) {
           width:variant.width,
           height:variant.height,
           qa,
-          revisionCount
+          revisionCount,
+          needsReview: qa.decision !== "PASS" || qa.score < 85
         };
       })
     );
@@ -776,12 +781,15 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       ok:true,
-      message:usedOriginalSafeFallback
-        ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
-        : "Platform pack created and ready for approval.",
+      message:needsReview
+        ? "Platform pack created. Art Director recommends human review on one or more variants before publishing."
+        : (usedOriginalSafeFallback
+          ? "Platform pack created in Original-safe mode. The real source image was preserved and no AI-added objects were used."
+          : "Platform pack created and ready for approval."),
       mode:creativeMode && !usedOriginalSafeFallback ? "creative-ai" : "original-safe",
       campaign,
       marketIntelligence,
+      needsReview,
       outputs
     });
   } catch (error) {
