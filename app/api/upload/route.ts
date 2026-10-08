@@ -1,0 +1,77 @@
+import { NextRequest } from "next/server";
+
+export const runtime = "nodejs";
+
+export async function POST(req: NextRequest) {
+  const feedUrl = process.env.CONTENT_FEED_URL;
+  const feedToken = process.env.CONTENT_FEED_TOKEN;
+
+  if (!feedUrl || !feedToken) {
+    return Response.json(
+      { ok: false, message: "Google content feed is not configured." },
+      { status: 503 }
+    );
+  }
+
+  try {
+    const form = await req.formData();
+    const file = form.get("file");
+    const projectId = String(form.get("projectId") || "").trim();
+    const category = String(form.get("category") || "").trim();
+
+    if (!(file instanceof File)) {
+      return Response.json({ ok: false, message: "Choose an image first." }, { status: 400 });
+    }
+
+    if (!/^image\/(jpeg|png|webp|heic|heif)$/i.test(file.type || "")) {
+      return Response.json({ ok: false, message: "Supported formats: JPG, PNG, WEBP, HEIC, HEIF." }, { status: 400 });
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      return Response.json({ ok: false, message: "Maximum image size is 15 MB." }, { status: 400 });
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+    }
+    const base64 = btoa(binary);
+
+    const url = new URL(feedUrl);
+    url.searchParams.set("token", feedToken);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "upload",
+        projectId,
+        category,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        base64,
+      }),
+      cache: "no-store",
+    });
+
+    const raw = await response.text();
+    let data: any = raw;
+    try { data = JSON.parse(raw); } catch {}
+
+    if (!response.ok || data?.ok === false) {
+      return Response.json(
+        { ok: false, message: data?.error || data?.message || "Upload failed.", details: data },
+        { status: 502 }
+      );
+    }
+
+    return Response.json({ ok: true, message: "Image uploaded to Google Drive.", data });
+  } catch (error) {
+    return Response.json(
+      { ok: false, message: error instanceof Error ? error.message : "Upload failed." },
+      { status: 500 }
+    );
+  }
+}
