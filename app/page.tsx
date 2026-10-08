@@ -519,6 +519,65 @@ export default function Home() {
               </section>
             )}
 
+            {mediaLibrary.length > 0 && (
+              <section className="dashboardMedia">
+                <div className="dashboardMediaHead">
+                  <div>
+                    <h2>Recent Media</h2>
+                    <div className="sub">Your latest uploaded originals and generated content.</div>
+                  </div>
+                  <button
+                    className="secondary"
+                    onClick={()=>setView("media")}
+                  >
+                    Open Media Library
+                  </button>
+                </div>
+
+                <div className="dashboardMediaGrid">
+                  {mediaLibrary.slice(0,8).map((entry)=>{
+                    const isGenerated =
+                      entry.fileName.startsWith("generated_content_") ||
+                      entry.fileName.includes("_content_") ||
+                      entry.fileName.includes("_enhanced");
+
+                    return (
+                      <article className="dashboardMediaCard" key={entry.fileId}>
+                        <button
+                          className="dashboardMediaPreview"
+                          onClick={()=>setPreviewMedia(entry)}
+                        >
+                          <img src={entry.url} alt={entry.fileName} />
+                        </button>
+                        <div className="dashboardMediaBody">
+                          <div className="dashboardMediaMeta">
+                            <span className={isGenerated ? "mediaType generated" : "mediaType uploaded"}>
+                              {isGenerated ? "Generated" : "Uploaded"}
+                            </span>
+                            <span>{entry.category}</span>
+                          </div>
+                          <b>{entry.fileName}</b>
+                          <div className="mediaInlineActions">
+                            <button onClick={()=>setPreviewMedia(entry)}>Preview</button>
+                            {!isGenerated && (
+                              <button onClick={()=>{
+                                setContentTarget(entry);
+                                setContentPrompt("");
+                                setContentReference(null);
+                                setContentStatus("");
+                              }}>
+                                Create Content
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             <div className="stats">
               <div className="stat">
                 <b>{counts("New")}</b>
