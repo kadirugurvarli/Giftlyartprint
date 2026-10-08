@@ -891,12 +891,12 @@ export default function Home() {
                   <input value={approvalCampaign.headline} onChange={(e)=>setApprovalCampaign({...approvalCampaign,headline:e.target.value})} />
                 </div>
                 <div className="field">
-                  <label>Supporting line</label>
-                  <input value={approvalCampaign.supporting} onChange={(e)=>setApprovalCampaign({...approvalCampaign,supporting:e.target.value})} />
-                </div>
-                <div className="field">
                   <label>CTA</label>
                   <input value={approvalCampaign.cta} onChange={(e)=>setApprovalCampaign({...approvalCampaign,cta:e.target.value})} />
+                </div>
+                <div className="field">
+                  <label>Contact</label>
+                  <input value="giftlyartprint.co.uk" readOnly />
                 </div>
                 <div className="field">
                   <label>Instagram caption</label>
@@ -1037,7 +1037,7 @@ export default function Home() {
                 <label>Output package</label>
                 <div className="platformPack">
                   <b>Standard Platform Pack</b>
-                  <span>Feed 4:5 · Story 9:16 · Google Business 1:1</span>
+                  <span>Feed 4:5 · Story 9:16 · Google Business 1:1 · Minimal brand rules locked</span>
                 </div>
               </div>
 
