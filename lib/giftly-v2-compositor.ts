@@ -24,15 +24,15 @@ function clamp(n:number,min:number,max:number){
 }
 
 export async function extractProtectedProduct(source:Buffer,analysis:ProductAnalysis){
-  const rotated=sharp(source).rotate();
-  const meta=await rotated.metadata();
+  const rotatedBuffer=await sharp(source).rotate().png().toBuffer();
+  const meta=await sharp(rotatedBuffer).metadata();
   const width=meta.width || 1;
   const height=meta.height || 1;
 
   if(!analysis.rectangular || analysis.confidence<0.68){
     return {
       mode:"source-card" as const,
-      buffer:await rotated.png().toBuffer(),
+      buffer:rotatedBuffer,
       sourceWidth:width,
       sourceHeight:height
     };
@@ -51,8 +51,7 @@ export async function extractProtectedProduct(source:Buffer,analysis:ProductAnal
   const r=clamp(right+padX,left+1,width);
   const bot=clamp(bottom+padY,top+1,height);
 
-  const crop=await sharp(source)
-    .rotate()
+  const crop=await sharp(rotatedBuffer)
     .extract({
       left,
       top,
