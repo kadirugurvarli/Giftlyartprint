@@ -18,3 +18,8 @@ tests/output/
 *.HEIC
 coverage/
 *.tsbuildinfo
+
+# real-photo validation: inputs and outputs contain customer material and must never be committed
+validation-output/
+validation-input/
+private-inputs/

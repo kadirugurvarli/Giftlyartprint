@@ -43,19 +43,29 @@ describe.skipIf(!run)("preview sheets",()=>{
   const ref=referenceWithFramedPicture();
   const photo=printPhoto(customer);
   const baseA={sourceFocalPx:photo.focalPx,referenceFocalPx:1080,artworkAspect:640/480};
+  const lvl=(level:"strict"|"environment"|"photographic")=>({realism:{level}});
 
-  it("A1 artwork into reference frame",async()=>{
+  it("A1 artwork into reference frame (default level) + realism levels compared",async()=>{
     const r=await runMockup({mode:"artwork-in-frame",source:photo.photo,reference:ref.image,options:baseA});
     await save("A1-artwork-in-frame",sideBySide([photo.photo,ref.image,r.image!],520));
     await save("A1-closeup-before-after",closeup(ref.image,r.image!,ref.outerQuad));
     await save("A1-diagnostics",sideBySide([r.diagnostics.overlay!,r.diagnostics.extracted!],520));
-    note("A1: bare print -> existing frame in reference",r);
+    note("A1: bare print -> existing frame in reference (default level: environment)",r);
+    const strict=await runMockup({mode:"artwork-in-frame",source:photo.photo,reference:ref.image,options:{...baseA,...lvl("strict")}});
+    const pho=await runMockup({mode:"artwork-in-frame",source:photo.photo,reference:ref.image,options:{...baseA,...lvl("photographic")}});
+    const b=bbox(ref.outerQuad,40,ref.image.width,ref.image.height);
+    await save("A1-levels-strict-environment-photographic",sideBySide([crop(strict.image!,b.x,b.y,b.w,b.h),crop(r.image!,b.x,b.y,b.w,b.h),crop(pho.image!,b.x,b.y,b.w,b.h)],480));
+    note("A1 photographic (opt-in: edge shadow, sheen, matched grain/softness)",pho);
   });
-  it("A2 print with different proportions (cropped, flagged)",async()=>{
+  it("A2 print with different proportions: whole print + mount border by default; approved crop only on request",async()=>{
     const s=printPhoto(landscapeArt(720,480,22));
-    const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...baseA,artworkAspect:720/480}});
-    await save("A2-cropped-3x2-into-4x3",sideBySide([s.photo,ref.image,r.image!],520));
-    note("A2: 3:2 print into a 4:3 opening",r);
+    const o={...baseA,artworkAspect:720/480};
+    const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:o});
+    const c=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...o,fit:"cover",approvedCrop:{maxFraction:0.15}}});
+    await save("A2-default-whole-print-with-border",sideBySide([s.photo,ref.image,r.image!],520));
+    await save("A2-closeup-default-vs-approved-crop",closeup(r.image!,c.image!,ref.outerQuad));
+    note("A2: 3:2 print into a 4:3 opening (default: whole print + border, proposed crop "+((r.adjustments.proposedCropFraction as number)*100).toFixed(1)+"%)",r);
+    note("A2b: same, crop explicitly approved",c);
   });
   it("A3 plant in front of the frame (manual mask)",async()=>{
     const [,tr,br]=ref.apertureQuad;
@@ -78,12 +88,17 @@ describe.skipIf(!run)("preview sheets",()=>{
   const fphoto=framedPhoto(piece);
   const room=emptyRoom();
   const baseB={sourceFocalPx:fphoto.focalPx,referenceFocalPx:1080,pieceAspect:piece.image.width/piece.image.height,physicalWidthM:0.62,ceilingHeightM:2.6,skirtingM:0.12};
-  it("B1 framed piece onto empty wall",async()=>{
+  it("B1 framed piece onto empty wall (default) + levels compared",async()=>{
     const r=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:room.image,options:baseB});
     await save("B1-framed-on-wall",sideBySide([fphoto.photo,room.image,r.image!],520));
     await save("B1-closeup-before-after",closeup(room.image,r.image!,r.targetQuad!));
     await save("B1-diagnostics",sideBySide([r.diagnostics.overlay!,r.diagnostics.extracted!],520));
-    note("B1: framed piece -> empty wall (oblique room)",r);
+    note("B1: framed piece -> empty wall (oblique room, default level: wall shadows + synthesised frame depth)",r);
+    const strict=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:room.image,options:{...baseB,...lvl("strict")}});
+    const pho=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:room.image,options:{...baseB,...lvl("photographic")}});
+    const b=bbox(r.targetQuad!,36,room.image.width,room.image.height);
+    await save("B1-levels-strict-environment-photographic",sideBySide([crop(strict.image!,b.x,b.y,b.w,b.h),crop(r.image!,b.x,b.y,b.w,b.h),crop(pho.image!,b.x,b.y,b.w,b.h)],480));
+    note("B1 photographic (opt-in)",pho);
   });
   it("B2 plant in front of the placed piece (manual mask)",async()=>{
     const probe=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:room.image,options:baseB});
@@ -99,9 +114,20 @@ describe.skipIf(!run)("preview sheets",()=>{
     const fr=makeRoom({yawDeg:0,camX:0});
     const r=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:fr.image,options:baseB});
     await save("B3-frontal-room",sideBySide([fphoto.photo,fr.image,r.image!],520));
-    note("B3: frontal room",r);
+    note("B3: frontal room (no frame depth visible, as expected)",r);
+  });
+  it("B4 the reference already has a framed picture: replaced in place",async()=>{
+    const r=await runMockup({mode:"framed-on-wall",source:fphoto.photo,reference:ref.image,options:{sourceFocalPx:fphoto.focalPx,referenceFocalPx:1080,pieceAspect:piece.image.width/piece.image.height}});
+    await save("B4-replace-existing-picture",sideBySide([fphoto.photo,ref.image,r.image!],520));
+    await save("B4-closeup-before-after",closeup(ref.image,r.image!,r.targetQuad!));
+    note("B4: replace the framed picture hanging in the reference (placement "+r.adjustments.placement+")",r);
+    const tall=renderFramedPiece(landscapeArt(400,500,41),DEFAULT_STYLE);
+    const tp=framedPhoto(tall);
+    const t=await runMockup({mode:"framed-on-wall",source:tp.photo,reference:ref.image,options:{sourceFocalPx:tp.focalPx,referenceFocalPx:1080,pieceAspect:tall.image.width/tall.image.height}});
+    await save("B4b-replace-with-different-proportions",sideBySide([tp.photo,ref.image,t.image!],520));
+    note("B4b: replace with a taller piece (must cover the old frame; size mismatch flagged)",t);
   });
   it("write summary",()=>{
-    fs.writeFileSync(path.join(OUT,"RESULTS.md"),"# Phase 3 preview results (synthetic scenes)\n\nGenerated by `PREVIEWS=1 npx vitest run tests/previews`. Synthetic content only; this is NOT evidence of photorealism on real photographs.\n\n"+summary.join("\n"));
+    fs.writeFileSync(path.join(OUT,"RESULTS.md"),"# Phase 3 preview results (synthetic scenes)\n\nGenerated by `npm run previews`. Synthetic content only; this is NOT evidence of photorealism on real photographs.\nRealism levels: strict (nothing on the product), environment (default; shadows and frame depth AROUND the product), photographic (opt-in; bounded effects ON the product).\n\n"+summary.join("\n"));
   });
 });

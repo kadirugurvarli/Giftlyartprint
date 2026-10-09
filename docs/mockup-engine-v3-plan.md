@@ -179,3 +179,21 @@ Entry point: `runMockup({mode,source,reference,options,manual})` in `lib/mockup-
 - Wall model assumes a level camera and a smooth painted wall; textured wallpaper/brick, pitched cameras and walls cut off at top/bottom degrade to defect-flagged fallbacks.
 - Without EXIF focal length, perspective proportions on angled views are approximate (reported as `FOCAL_ASSUMED` / `PROPORTION_UNVERIFIED`).
 - Scene is capped to 2400 px on the long side for processing; very large references are downscaled (customer pixels are not).
+
+## 12. Policy enforcement and real-photo readiness (post Phase 3)
+
+**Security:** sharp upgraded 0.34.5 -> 0.35.5 (libvips CVEs cleared). Proven by a V2 characterisation suite (`tests/v2`, recorded on 0.34.5 first, committed before the upgrade) plus all V3 tests, typecheck and production build. Remaining advisories: PostCSS bundled in Next 15 (build-time only, fix requires Next 16, planned separately).
+
+**Rules now enforced by the engine (each has tests and mutation checks):**
+1. No crop by default. The whole print is shown at true proportions with a mount-coloured border sampled from the reference's real mount. `fit:"cover"` is honoured only with `approvedCrop`; the crop that would have been needed is always reported (`proposedCropFraction`).
+2. Product pixels are not recoloured. Realism levels: `strict` and `environment` (default) leave product pixels at pure geometric resample (measured dE ~ 0.00); `photographic` is opt-in, acts on the product within a measured colour budget and is flagged in the report.
+3. Photorealism: wall shadows, physically derived frame depth (plane pose from the placement quad + focal length, validated against an independent camera), glass sheen, grain and softness measured from the reference photo, source-glare detection.
+4. The reference decides: an existing framed picture is replaced in place (covering it, light direction measured from its own shadows); otherwise free wall with the room's perspective and scale.
+5. Clean mockup first: `approveMockup` / `requireApprovedMockup` bind approval to the exact pixels; a structural test asserts the engine contains no text/branding code.
+6. No social production: nothing was added.
+
+**Defects found and fixed while enforcing these (all covered by tests):** layer detection missed isoluminant mount edges (now colour gradients); weak-edge cutoff; cross-check looked at the wrong region after a safety overlap; occluder pixels contaminated lighting estimates; tolerances for grain and content-heavy art.
+
+**Real-photo validation:** `docs/real-photo-validation.md`, `npm run validate:real`, EXIF-derived focal length, accuracy against hand-marked corners, sanitised reports, refusal to write outside git-ignored space. Proposed acceptance criteria are listed there for approval.
+
+**Open decisions for the owner:** default realism level (environment vs photographic) after seeing real results; acceptance criteria; whether a first real batch should include HEIC conversion guidance.

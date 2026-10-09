@@ -2,7 +2,7 @@ import type {Mat3,Quad,RawImage} from "../types";
 import {homographyFromPoints,applyHomography} from "../geometry/homography";
 import {edgeLengths,estimateRectAspect,rectQuad} from "../geometry/quad";
 import {rectifyQuad} from "../geometry/warp";
-import {blurGray,toGray,type GrayImage} from "../vision/gray";
+import {gaussianBlurPlane} from "../vision/gray";
 import {erodeMask} from "../qa/metrics";
 import {defect,type Defect} from "./defects";
 
@@ -43,18 +43,32 @@ function percentile(sorted:number[],p:number){
 }
 
 /** Gradient strength (25th percentile along the side) per depth, plus peak extraction. */
-function sideLayers(g:GrayImage,side:SideName,maxDepth:number,valid?:Uint8Array):Layer[]{
+type ColourPlanes={width:number;height:number;r:Float32Array;g:Float32Array;b:Float32Array};
+
+function colourPlanes(img:RawImage,sigma:number):ColourPlanes{
+  const n=img.width*img.height;
+  const ch=[0,1,2].map((c)=>{const p=new Float32Array(n);for(let i=0;i<n;i++) p[i]=img.data[i*4+c];return gaussianBlurPlane(p,img.width,img.height,sigma);});
+  return {width:img.width,height:img.height,r:ch[0],g:ch[1],b:ch[2]};
+}
+
+/** Gradient strength from colour difference (not just luma), so isoluminant but differently coloured edges are seen. */
+function sideLayers(g:ColourPlanes,side:SideName,maxDepth:number,valid?:Uint8Array):Layer[]{
   const W=g.width,H=g.height;
   const horizontal=side==="top"||side==="bottom"; // sampling runs along x for top/bottom
   const len=horizontal?W:H;
   const lo=Math.floor(len*0.12),hi=Math.ceil(len*0.88);
-  const at=(d:number,s:number)=>{
+  const idx=(d:number,s:number)=>{
     switch(side){
-      case "top":return g.data[Math.min(H-1,d)*W+s];
-      case "bottom":return g.data[Math.max(0,H-1-d)*W+s];
-      case "left":return g.data[s*W+Math.min(W-1,d)];
-      default:return g.data[s*W+Math.max(0,W-1-d)];
+      case "top":return Math.min(H-1,d)*W+s;
+      case "bottom":return Math.max(0,H-1-d)*W+s;
+      case "left":return s*W+Math.min(W-1,d);
+      default:return s*W+Math.max(0,W-1-d);
     }
+  };
+  const colourStep=(d:number,s:number)=>{
+    const a=idx(Math.max(0,d-1),s),b=idx(d+1,s);
+    const dr=g.r[b]-g.r[a],dg=g.g[b]-g.g[a],db=g.b[b]-g.b[a];
+    return Math.sqrt((dr*dr+dg*dg+db*db)/3)/2;
   };
   const ok=(d:number,s:number)=>{
     if(!valid) return true;
@@ -71,8 +85,7 @@ function sideLayers(g:GrayImage,side:SideName,maxDepth:number,valid?:Uint8Array)
     const vals:number[]=[];
     for(let s=lo;s<hi;s++){
       if(valid && !(ok(Math.max(0,d-1),s)&&ok(d+1,s))) continue;
-      const a=at(Math.max(0,d-1),s),b=at(d+1,s);
-      vals.push(Math.abs(b-a)/2);
+      vals.push(colourStep(d,s));
     }
     minValid=Math.min(minValid,vals.length/Math.max(1,hi-lo));
     vals.sort((x,y)=>x-y);
@@ -110,7 +123,7 @@ function sideLayers(g:GrayImage,side:SideName,maxDepth:number,valid?:Uint8Array)
   const flush=()=>{
     if(!group.length) return;
     const maxS=Math.max(...group.map((p)=>p.strength));
-    const first=group.find((p)=>p.strength>=0.25*maxS)!;
+    const first=group.find((p)=>p.strength>=0.1*maxS)!;
     out.push({depthPx:first.depthPx,strength:maxS});
     group=[];
   };
@@ -163,7 +176,7 @@ export function analyseFrameLayers(img:RawImage,outerQuad:Quad,opts:FrameOptions
   const width=Math.max(300,Math.min(opts.maxWidth ?? 1000,Math.round(Math.max(e[0],e[2])*1.5)));
   const height=Math.max(160,Math.round(width/aspect));
   const rect=rectifyQuad(img,outerQuad,width,height);
-  const g=blurGray(toGray(rect),0.8);
+  const g=colourPlanes(rect,0.8);
   const maxDepth=Math.floor((opts.maxDepthFraction ?? 0.3)*Math.min(width,height));
 
   let valid:Uint8Array|undefined;

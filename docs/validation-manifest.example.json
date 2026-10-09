@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "levels": ["environment", "photographic"],
+  "cases": [
+    {
+      "id": "A-01",
+      "mode": "artwork-in-frame",
+      "source": "A-01_print.jpg",
+      "reference": "A-01_reference.jpg",
+      "options": {
+        "artworkAspect": 1.4142,
+        "fit": "contain"
+      },
+      "groundTruth": {
+        "sourceQuad": [[412, 310], [2955, 288], [2990, 2210], [388, 2240]],
+        "targetQuad": [[1180, 640], [1790, 632], [1796, 1010], [1176, 1018]]
+      },
+      "notes": "A3 print photographed on a table; reference shows a black frame with white mount."
+    },
+    {
+      "id": "B-01",
+      "mode": "framed-on-wall",
+      "source": "B-01_framed.jpg",
+      "reference": "B-01_empty-wall.jpg",
+      "options": {
+        "physicalWidthM": 0.62,
+        "ceilingHeightM": 2.4,
+        "skirtingM": 0.1,
+        "frameDepthM": 0.03
+      }
+    },
+    {
+      "id": "B-02",
+      "mode": "framed-on-wall",
+      "source": "B-01_framed.jpg",
+      "reference": "B-02_wall-with-sofa-and-plant.jpg",
+      "manual": { "occlusionMask": "B-02_plant-mask.png", "wallHint": [1500, 700] }
+    }
+  ]
+}

@@ -11,9 +11,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:update-goldens": "UPDATE_GOLDENS=1 vitest run",
-    "previews": "PREVIEWS=1 vitest run tests/previews"
+    "previews": "PREVIEWS=1 vitest run tests/previews",
+    "validate:real": "tsx scripts/validate-real.ts"
   },
   "dependencies": {
+    "exif-reader": "^2.0.3",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0",
     "vitest": "^5.0.3"
   }

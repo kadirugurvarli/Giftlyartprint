@@ -52,43 +52,91 @@ describe("Workflow A: artwork-only source -> reference frame",()=>{
     expect(changedInOpening).toBeGreaterThan(10000);
   });
 
-  it("the new picture really is the customer's, not the old one (central region matches the original photo)",async()=>{
+  it("the new picture really is the customer's, and the pipeline is content-agnostic",async()=>{
     const r=await runMockup({mode:"artwork-in-frame",source:src.photo,reference:ref.image,options:base});
     expect(r.qa.crossCheck!.metrics!.ssim).toBeGreaterThan(0.97);
-    // and clearly different from what was in the frame before
     const old=await runMockup({mode:"artwork-in-frame",source:printPhoto(oldPicture(640,480)).photo,reference:ref.image,options:{...base}});
-    expect(old.qa.crossCheck?.pass).toBe(true); // sanity: the pipeline is content-agnostic
+    expect(old.qa.crossCheck?.pass).toBe(true);
   });
 
-  it("a 3:2 print into a 4:3 opening is cropped and says so with numbers",async()=>{
+  it("NEVER crops by default: a 3:2 print in a 4:3 opening is shown whole, with a mount border and the crop it would have needed reported",async()=>{
     const art32=landscapeArt(720,480,22);
     const s=printPhoto(art32);
     const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480}});
-    const d=r.defects.find((x)=>x.code==="ASPECT_MISMATCH_CROPPED"||x.code==="ASPECT_MISMATCH_EXCESSIVE")!;
-    expect(d).toBeDefined();
-    expect(r.adjustments.cropFraction as number).toBeGreaterThan(0.08);
-    expect(codes(r)).toContain("ASPECT_MISMATCH_EXCESSIVE");   // 10% > default 6%
-    expect(r.status).toBe("review");                            // not silently passed
-    expect(r.qa.forward!.pass).toBe(true);                      // what is shown is still faithful
-  });
-
-  it("'contain' keeps the whole print and fills the rest with the mount colour (flagged)",async()=>{
-    const art32=landscapeArt(720,480,22);
-    const s=printPhoto(art32);
-    const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480,fit:"contain"}});
-    expect(codes(r)).toContain("ASPECT_MISMATCH_FILLED");
-    expect(r.adjustments.filledFraction as number).toBeGreaterThan(0.05);
+    expect(r.adjustments.fit).toBe("contain");
     expect(r.adjustments.cropFraction).toBe(0);
+    expect(r.adjustments.proposedCropFraction as number).toBeGreaterThan(0.1);
+    expect(r.adjustments.filledFraction as number).toBeGreaterThan(0.08);
+    expect(codes(r)).toContain("ASPECT_MISMATCH_FILLED");
+    expect(codes(r)).not.toContain("ASPECT_MISMATCH_CROPPED");
+    expect(r.status).toBe("pass");
+    // the WHOLE print is there, at its true proportions, per the independent cross-check on the original photo
+    expect(r.qa.crossCheck!.pass).toBe(true);
+    expect(r.qa.crossCheck!.metrics!.ssim).toBeGreaterThan(0.97);
+    expect(r.qa.forward!.pass).toBe(true);
   });
 
-  it("proportions are never distorted: a mismatch is cropped, not stretched",async()=>{
-    const art32=landscapeArt(720,480,22);
-    const s=printPhoto(art32);
+  it("the mount border matches the reference's own mount colour",async()=>{
+    const s=printPhoto(landscapeArt(720,480,22));
     const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480}});
-    expect(r.adjustments.stretchPct).toBe(0);
-    const est=estimateRectAspect(r.targetQuad!,ref.image.width,ref.image.height,{focalPx:1080});
-    // the opening's aspect is what the cropped art was fitted to
-    expect(Math.abs(est.aspect!-(r.adjustments.apertureAspect as number))/est.aspect!).toBeLessThan(0.03);
+    const [mr,mg,mb]=String(r.adjustments.mountColour).split(",").map(Number);
+    // DEFAULT_STYLE mount is (240,236,226) lit by the room
+    expect(Math.abs(mr-240)).toBeLessThan(28);expect(Math.abs(mg-236)).toBeLessThan(28);expect(Math.abs(mb-226)).toBeLessThan(32);
+  });
+
+  it("the mount border is sampled from the reference's real mount: a distinctly grey mount yields a grey border, a cream one a cream border",async()=>{
+    const s=printPhoto(landscapeArt(720,480,22));
+    const o={...base,artworkAspect:720/480};
+    for(const mount of [[112,120,130],[236,226,200]] as [number,number,number][]){
+      const style={mouldingPx:34,mouldingColour:[70,52,38] as [number,number,number],mountPx:46,mountColour:mount};
+      const hung=hangPiece(makeRoom(),renderFramedPiece(oldPicture(480,360),style),-0.1,-0.2,0.7);
+      const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:hung.image,options:o});
+      const got=String(r.adjustments.mountColour).split(",").map(Number);
+      // a 3:2 print in a 4:3 opening leaves its border at the TOP and BOTTOM: compare the real mount just
+      // above the opening with the border the engine painted just inside the opening's top edge
+      const q=hung.apertureQuad;
+      const xm=Math.round((q[0].x+q[1].x)/2),yTop=Math.round((q[0].y+q[1].y)/2);
+      const px=[0,1,2].map((c)=>hung.image.data[((yTop-9)*hung.image.width+xm)*4+c]);
+      for(let c=0;c<3;c++) expect(Math.abs(got[c]-px[c]),`sampled mount ${c}`).toBeLessThan(14);
+      const out=[0,1,2].map((c)=>r.image!.data[((yTop+1)*r.image!.width+xm)*4+c]);
+      for(let c=0;c<3;c++) expect(Math.abs(out[c]-px[c]),`rendered border ${c}`).toBeLessThan(22);
+    }
+  });
+
+  it("'cover' without approval is refused: whole print shown, CROP_NOT_APPROVED explains what a crop would cost",async()=>{
+    const s=printPhoto(landscapeArt(720,480,22));
+    const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480,fit:"cover"}});
+    expect(codes(r)).toContain("CROP_NOT_APPROVED");
+    expect(r.adjustments.cropFraction).toBe(0);
+    expect(r.adjustments.fit).toBe("contain");
+    expect(r.status).toBe("review");
+  });
+
+  it("an approved crop is honoured within its limit and refused beyond it",async()=>{
+    const s=printPhoto(landscapeArt(720,480,22));
+    const ok=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480,fit:"cover",approvedCrop:{maxFraction:0.15}}});
+    expect(ok.adjustments.fit).toBe("cover");
+    expect(ok.adjustments.cropFraction as number).toBeGreaterThan(0.1);
+    expect(codes(ok)).toContain("ASPECT_MISMATCH_CROPPED");
+    expect(ok.qa.forward!.pass).toBe(true);
+    const tooMuch=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480,fit:"cover",approvedCrop:{maxFraction:0.05}}});
+    expect(codes(tooMuch)).toContain("CROP_EXCEEDS_APPROVAL");
+    expect(tooMuch.adjustments.cropFraction).toBe(0);
+  });
+
+  it("proportions are never distorted: stretch stays below measurement error",async()=>{
+    const s=printPhoto(landscapeArt(720,480,22));
+    const r=await runMockup({mode:"artwork-in-frame",source:s.photo,reference:ref.image,options:{...base,artworkAspect:720/480}});
+    expect(r.adjustments.stretchPct as number).toBeLessThan(0.4);
+    const std=await runMockup({mode:"artwork-in-frame",source:src.photo,reference:ref.image,options:base});
+    expect(std.adjustments.stretchPct as number).toBeLessThan(0.4);
+  });
+
+  it("an optional extra mat margin keeps the print whole inside a wider border",async()=>{
+    const r=await runMockup({mode:"artwork-in-frame",source:src.photo,reference:ref.image,options:{...base,matMarginFraction:0.08}});
+    expect(r.adjustments.filledFraction as number).toBeGreaterThan(0.25);
+    expect(r.qa.crossCheck!.pass).toBe(true);
+    expect(r.status).toBe("pass");
   });
 
   it("a manual mask keeps a foreground plant in front of the new picture (occlusion)",async()=>{
