@@ -1,0 +1,4 @@
+import {handleLogin} from "@/lib/mockup-v3/web/handlers";
+export const runtime="nodejs";
+export const dynamic="force-dynamic";
+export const POST=(req:Request)=>handleLogin(req);
