@@ -92,7 +92,7 @@ tests/ ...
 - **Gate:** I will not report a phase as done on `tsc`/`next build` alone. I will post test output and the generated images.
 - AI calls are mocked in unit tests via the adapter interface; one opt-in live test uses a real key.
 
-## 7. Decisions I need from you (defaults in bold)
+## 7. Decisions (superseded by section 10; kept for history)
 
 1. Segmentation backend for occlusion: **(a) skip automatic segmentation initially and use manual brush mask, add a hosted model later**, (b) use a hosted segmentation API now (needs an account and key), (c) OpenAI vision only.
 2. Mode B frames: **procedural frames (colour, width, profile) generated in code**, or a library of photographed moulding samples you supply.
@@ -130,3 +130,29 @@ For each file, send a one-line note: intended mode (A/B/C/D) and anything that m
 ## 9. Guardrails
 
 No merge to `main`, no production change, no deletion or edit of V2 routes or `app/page.tsx` without your explicit approval. Everything lives in new paths on this branch.
+
+## 10. Approved decisions and status
+
+**Decisions (approved)**
+1. *Occlusion:* manual masks first. All occlusion goes through a `Mask`/segmenter adapter interface so automatic segmentation can be plugged in later; the goal is to automate as much as possible.
+2. *Frames:* simple procedural frames first, behind a `FrameProfile` interface so real moulding profiles/templates from our framing range can replace them.
+3. *Job storage:* Google Drive JSON for the prototype behind a `JobStore` interface (migratable to a database). Must handle concurrent updates (version/ETag check and retry), partial failure and idempotent retries.
+4. *Repo is public:* no customer images, private fixtures, credentials or identifiable data in git. Private assets live outside git (`fixtures/private/` and similar are git-ignored). Committed goldens are synthetic only.
+5. *Fidelity:* resampling is expected; fidelity is judged by measured tolerances (colour dE/bias, SSIM, sharpness, proportion), not pixel identity.
+6. *UX:* highly automated and mobile-friendly. Manual corner and mask editing are fallbacks only.
+7. *Primary objective:* realistic mockups of the real product using the reference's composition and perspective. No marketing text or branding by default.
+
+**Phases 0-2: implemented and verified** (`npm test`: 87 tests, 6 files, stable over 3 consecutive runs; `npm run typecheck` clean; `next build` clean, V2 untouched)
+
+| Phase | Delivered |
+|---|---|
+| 0 | Vitest harness, `npm test` / `test:update-goldens` / `typecheck`, private-asset `.gitignore` rules, synthetic fixture generator, pinhole-camera ground-truth helper |
+| 1 | Normalised-DLT homography, linear-light perspective warp (mip-mapped, supersampled edge coverage), quad validation/ordering, perspective-aware aspect estimator, alpha compositing |
+| 2 | Image metrics (Lab dE, Lab bias, SSIM, sharpness), `verifyProtectedContent` in forward and rectified modes with tolerance presets and mask support, proportion check |
+
+**Findings recorded during Phases 0-2**
+- The aspect estimator recovers true proportions to better than 0.5% from a known camera model (<=0.53% with +/-0.5px corner jitter). For a level camera (pure yaw) the focal length is unobservable from one quad: it needs EXIF focal length (reliable) or falls back to an assumed phone focal that is flagged unreliable and is not enforced. Measured cost of a +/-10% focal error: about 1% (20 deg yaw), 4% (40 deg), 7% (55 deg).
+- A rectify-and-compare check penalises every legitimate placement (second resample: sharpness 0.65, Lab L bias +0.47). The forward check removes that confound (dE 0.00 on a faithful composite) and detects +2 brightness, overlays, wrong art and 6px corner drift. The rectified check is kept as a looser, warp-independent cross-check. Tolerances are calibrated on synthetic data only and must be re-tuned on real photos.
+- Mutation testing (9 deliberate bugs) found and fixed two weak tests (an aliasing test that passed vacuously at an exact 8x shrink, and a golden helper that could overwrite goldens). All 9 mutants are now caught.
+
+**Known gaps (intentional, later phases)** no scene lighting or shadow model yet, no frame renderer, no AI analysis, no UI, no Drive `JobStore`, no segmentation adapter. Real-photo accuracy is unmeasured until samples are provided.
