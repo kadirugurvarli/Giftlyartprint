@@ -9,6 +9,9 @@ import {readExif,type ExifSummary} from "../exif";
 import {runMockup,type ManualInputs,type MockupMode,type MockupOptions,type MockupResult,type RealismLevel} from "../pipeline";
 import {sideBySide} from "../debug/overlay";
 import type {OcclusionMask} from "../composite/occlusion";
+import {auditRealism,type RealismFinding} from "./realism-audit";
+import {recommendCorrections,type Correction} from "./corrections";
+import {runProbes,type ProbeOutcome} from "./probes";
 
 /**
  * Real-photo validation. Reads originals (EXIF intact), runs the pipeline, measures it, and writes
@@ -57,8 +60,21 @@ export type CaseReport={
     referenceFocalUsed?:{px:number;from:"manifest"|"exif"};
   };
   timingMs:number;
-  files:{mockup?:string;overlay?:string;sheet?:string};
+  files:{source?:string;reference?:string;mockup?:string;overlay?:string;sheet?:string;caseReport?:string;reviewTemplate?:string};
+  realism?:{findings:RealismFinding[];measurements:Record<string,number|string>;calibrated:false};
+  corrections?:Correction[];
+  /** known damage applied to this result: did the independent cross-check catch it? */
+  probes?:ProbeOutcome[];
   notes?:string;
+};
+
+export type Review={
+  id:string;level:RealismLevel;
+  /** fill in by eye: good = usable as is, acceptable = usable with small changes, bad = not usable */
+  verdict:"good"|"acceptable"|"bad"|"";
+  ratings:{placement:number|null;perspective:number|null;lighting:number|null;shadow:number|null;edges:number|null;colourFidelity:number|null};
+  defectsSeen:string[];
+  notes:string;
 };
 
 const toQuad=(q:Quad4):Quad=>q.map(([x,y])=>({x,y})) as Quad;
@@ -151,6 +167,16 @@ export async function runCase(c:ValidationCase,baseDir:string,level:RealismLevel
     files.overlay=`${c.id}/${level}/overlay.jpg`;
   }
 
+  for(const [name,im] of [["source",src.img],["reference",ref.img]] as const){
+    const s=Math.min(1,1600/Math.max(im.width,im.height));
+    await sharp(Buffer.from(im.data.buffer,im.data.byteOffset,im.data.byteLength),{raw:{width:im.width,height:im.height,channels:4}})
+      .resize(Math.round(im.width*s),Math.round(im.height*s)).jpeg({quality:88}).toFile(path.join(dir,`${name}.jpg`));
+    files[name]=`${c.id}/${level}/${name}.jpg`;
+  }
+  const audit=auditRealism({result:r,reference:ref.img,maxReferenceSide:options.maxReferenceSide});
+  const corrections=recommendCorrections(r.defects,audit.findings);
+  let probes:ProbeOutcome[]|undefined;
+  try{probes=runProbes({result:r,source:src.img});}catch{probes=undefined;}
   const f=r.qa.forward,x=r.qa.crossCheck;
   const report:CaseReport={
     id:c.id,mode:c.mode,level,status:r.status,needsManual:r.needsManual,automation:r.automation,
@@ -167,6 +193,7 @@ export async function runCase(c:ValidationCase,baseDir:string,level:RealismLevel
       reference:{name:path.basename(c.reference),sha256:sha(ref.buf),width:ref.img.width,height:ref.img.height,exif:stripExif(ref.exif)},
       sourceFocalUsed,referenceFocalUsed
     },
+    realism:audit,corrections,probes,
     timingMs:Date.now()-t0,files,notes:c.notes
   };
   // accuracy against hand-marked truth (GT is never given to the pipeline)
@@ -183,7 +210,38 @@ export async function runCase(c:ValidationCase,baseDir:string,level:RealismLevel
     report.accuracy=acc;
   }
   fs.writeFileSync(path.join(dir,"report.json"),JSON.stringify(report,null,2));
+  fs.writeFileSync(path.join(dir,"case-report.md"),caseReportMd(report));files.caseReport=`${c.id}/${level}/case-report.md`;
+  const tpl:Review={id:c.id,level,verdict:"",ratings:{placement:null,perspective:null,lighting:null,shadow:null,edges:null,colourFidelity:null},defectsSeen:[],notes:""};
+  fs.writeFileSync(path.join(dir,"review-template.json"),JSON.stringify(tpl,null,2));files.reviewTemplate=`${c.id}/${level}/review-template.json`;
+  fs.writeFileSync(path.join(dir,"report.json"),JSON.stringify(report,null,2));
   return report;
+}
+
+const f2=(v:number|undefined)=>typeof v==="number"&&Number.isFinite(v)?v.toFixed(2):"n/a";
+
+/** The seven items for one real test, in plain language. */
+export function caseReportMd(r:CaseReport):string{
+  const L:string[]=[];
+  L.push(`# ${r.id} — ${r.mode} — level ${r.level}`,"",`**Status: ${r.status}**${r.needsManual?" (a person should confirm corners/mask)":""}`,"");
+  L.push("## 1–4. Pictures","",`1. Original source: \`source.jpg\``,`2. Reference: \`reference.jpg\``,`3. Final clean mockup: \`mockup.png\``,`4. Detection and placement overlay: \`overlay.jpg\``,"");
+  L.push("## 5. Fidelity and geometry checks","");
+  const q=r.qa;
+  if(q.forward) L.push(`- Forward fidelity: ${q.forward.pass?"PASS":"FAIL"} (mean ΔE ${f2(q.forward.meanDeltaE)}, p95 ${f2(q.forward.p95DeltaE)}, SSIM ${f2(q.forward.ssim)}, sharpness ${f2(q.forward.sharpness)})`);
+  if(q.crossCheck) L.push(`- Independent cross-check (original photo vs final mockup): ${q.crossCheck.pass?"PASS":"FAIL"} (mean ΔE ${f2(q.crossCheck.meanDeltaE)}, p95 ${f2(q.crossCheck.p95DeltaE)}, SSIM ${f2(q.crossCheck.ssim)})`);
+  if(q.integrity) L.push(`- Scene untouched outside product and shadow: ${q.integrity.pass?"PASS":"FAIL"} (${q.integrity.changedOutsideAllowed} stray pixels)`);
+  if(r.accuracy) L.push(`- Corner error against your marked truth: source ${f2(r.accuracy.sourceQuadErrorPx)} px, target ${f2(r.accuracy.targetQuadErrorPx)} px`);
+  L.push(`- Product pixels modified beyond resampling: ${q.productPixelsModified?"yes (photographic level)":"no"}`);
+  if(r.probes?.length) L.push(`- Sensitivity probes (known damage the check must catch): ${r.probes.map((p)=>`${p.name} ${p.detected?"caught":"MISSED"}`).join(", ")}`);
+  L.push("","## 6. Visible realism defects","");
+  const dd=r.defects;
+  if(!dd.length&&!(r.realism?.findings.length)) L.push("None detected automatically. **Please still look at the mockup at 100%.**");
+  for(const d of dd) L.push(`- [${d.severity}] ${d.code}: ${d.message}`);
+  for(const x of r.realism?.findings ?? []) L.push(`- [${x.severity}] ${x.code} (measured ${f2(x.value)}${x.limit!==undefined?`, provisional limit ${x.limit}`:""}): ${x.message}`);
+  L.push("","_Automatic realism checks use provisional, uncalibrated limits; your own review (review-template.json) is the reference._","","## 7. Recommended targeted corrections","");
+  if(!r.corrections?.length) L.push("None suggested.");
+  for(const c of r.corrections ?? []) L.push(`- **${c.kind}** — ${c.code}: ${c.action}`);
+  L.push("","Thresholds are never loosened to make a case pass.","");
+  return L.join("\n");
 }
 
 const pct=(v:number[],p:number)=>{if(!v.length) return NaN;const s=[...v].sort((a,b)=>a-b);return s[Math.min(s.length-1,Math.floor(p*s.length))];};

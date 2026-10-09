@@ -13,9 +13,7 @@ import {applyOcclusion} from "../composite/occlusion";
 import {drawOverlay} from "../debug/overlay";
 import {analyseWall,proposeWallPlacement} from "../place/wall";
 import {rasterizePolygons} from "../vision/mask";
-import {
-  FORWARD_TOLERANCES,LIGHTING_FORWARD_TOLERANCES,LIGHTING_RECTIFIED_TOLERANCES,RECTIFIED_TOLERANCES
-} from "../qa/metrics";
+import {getTolerances} from "../qa/tolerance-registry";
 import {verifyProtectedContent} from "../qa/protected-content";
 import {
   checkSceneIntegrity,crossCheckFromSource,extractUpright,needsManual,occlusionExclude,pickFramedCandidate,
@@ -210,8 +208,8 @@ export async function runFramedOnWall(input:MockupJobInput):Promise<MockupResult
   const final=occ.mask?applyOcclusion(composite,reference,occ.mask):composite;
 
   // 7. measured QA
-  const fwdTol=photographic?LIGHTING_FORWARD_TOLERANCES:FORWARD_TOLERANCES;
-  const crossTol=photographic?LIGHTING_RECTIFIED_TOLERANCES:RECTIFIED_TOLERANCES;
+  const fwdTol=getTolerances(photographic?"lightingForward":"forward");
+  const crossTol=getTolerances(photographic?"lightingRectified":"rectified");
   const margin=3+(photographic?2:0);
   const includeMask=occ.mask?(()=>{const m=new Uint8Array(W*H);for(let i=0;i<m.length;i++) m[i]=occ.mask!.alpha[i]<8?1:0;return m;})():undefined;
   const forward=verifyProtectedContent(piece,final,target,{mode:"forward",tolerances:fwdTol,margin,focalPx:refFocal,includeMask});
@@ -251,7 +249,7 @@ export async function runFramedOnWall(input:MockupJobInput):Promise<MockupResult
       edgeInsetPx:opts.edgeInsetPx ?? 0.8,replacedCovered
     },
     qa:{
-      forward,crossCheck:cross,sceneIntegrity:integrity,
+      forward,crossCheck:cross,sceneIntegrity:integrity,crossRegions:{source:extracted.usedQuad,target},
       productPixels:{
         modified:photographic,level,
         note:photographic?"Photographic effects act on the product within measured colour budgets.":"Product pixels are only geometrically resampled; nothing was recoloured."

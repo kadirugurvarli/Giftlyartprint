@@ -67,6 +67,24 @@ describe("real-photo validation runner (self-test on synthetic JPEGs with EXIF)"
     for(const f of ["index.html","summary.json","A-01/environment/mockup.png","A-01/environment/sheet.jpg","A-01/environment/overlay.jpg","A-01/environment/report.json","B-01/photographic/report.json"]){
       expect(fs.existsSync(path.join(outDir,f)),f).toBe(true);
     }
+    // the seven-item dossier per case
+    for(const f of ["source.jpg","reference.jpg","mockup.png","overlay.jpg","case-report.md","review-template.json"]){
+      expect(fs.existsSync(path.join(outDir,"A-01/environment",f)),f).toBe(true);
+    }
+    const md=fs.readFileSync(path.join(outDir,"A-01/environment/case-report.md"),"utf8");
+    for(const h of ["## 1–4. Pictures","## 5. Fidelity and geometry checks","## 6. Visible realism defects","## 7. Recommended targeted corrections"]) expect(md).toContain(h);
+    expect(md).toContain("never loosened");
+    expect(a.realism!.calibrated).toBe(false);
+    // sensitivity probes: known damage to a clean result must be caught by the cross-check
+    expect(a.probes!.length).toBe(5);
+    // colour and noise damage must be caught. Blur/shift are KNOWN blind spots of the lenient rectified
+    // check on synthetic data (recorded, not hidden): calibration treats them as probes that must be caught
+    // before any threshold may be loosened.
+    const det=(n:string)=>a.probes!.find((p)=>p.name===n)!.detected;
+    expect(det("colour-shift-a3")).toBe(true);expect(det("colour-shift-L5")).toBe(true);expect(det("noise-6")).toBe(true);
+    expect(a.probes!.every((p)=>typeof p.meanDeltaE==="number")).toBe(true);
+    const tpl=JSON.parse(fs.readFileSync(path.join(outDir,"A-01/environment/review-template.json"),"utf8"));
+    expect(tpl.verdict).toBe("");
     // privacy: reports carry no GPS coordinates or absolute input paths; outputs carry no EXIF
     const all=fs.readFileSync(path.join(outDir,"summary.json"),"utf8");
     expect(all).not.toMatch(/51\/1|GPSLatitude|0\/1 31/);
@@ -76,7 +94,7 @@ describe("real-photo validation runner (self-test on synthetic JPEGs with EXIF)"
     expect(outMeta.exif).toBeUndefined();
     expect(summary.cases).toBe(6);
     expect(summary.accuracy.targetQuadErrorPx.n).toBeGreaterThanOrEqual(2);
-  });
+  },240000);
 
   it("refuses to write customer output into a git-tracked (non-ignored) location",()=>{
     const bad=path.resolve(__dirname,"..","..","docs","would-be-leak");

@@ -111,6 +111,8 @@ export type SceneIntegrity={
 };
 
 export type QaSummary={
+  /** The exact source/target region pair the independent cross-check compared (for diagnostics and probes). */
+  crossRegions?:{source:Quad;target:Quad};
   /** Did anything alter the customer's product pixels beyond geometric resampling? */
   productPixels?:{modified:boolean;level:RealismLevel;note:string};
   forward:ProtectedContentReport|null;

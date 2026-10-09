@@ -62,7 +62,7 @@ export function estimateEdgeBlur(img:RawImage,p0:Pt,p1:Pt):number|null{
 }
 
 /** Fine-noise level measured on flat, unoccluded surfaces of the reference. */
-export function estimateGrain(img:RawImage,exclude?:Uint8Array):{sigma:number;samples:number}{
+export function estimateGrain(img:RawImage,exclude?:Uint8Array,only?:Uint8Array):{sigma:number;samples:number}{
   const g=toGray(img);
   const w=g.width,h=g.height;
   const soft=gaussianBlurPlane(g.data,w,h,1.6);
@@ -72,6 +72,7 @@ export function estimateGrain(img:RawImage,exclude?:Uint8Array):{sigma:number;sa
     for(let x=4;x<w-4;x+=2){
       const i=y*w+x;
       if(exclude && exclude[i]) continue;
+      if(only && !only[i]) continue;
       // flat: smooth low-frequency luminance (no edges nearby)
       const gx=wide[i+1]-wide[i-1],gy=wide[i+w]-wide[i-w];
       if(Math.hypot(gx,gy)>0.9) continue;

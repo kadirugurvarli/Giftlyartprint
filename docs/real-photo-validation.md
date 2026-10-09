@@ -85,3 +85,10 @@ occluders · no leftover pieces of the old picture · no obvious glare carried o
 We will (1) fix what the real data breaks, (2) replace the synthetic-calibrated tolerances with ones
 derived from `summary.json`, (3) decide the default realism level with you from side-by-side results,
 and only then (4) discuss anything beyond clean mockups.
+
+## Update (validation tooling)
+
+See `docs/VALIDATION-QUICKSTART.md` for the non-technical walkthrough: folder convention,
+preflight, the seven-item per-test dossier (`case-report.md`), review templates, sensitivity probes
+and the calibration rules (thresholds can only be tightened freely; loosening needs evidence and
+explicit approval, and is refused when it would stop known damage being detected).
