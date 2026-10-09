@@ -192,6 +192,9 @@ export type FidelityTolerances={
   maxSharpnessRatio:number;
   /** Relative error allowed between the placed aspect ratio and the source aspect ratio. */
   maxAspectError:number;
+  /** Optional split of the bias limit: luminance (L) and chroma (a,b) are judged separately when set. */
+  maxAbsLBias?:number;
+  maxAbsChromaBias?:number;
 };
 
 /**
@@ -224,6 +227,35 @@ export const LOSSY_FORWARD_TOLERANCES:FidelityTolerances={
 };
 
 /**
+ * Forward check for output that includes bounded, colour-neutral LIGHTING INTEGRATION (a smooth
+ * illumination gain of at most a few percent). Luminance may move a little; chroma must not.
+ */
+export const LIGHTING_FORWARD_TOLERANCES:FidelityTolerances={
+  maxMeanDeltaE:2.5,
+  maxP95DeltaE:6.0,
+  maxAbsLabBias:1.6,
+  maxAbsLBias:1.8,
+  maxAbsChromaBias:0.5,
+  minSsim:0.95,
+  minSharpnessRatio:0.9,
+  maxSharpnessRatio:1.12,
+  maxAspectError:0.03
+};
+
+/** Rectified cross-check for lighting-integrated output: independent path, so looser, chroma still tight. */
+export const LIGHTING_RECTIFIED_TOLERANCES:FidelityTolerances={
+  maxMeanDeltaE:3.0,
+  maxP95DeltaE:8.0,
+  maxAbsLabBias:1.8,
+  maxAbsLBias:2.0,
+  maxAbsChromaBias:0.7,
+  minSsim:0.9,
+  minSharpnessRatio:0.55,
+  maxSharpnessRatio:1.3,
+  maxAspectError:0.03
+};
+
+/**
  * Rectified check: the composite is warped back and compared with the source. Independent of the
  * compositor's own warp, but every output pays for a second resample, so tolerances are looser.
  */
@@ -250,8 +282,10 @@ export function evaluateFidelity(m:ImageMetrics,tol:FidelityTolerances=FORWARD_T
   if(m.meanDeltaE>tol.maxMeanDeltaE || m.p95DeltaE>tol.maxP95DeltaE){
     failures.push({code:"COLOUR_DRIFT",detail:`mean dE ${m.meanDeltaE.toFixed(2)}, p95 dE ${m.p95DeltaE.toFixed(2)}`});
   }
-  const bias=Math.max(Math.abs(m.labBias.L),Math.abs(m.labBias.a),Math.abs(m.labBias.b));
-  if(bias>tol.maxAbsLabBias){
+  const lLimit=tol.maxAbsLBias ?? tol.maxAbsLabBias;
+  const cLimit=tol.maxAbsChromaBias ?? tol.maxAbsLabBias;
+  const biasBreach=Math.abs(m.labBias.L)>lLimit || Math.abs(m.labBias.a)>cLimit || Math.abs(m.labBias.b)>cLimit;
+  if(biasBreach){
     failures.push({code:"COLOUR_BIAS",detail:`Lab bias L ${m.labBias.L.toFixed(2)}, a ${m.labBias.a.toFixed(2)}, b ${m.labBias.b.toFixed(2)}`});
   }
   if(m.ssim<tol.minSsim){

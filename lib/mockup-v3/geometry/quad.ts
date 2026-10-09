@@ -237,3 +237,24 @@ export function estimateRectAspect(q:Quad,imageWidth:number,imageHeight:number,o
   const a=fromFocal(f);
   return a===null?edgeFallback:{aspect:a,focalPx:f,method:"assumed-focal",reliable:false};
 }
+
+/**
+ * Offset every edge of a convex quad by `d` px (positive = outward) and re-intersect.
+ * Used for sub-pixel overlap/inset where moving corners radially would skew the shape.
+ */
+export function offsetQuad(q:Quad,d:number):Quad{
+  const lines=[0,1,2,3].map((i)=>{
+    const a=q[i],b=q[(i+1)%4];
+    const dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1;
+    const nx=dy/l,ny=-dx/l; // outward for TL,TR,BR,BL
+    const p={x:a.x+nx*d,y:a.y+ny*d};
+    return {p,dx:dx/l,dy:dy/l};
+  });
+  const inter=(l1:typeof lines[0],l2:typeof lines[0]):Pt=>{
+    const det=l1.dx*l2.dy-l1.dy*l2.dx;
+    if(Math.abs(det)<1e-12) return l1.p;
+    const t=((l2.p.x-l1.p.x)*l2.dy-(l2.p.y-l1.p.y)*l2.dx)/det;
+    return {x:l1.p.x+l1.dx*t,y:l1.p.y+l1.dy*t};
+  };
+  return [inter(lines[3],lines[0]),inter(lines[0],lines[1]),inter(lines[1],lines[2]),inter(lines[2],lines[3])];
+}

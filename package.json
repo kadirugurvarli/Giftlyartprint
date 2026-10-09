@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:update-goldens": "UPDATE_GOLDENS=1 vitest run"
+    "test:update-goldens": "UPDATE_GOLDENS=1 vitest run",
+    "previews": "PREVIEWS=1 vitest run tests/previews"
   },
   "dependencies": {
     "next": "^15.0.0",
@@ -22,6 +23,6 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.2.7"
+    "vitest": "^5.0.3"
   }
 }

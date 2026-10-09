@@ -156,3 +156,26 @@ No merge to `main`, no production change, no deletion or edit of V2 routes or `a
 - Mutation testing (9 deliberate bugs) found and fixed two weak tests (an aliasing test that passed vacuously at an exact 8x shrink, and a golden helper that could overwrite goldens). All 9 mutants are now caught.
 
 **Known gaps (intentional, later phases)** no scene lighting or shadow model yet, no frame renderer, no AI analysis, no UI, no Drive `JobStore`, no segmentation adapter. Real-photo accuracy is unmeasured until samples are provided.
+
+## 11. Phase 3: mockup pipelines (implemented, synthetic-verified)
+
+Entry point: `runMockup({mode,source,reference,options,manual})` in `lib/mockup-v3/pipeline`. Output is a **clean mockup** (no text, branding or social crop) plus a report: `status` (pass/review/fail), `needsManual`, typed `defects` with severities, and three measured QA gates. `docs/phase3-previews/` holds before/after sheets and `RESULTS.md`.
+
+**Workflow A, artwork-in-frame:** detect the print in the source photo, find the frame + opening in the reference (frame-layer analysis with cross-side consensus), fit the print to the opening with an explicit policy (cover-crop or contain-fill, both flagged with numbers, never stretched), add bounded inner shadow, composite. Frame, mount and room pixels are byte-identical outside the opening (checked).
+
+**Workflow B, framed-on-wall:** detect and rectify the real framed piece (single resample, no regeneration), find the wall, fit ceiling/skirting lines, derive scale and foreshortening from them (physical size + vanishing point + focal), pick free wall away from furniture, add perspective-correct contact/drop shadows and bounded illumination gain, composite.
+
+**Quality gates (all measured):** (1) forward fidelity vs the same warp of the source, with lighting-integration tolerances (luminance may move a little, chroma must not); (2) independent cross-check that rectifies the ORIGINAL customer photo and the FINAL composite separately and compares them; (3) scene integrity: nothing outside the placement and its shadow may differ from the reference (this is also the guarantee against stray text/branding). Defect codes are in `detect/defects.ts`.
+
+**Manual fallbacks (never mandatory):** `sourceQuad`, `targetQuad`, `apertureLayers`, `wallHint`, and `occlusion` (polygon/brush masks or any `OcclusionProvider`, so an automatic segmenter can drop in later). Occluded pixels are excluded from detection, lighting estimates and QA.
+
+**Findings during Phase 3 (all fixed and covered by tests):** shadow-inflated and shatter-prone foreground thresholds; opening picked from a spurious deeper edge (now consensus across sides, outermost edge of a cluster); frame hidden by an occluder (RANSAC four-line reconstruction, hidden area counted); occluder pixels contaminating lighting estimates; ceiling edge bridged by morphological closing. Mutation testing (19 injected faults across both phases) found and led to fixing two weak tests (cross-check, plant mask).
+
+**Known limitations (not yet addressed):**
+- Everything above is verified on SYNTHETIC scenes only. Photorealism on real photographs is unproven and tolerances are uncalibrated for real JPEG/lighting.
+- No sensor-noise/grain or camera-softness matching: the placed piece is cleaner than the surrounding photo, a visible realism cue.
+- No glass reflection, no frame side-face (depth) rendering on oblique views.
+- Matting: anti-aliased mask edges retain the old background colour (thin fringe on occluder edges); needs foreground colour decontamination.
+- Wall model assumes a level camera and a smooth painted wall; textured wallpaper/brick, pitched cameras and walls cut off at top/bottom degrade to defect-flagged fallbacks.
+- Without EXIF focal length, perspective proportions on angled views are approximate (reported as `FOCAL_ASSUMED` / `PROPORTION_UNVERIFIED`).
+- Scene is capped to 2400 px on the long side for processing; very large references are downscaled (customer pixels are not).

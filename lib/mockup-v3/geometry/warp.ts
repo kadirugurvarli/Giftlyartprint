@@ -149,8 +149,15 @@ function warpCore(
   const [h0,h1,h2,h3,h4,h5,h6,h7,h8]=sampleMap;
   const acc=new Float64Array(4);
 
-  for(let y=0;y<outH;y++){
-    for(let x=0;x<outW;x++){
+  let x0=0,y0=0,x1=outW,y1=outH;
+  if(coverageQuad){
+    x0=Math.max(0,Math.floor(Math.min(...coverageQuad.map((p)=>p.x)))-1);
+    y0=Math.max(0,Math.floor(Math.min(...coverageQuad.map((p)=>p.y)))-1);
+    x1=Math.min(outW,Math.ceil(Math.max(...coverageQuad.map((p)=>p.x)))+1);
+    y1=Math.min(outH,Math.ceil(Math.max(...coverageQuad.map((p)=>p.y)))+1);
+  }
+  for(let y=y0;y<y1;y++){
+    for(let x=x0;x<x1;x++){
       let cov=1;
       if(inside){
         const cx=x+0.5;
