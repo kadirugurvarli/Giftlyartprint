@@ -31,6 +31,27 @@ export type RealismOptions={
   frameDepthM?:number;
   dropShadowStrength?:number;contactShadowStrength?:number;
   textureSeed?:number;
+  /**
+   * Calibrated room light (framed-on-wall). When set it REPLACES the measured light and
+   * `dropShadowStrength`: shadows fall along `shadowDir`, with the given darkness and penumbra, and
+   * are tinted for the room's colour temperature (a shadow has lost the key light, so under warm
+   * light it reads slightly cooler than the lit wall).
+   */
+  lightOverride?:{
+    /** Unit vector, reference-image space, along which shadows fall. */
+    shadowDir:Pt;
+    /** Peak darkening of the drop shadow, 0-0.6. */
+    intensity:number;
+    /** Penumbra: sigma of the drop-shadow blur in REFERENCE pixels. */
+    softnessPx:number;
+    /** Colour temperature of the key light in kelvin (optional; 2000-12000). */
+    colourTempK?:number;
+  };
+  /**
+   * Wall-only shadow mask at the reference's original resolution (alpha 255 = shadow may fall here,
+   * 0 = never darken: furniture, floor, windows). Anything outside stays byte-identical.
+   */
+  shadowMask?:OcclusionMask;
 };
 
 export type MockupOptions={

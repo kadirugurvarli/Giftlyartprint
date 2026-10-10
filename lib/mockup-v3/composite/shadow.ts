@@ -16,6 +16,12 @@ export type ShadowParams={
   contactStrength:number;
   /** Blur sigma of the drop shadow as a multiple of depthPx. */
   softness?:number;
+  /** Absolute blur sigma of the drop shadow in image px; wins over `softness`. */
+  softnessPx?:number;
+  /** Per-channel weights (mean ~1) of the darkening in linear light, e.g. a cooler shadow under warm light. */
+  tint?:[number,number,number];
+  /** Where shadow may fall (alpha 0-255 per pixel, scene resolution); everywhere else is left untouched. */
+  allow?:Uint8Array;
 };
 
 export type ShadowResult={
@@ -71,7 +77,7 @@ export function castWallShadows(scene:RawImage,quad:Quad,objectSize:{width:numbe
   const dropPoly=shiftedRect.map((q)=>applyHomography(Hm,q)!);
 
   const sizePx=Math.sqrt(Math.abs((quad[2].x-quad[0].x)*(quad[3].y-quad[1].y)-(quad[3].x-quad[1].x)*(quad[2].y-quad[0].y))/2);
-  const dropSigma=Math.max(1.2,(p.softness ?? 0.7)*p.depthPx*(sizePx/objectSize.width));
+  const dropSigma=p.softnessPx!==undefined?Math.max(0.6,p.softnessPx):Math.max(1.2,(p.softness ?? 0.7)*p.depthPx*(sizePx/objectSize.width));
   const contactSigma=Math.max(0.8,0.0025*sizePx);
 
   const toF=(u8:Uint8Array)=>{const f=new Float32Array(u8.length);for(let i=0;i<f.length;i++) f[i]=u8[i]/255;return f;};
@@ -83,12 +89,13 @@ export function castWallShadows(scene:RawImage,quad:Quad,objectSize:{width:numbe
   const influence=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++){
     if(foot[i]===255) continue;
-    const dark=1-(1-p.dropStrength*drop[i])*(1-p.contactStrength*contact[i]);
+    let dark=1-(1-p.dropStrength*drop[i])*(1-p.contactStrength*contact[i]);
+    if(p.allow){const a=p.allow[i];if(a===0) continue;dark*=a/255;}
     if(dark<0.002) continue;
-    const k=1-dark;
-    out[i*4]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4]]*k);
-    out[i*4+1]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4+1]]*k);
-    out[i*4+2]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4+2]]*k);
+    const tr=p.tint?Math.max(0,1-dark*p.tint[0]):1-dark,tg=p.tint?Math.max(0,1-dark*p.tint[1]):1-dark,tb=p.tint?Math.max(0,1-dark*p.tint[2]):1-dark;
+    out[i*4]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4]]*tr);
+    out[i*4+1]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4+1]]*tg);
+    out[i*4+2]=linearToSrgb8(SRGB_TO_LINEAR[out[i*4+2]]*tb);
     influence[i]=1;
   }
   return {image:{width:W,height:H,data:out},influence};
@@ -119,4 +126,25 @@ export function innerShadowLayer(art:RawImage,dirInArt:Pt,bandPx:number,strength
     }
   }
   return {width:art.width,height:art.height,data:out};
+}
+
+/**
+ * Shadow tint for a key light of colour temperature `kelvin`: the darkening weight of each channel is the
+ * key light's own colour (normalised to mean 1), because a shadow removes exactly that light. Warm light
+ * (low K) therefore darkens red more than blue, leaving shadows cooler than the lit wall. 6500 K is neutral.
+ */
+export function shadowTintForKelvin(kelvin:number):[number,number,number]{
+  const t=Math.max(1000,Math.min(40000,kelvin))/100;
+  // Tanner Helland's blackbody approximation (sRGB), relative key-light colour
+  let r=t<=66?255:329.698727446*Math.pow(t-60,-0.1332047592);
+  let g=t<=66?99.4708025861*Math.log(t)-161.1195681661:288.1221695283*Math.pow(t-60,-0.0755148492);
+  let b=t>=66?255:t<=19?0:138.5177312231*Math.log(t-10)-305.0447927307;
+  const c=(v:number)=>Math.max(1,Math.min(255,v));
+  r=c(r);g=c(g);b=c(b);
+  // relative to the 6500 K neutral so the default stays (1,1,1)
+  const n=[r/255,g/255,b/255];
+  const ref=[1,0.9994,0.9985];
+  const w=[n[0]/ref[0],n[1]/ref[1],n[2]/ref[2]];
+  const m=(w[0]+w[1]+w[2])/3;
+  return [w[0]/m,w[1]/m,w[2]/m];
 }

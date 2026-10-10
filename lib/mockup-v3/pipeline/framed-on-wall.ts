@@ -6,7 +6,7 @@ import {edgeLengths,estimateRectAspect,offsetQuad,rectQuad} from "../geometry/qu
 import {applyHomography,homographyFromPoints} from "../geometry/homography";
 import {compositeOver,solidImage,warpToQuad} from "../geometry/warp";
 import {applyGain,estimateIlluminationGain,estimateLight,estimateLightFromGradient,type LightEstimate} from "../composite/lighting";
-import {castWallShadows} from "../composite/shadow";
+import {castWallShadows,shadowTintForKelvin} from "../composite/shadow";
 import {depthFaces,outerEdgeColour,renderDepthLayer} from "../composite/depth";
 import {addGrain,estimateCameraTexture,glassSheen,softenLayer} from "../composite/photo";
 import {applyOcclusion} from "../composite/occlusion";
@@ -163,16 +163,25 @@ export async function runFramedOnWall(input:MockupJobInput):Promise<MockupResult
 
   // 5. realism around the product: wall shadows always; physically derived frame depth from "environment"
   const depthM=realism.frameDepthM ?? 0.025;
-  const dropStrength=realism.dropShadowStrength ?? 0.3;
+  const lo=realism.lightOverride;
+  const loLen=lo?Math.hypot(lo.shadowDir.x,lo.shadowDir.y):0;
+  if(lo && !(loLen>1e-6)) throw new Error("lightOverride.shadowDir must be a non-zero vector");
+  // a calibrated room light replaces what would otherwise be measured from the reference
+  const shadowDir:Pt=lo?{x:lo.shadowDir.x/loLen,y:lo.shadowDir.y/loLen}:light.shadowDir;
+  const dropStrength=lo?Math.max(0,Math.min(0.6,lo.intensity)):(realism.dropShadowStrength ?? 0.3);
   const contactStrength=realism.contactShadowStrength ?? 0.2;
+  const wallMask=realism.shadowMask?resampleOcclusion(realism.shadowMask,W,H):undefined;
   const sh=castWallShadows(reference,target,{width:piece.width,height:piece.height},{
-    dir:light.shadowDir,depthPx:Math.max(2,depthM/widthM*piece.width),dropStrength,contactStrength,softness:0.7
+    dir:shadowDir,depthPx:Math.max(2,depthM/widthM*piece.width),dropStrength,contactStrength,softness:0.7,
+    softnessPx:lo?lo.softnessPx*ref.scale:undefined,
+    tint:lo?.colourTempK?shadowTintForKelvin(lo.colourTempK):undefined,
+    allow:wallMask?.alpha
   });
   let scene=sh.image;
   const influence=new Uint8Array(sh.influence);
   let faceCount=0;
   if(withDepth){
-    const faces=depthFaces(target,widthM,heightM,depthM,usedFocal,W/2,H/2,light.shadowDir);
+    const faces=depthFaces(target,widthM,heightM,depthM,usedFocal,W/2,H/2,shadowDir);
     faceCount=faces.length;
     if(faces.length){
       const dl=renderDepthLayer(faces,outerEdgeColour(piece),W,H);
@@ -242,7 +251,7 @@ export async function runFramedOnWall(input:MockupJobInput):Promise<MockupResult
     automation:{source:manual.sourceQuad?"manual":"auto",target:manual.targetQuad?"manual":"auto",occlusion:occ.kind},
     adjustments:{
       realismLevel:level,placement:placementKind,
-      lightSource:light.source,shadowDirX:light.shadowDir.x,shadowDirY:light.shadowDir.y,dropStrength,contactStrength,
+      lightSource:lo?"override":light.source,shadowDirX:shadowDir.x,shadowDirY:shadowDir.y,dropStrength,contactStrength,shadowSoftnessPx:lo?lo.softnessPx:0,shadowColourTempK:lo?.colourTempK ?? 0,wallShadowMask:wallMask?1:0,
       frameDepthM:depthM,depthFaces:faceCount,gainMaxDeviation:gain?.maxDeviation ?? 0,
       grainSigma:texture?.grainSigma ?? 0,softnessSigma:texture?.blurSigma ?? 0,
       freeFraction,usedFocalPx:usedFocal,placedAspect:est.aspect ?? 0,pieceAspect:aspect,aspectMethod:extracted.aspectMethod,

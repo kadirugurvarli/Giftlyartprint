@@ -1,25 +1,26 @@
-# Room Library pilot (isolated feature branch)
+# Room Library pilot (isolated feature branch `feat/room-library-pilot`)
 
-Status: **foundation only**. Not connected to the Validation Studio UI, not deployed and not approved for commercial use.
+Status: **phase 2, synthetic-room validated only**. Not connected to the Validation Studio UI, not deployed, not approved for commercial use. No real room asset, no customer photographs.
 
-- `schema.ts` defines room images, wall quadrilaterals, metric wall dimensions, a safe placement region, rights and lighting metadata.
-- `placement.ts` projects an approved **outer framed-piece size** onto a verified wall plane, returning `manual.targetQuad` and physical width options for the existing `framed-on-wall` pipeline.
-- `tests/room-library.test.ts` covers size limits, perspective projection and fail-closed gates.
+## What exists (`lib/mockup-v3/rooms/`)
 
-## Important restrictions
+- `schema.ts` (v2): room image, rights, **calibrated control points** (image px <-> wall cm, >= 4, may cover only part of a cropped wall), scale (method, basis, confidence, relative uncertainty), camera focal length (+ optional principal point), optional annotated lines, safe region, calibrated light, wall-only shadow mask. Allowed outer frame sizes: 30x40, 40x30, 40x50, 50x40, 50x70, 70x50, 60x80, 80x60 cm.
+- `calibration.ts` / `validate.ts`: least-squares homography; reprojection RMS <= 1.5 px, max <= 3 px; perspective consistency (wall axes orthogonal and isotropic, implied focal vs stated focal within 15 % where it is observable, annotated lines <= 1.5 deg). Region must lie inside the control-point hull (+15 %).
+- Scale: AI-generated rooms can never be "measured". They are capped at medium/low confidence, >= 5 % uncertainty, and every placement reports `physicalAccuracy: "illustrative"` with a disclosure and a width range.
+- `aspect.ts`: source-frame aspect must match the outer size within 2 %. Artwork or frames are never stretched.
+- `product.ts`: flat artwork -> procedural frame (moulding, mount, depth) rendered in real units at an integer px/cm; the print is placed with a uniform "contain" scale (mount absorbs the difference; refused if it fills < 70 %). Frame/mount edges are lightly softened, **print pixels never**.
+- `light.ts` + engine override (`RealismOptions.lightOverride`, `shadowMask`): calibrated direction, intensity, softness, colour temperature (shadows tinted by the key light) and a wall-only mask built from wall/exclude polygons.
+- `run.ts`: `runRoomMockup` orchestrates placement, rendering, the engine and post-checks (quad exact, not stretched, aspect, protected pixels, engine gates).
 
-- Supported outer frame sizes: 30x40, 40x50, 50x70 and 60x80 cm, plus landscape rotations. The bounds apply to the whole frame, **not** the print alone.
-- No uncalibrated AI room is accepted as metrically accurate: `wall.scaleVerified` must be true after a human checks the intended relative scale. AI rooms have no trustworthy EXIF or true object measurements.
-- The existing `framed-on-wall` workflow requires an image of a finished framed piece. Adding a procedural frame around a flat artwork is **not** implemented in this pilot.
-- Lighting metadata is recorded, **not yet applied** to the renderer. The current engine estimates room lighting itself; claiming matched illumination now would be premature.
-- The room image must be loaded by the caller; this module does not store images or artwork.
-- For the first room, use the empty-wall cozy living room image (not the later AI-generated image with artwork). Room image needs a reviewed placement region and human-approved scale.
-- Do not expose the feature through Production V2, publish, merge or upload customer photos before review.
+## Tests
 
-## Next work, only after local tests pass
+`tests/rooms/*` on a synthetic ray-traced room: all eight sizes, lighting consistency, geometry, protected pixels, failure conditions, and ONE end-to-end integration test. Visual report: `npx tsx scripts/room-visual-report.ts` (output git-ignored).
 
-1. Save an approved, rights-cleared empty-wall room image in a private room store.
-2. Annotate wall corners, safe region, sofa-width scale and lighting direction; review scale confidence.
-3. Connect the room picker to the isolated V3 Validation Studio, with an explicit 30x40–60x80 outer-frame selector.
-4. Add optional room-light override, mask and occlusion handling to the engine, with pixel-integrity tests.
-5. Test with a non-sensitive finished-frame source image, compare the room before/after and obtain visual approval.
+## Remaining limits (not solved)
+
+- Only a synthetic room has been tested; real photographs of rooms are untested.
+- Frame is a procedural, stylised moulding; no real wood grain, no glass reflection, no room-light falloff or mount shadow on the print itself (default `printEdgeShadow` 0 keeps print pixels untouched).
+- Light values are calibrated by a human; nothing is measured from a real room automatically.
+- Frame depth faces are synthesised; the engine does not model contact with furniture or uneven walls.
+- AI-generated rooms give only an illustrative scale.
+- No rights-cleared room asset exists yet; no UI.
