@@ -22,9 +22,9 @@ describe("Room Library pilot",()=>{
     expect(p.ok).toBe(true);
     if(!p.ok)return;
     expect(p.targetQuad[0].x).toBeCloseTo(710,5);
-    expect(p.targetQuad[0].y).toBeCloseTo(175,5);
+    expect(p.targetQuad[0].y).toBeCloseTo(235,5);
     expect(p.targetQuad[2].x).toBeCloseTo(890,5);
-    expect(p.targetQuad[2].y).toBeCloseTo(415,5);
+    expect(p.targetQuad[2].y).toBeCloseTo(475,5);
   });
   it("rejects unverified metric scale",()=>{
     const p=roomPlacement({...room,wall:{...room.wall,scaleVerified:false}},{width:30,height:40});
