@@ -48,7 +48,6 @@ export default function Studio(){
       if(mode==="framed-on-wall"){ if(pieceW) fd.set("pieceWidthCm",pieceW); if(ceilH) fd.set("ceilingHeightCm",ceilH); }
       setBusy(`Uploading ${bytesLabel(s.blob.size+r.blob.size)} and generating (about 10–40 seconds)…`);
       const resp=await fetch("/api/validation/run",{method:"POST",body:fd});
-      if(resp.status===401){location.reload();return;}
       if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error ?? `Server answered ${resp.status}.`);}
       const {header,mockup,overlay}=unpackFrame(new Uint8Array(await resp.arrayBuffer()));
       const mBlob=new Blob([mockup as BlobPart],{type:"image/jpeg"});
@@ -71,8 +70,7 @@ export default function Studio(){
   const infos=rep?[...rep.defects.filter((d:any)=>d.severity==="info"),...rep.realism.findings.filter((d:any)=>d.severity==="info")]:[];
 
   return <div className="v3"><div className="vs-wrap">
-    <div className="vs-top"><div><h1>Validation studio</h1><p className="vs-sub">Private test interface (Preview). Photos are processed in memory and never stored.</p></div>
-      <button className="sec" onClick={async()=>{await fetch("/api/validation/logout",{method:"POST"});location.reload();}}>Sign out</button></div>
+    <div className="vs-top"><div><h1>Validation studio</h1><p className="vs-sub">Private test tool. Photos are processed in memory and never stored.</p></div></div>
 
     <div className="vs-card"><h2>1. Your photos</h2>
       <div className="vs-row">
@@ -88,7 +86,7 @@ export default function Studio(){
         <label className={`vs-mode ${mode==="artwork-in-frame"?"on":""}`}><input type="radio" name="m" checked={mode==="artwork-in-frame"} onChange={()=>setMode("artwork-in-frame")}/><strong>Artwork only</strong><small>A bare print, placed inside the frame in the reference</small></label>
         <label className={`vs-mode ${mode==="framed-on-wall"?"on":""}`}><input type="radio" name="m" checked={mode==="framed-on-wall"} onChange={()=>setMode("framed-on-wall")}/><strong>Already framed</strong><small>A finished framed piece, placed on the wall (or replacing a picture)</small></label>
       </div>
-      <details style={{marginTop:12}}><summary>Options</summary>
+      <details className="vs-mt12"><summary>Options</summary>
         <p><label>Realism level<br/><select value={level} onChange={(e)=>setLevel(e.target.value as Level)}>
           <option value="environment">environment (default): your pixels untouched, adds frame depth</option>
           <option value="strict">strict: your pixels untouched, wall shadow only</option>
@@ -97,7 +95,7 @@ export default function Studio(){
           <label>Ceiling height (cm), optional<input type="number" inputMode="decimal" value={ceilH} onChange={(e)=>setCeilH(e.target.value)}/></label></div>}
       </details></div>
 
-    <p><button onClick={generate} disabled={!srcFile||!refFile||!!busy} style={{width:"100%"}}>{busy ? "Working…" : "Generate clean mockup"}</button></p>
+    <p><button onClick={generate} disabled={!srcFile||!refFile||!!busy} className="vs-full">{busy ? "Working…" : "Generate clean mockup"}</button></p>
     {busy&&<p className="vs-note" role="status">{busy}</p>}
     {err&&<p className="vs-err" role="alert">{err}</p>}
 
@@ -108,7 +106,7 @@ export default function Studio(){
           <figure><img src={res.refPrev} alt="Reference as analysed"/><figcaption>Reference</figcaption></figure>
           <figure><img src={showOverlay&&res.overlayUrl?res.overlayUrl:res.mockupUrl} alt="Result"/><figcaption>{showOverlay?"Detection and placement overlay":"Clean mockup"}</figcaption></figure>
         </div>
-        <p style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+        <p className="vs-flex">
           {res.overlayUrl&&<button className="sec" onClick={()=>setShowOverlay(v=>!v)}>{showOverlay?"Show clean mockup":"Show detection overlay"}</button>}
           <button onClick={()=>save(res.mockup,`mockup-${caseId.current}.jpg`)}>Download mockup</button></p>
         {rep.output&&<p className="vs-note">{rep.output.note} ({rep.output.px[0]}×{rep.output.px[1]} px)</p>}
@@ -119,8 +117,8 @@ export default function Studio(){
         {warnings.length===0&&<p>No warnings. Please still look at the mockup at full size.</p>}
         <ul className="vs-w">{warnings.map((w:any,i:number)=><li key={i}><span className={`vs-tag ${w.sev==="blocker"?"fail":"review"}`}>{w.sev}</span><strong>{w.code}</strong><br/>{w.text}</li>)}</ul>
         {infos.length>0&&<details><summary>{infos.length} notes</summary><ul className="vs-w">{infos.map((w:any,i:number)=><li key={i}><strong>{w.code}</strong><br/>{w.message}</li>)}</ul></details>}
-        {rep.corrections.length>0&&<><h2 style={{marginTop:12}}>Suggested corrections</h2><ul className="vs-w">{rep.corrections.map((c:any,i:number)=><li key={i}><span className="vs-tag">{c.kind}</span><strong>{c.code}</strong><br/>{c.action}</li>)}</ul></>}
-        <details style={{marginTop:8}}><summary>Fidelity and geometry numbers</summary>
+        {rep.corrections.length>0&&<><h2 className="vs-mt12">Suggested corrections</h2><ul className="vs-w">{rep.corrections.map((c:any,i:number)=><li key={i}><span className="vs-tag">{c.kind}</span><strong>{c.code}</strong><br/>{c.action}</li>)}</ul></>}
+        <details className="vs-mt8"><summary>Fidelity and geometry numbers</summary>
           <table><tbody>
             {rep.qa.forward&&<tr><th>Forward fidelity</th><td>{rep.qa.forward.pass?"pass":"FAIL"} · ΔE {rep.qa.forward.meanDeltaE} (p95 {rep.qa.forward.p95DeltaE}) · SSIM {rep.qa.forward.ssim}</td></tr>}
             {rep.qa.crossCheck&&<tr><th>Independent cross-check</th><td>{rep.qa.crossCheck.pass?"pass":"FAIL"} · ΔE {rep.qa.crossCheck.meanDeltaE} (p95 {rep.qa.crossCheck.p95DeltaE}) · SSIM {rep.qa.crossCheck.ssim}</td></tr>}
@@ -134,12 +132,12 @@ export default function Studio(){
       </div>
 
       <div className="vs-card"><h2>5. Your feedback</h2>
-        <p>Overall<br/><span style={{display:"flex",gap:8,flexWrap:"wrap"}}>{(["good","acceptable","bad"] as const).map(v=><button key={v} className={verdict===v?"":"sec"} onClick={()=>setVerdict(v)}>{v}</button>)}</span></p>
-        {RATING_KEYS.map(k=><div key={k} style={{margin:"8px 0"}}>{RATING_LABEL[k]}<div className="vs-stars">{[1,2,3,4,5].map(n=><button key={n} className={ratings[k]===n?"on":""} onClick={()=>setRatings(r=>({...r,[k]:n}))} aria-label={`${RATING_LABEL[k]} ${n} of 5`}>{n}</button>)}</div></div>)}
+        <p>Overall<br/><span className="vs-flex">{(["good","acceptable","bad"] as const).map(v=><button key={v} className={verdict===v?"":"sec"} onClick={()=>setVerdict(v)}>{v}</button>)}</span></p>
+        {RATING_KEYS.map(k=><div key={k} className="vs-m8">{RATING_LABEL[k]}<div className="vs-stars">{[1,2,3,4,5].map(n=><button key={n} className={ratings[k]===n?"on":""} onClick={()=>setRatings(r=>({...r,[k]:n}))} aria-label={`${RATING_LABEL[k]} ${n} of 5`}>{n}</button>)}</div></div>)}
         <p>What do you see?</p>
         {DEFECT_CHOICES.map(([k,label])=><label className="vs-chk" key={k}><input type="checkbox" checked={seen.includes(k)} onChange={(e)=>setSeen(s=>e.target.checked?[...s,k]:s.filter(x=>x!==k))}/>{label}</label>)}
         <p><textarea rows={3} placeholder="Notes (no customer names, please)" value={notes} onChange={(e)=>setNotes(e.target.value)}/></p>
-        <p style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+        <p className="vs-flex">
           <button disabled={!verdict} onClick={()=>save(new Blob([JSON.stringify(feedback(),null,2)],{type:"application/json"}),`feedback-${caseId.current}.json`)}>Download feedback (JSON)</button>
           <button className="sec" disabled={!verdict} onClick={()=>navigator.clipboard?.writeText(JSON.stringify(feedback(),null,2))}>Copy feedback</button></p>
         <p className="vs-note">The feedback file holds ratings and numbers only: no images, file names or location.</p>

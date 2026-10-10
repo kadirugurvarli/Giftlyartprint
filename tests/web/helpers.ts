@@ -4,7 +4,8 @@ import {printPhoto,referenceWithFramedPicture} from "../helpers/e2e";
 import type {RawImage} from "@/lib/mockup-v3/types";
 
 export const ORIGIN="https://giftly-test-preview.vercel.app";
-export const GOOD_ENV={VALIDATION_UI_ENABLED:"1",VERCEL_ENV:"preview",VALIDATION_PASSWORD:"correct horse battery",VALIDATION_SESSION_SECRET:"s".repeat(40)};
+export const HOST="giftly-test-preview.vercel.app";
+export const GOOD_ENV:Record<string,string|undefined>={VALIDATION_UI_ENABLED:"1",VERCEL_ENV:"preview",VALIDATION_ALLOWED_HOSTS:HOST};
 
 export const jpegOf=(img:RawImage,exif?:Record<string,any>)=>{
   let s=sharp(Buffer.from(img.data.buffer,img.data.byteOffset,img.data.byteLength),{raw:{width:img.width,height:img.height,channels:4}}).removeAlpha();

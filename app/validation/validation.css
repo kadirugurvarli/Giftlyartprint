@@ -31,3 +31,6 @@
 .v3 .vs-stars{display:flex;gap:6px;flex-wrap:wrap}.v3 .vs-stars button{min-height:40px;min-width:40px;padding:0;background:transparent;color:var(--acc)}.v3 .vs-stars button.on{background:var(--acc);color:#fff}
 .v3 .vs-chk{display:flex;gap:8px;align-items:flex-start;padding:4px 0}.v3 .vs-chk input{margin-top:5px;width:18px;height:18px}
 .v3 .vs-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.v3 .vs-mt12{margin-top:12px}.v3 .vs-mt8{margin-top:8px}.v3 .vs-m8{margin:8px 0}.v3 .vs-full{width:100%}
+.v3 .vs-flex{display:flex;gap:10px;flex-wrap:wrap}
+.v3-msg{font:16px system-ui,sans-serif;padding:24px;max-width:640px}

@@ -2,104 +2,84 @@ import {describe,expect,it,vi,afterEach} from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import {checkEnvironment,PRODUCTION_SECRET_NAMES} from "@/lib/mockup-v3/web/guard";
-import {AttemptLimiter,COOKIE_NAME,cookieHeader,issueSession,passwordMatches,readCookie,verifySession} from "@/lib/mockup-v3/web/auth";
+import {allowedHosts,checkEnvironment,normaliseHost,PRODUCTION_SECRET_NAMES} from "@/lib/mockup-v3/web/guard";
+import {buildCsp,PERMISSIONS_POLICY} from "@/lib/mockup-v3/web/headers";
 import {HintError,parseHint} from "@/lib/mockup-v3/web/hint";
 import {extractHint,findExifSegment,resizeCandidates} from "@/lib/mockup-v3/web/client/jpeg-exif";
-import {handleLogin,handleLogout,handleRun,isAuthenticated} from "@/lib/mockup-v3/web/handlers";
+import {handleRun} from "@/lib/mockup-v3/web/handlers";
 import {unpackFrame} from "@/lib/mockup-v3/web/frame";
 import {buildFeedback} from "@/lib/mockup-v3/web/client/feedback";
 import {middleware,config} from "@/middleware";
 import {NextRequest} from "next/server";
-import {GOOD_ENV,ORIGIN,jpegOf,postForm,sampleUpload} from "./helpers";
+import {GOOD_ENV,HOST,ORIGIN,postForm,sampleUpload} from "./helpers";
 
 const hint=(w:number,h:number)=>JSON.stringify({originalWidth:w,originalHeight:h,focalLength35mm:26});
-const cookieFor=(env=GOOD_ENV)=>`${COOKIE_NAME}=${issueSession(env)}`;
 
 describe("environment guard (fail closed)",()=>{
-  it("runs only on an enabled Preview with both secrets",()=>{
-    expect(checkEnvironment(GOOD_ENV).ok).toBe(true);
+  it("runs only on an enabled Preview, on an allowed host, with no production credentials",()=>{
+    expect(checkEnvironment(GOOD_ENV,HOST).ok).toBe(true);
   });
   it.each([
     ["not enabled",{...GOOD_ENV,VALIDATION_UI_ENABLED:undefined},404],
     ["production",{...GOOD_ENV,VERCEL_ENV:"production"},404],
     ["development deployment",{...GOOD_ENV,VERCEL_ENV:"development"},404],
     ["no VERCEL_ENV at all",{...GOOD_ENV,VERCEL_ENV:undefined},404],
-    ["short password",{...GOOD_ENV,VALIDATION_PASSWORD:"short"},503],
-    ["no session secret",{...GOOD_ENV,VALIDATION_SESSION_SECRET:undefined},503],
-    ["weak session secret",{...GOOD_ENV,VALIDATION_SESSION_SECRET:"x".repeat(10)},503]
+    ["no allowed hosts configured",{...GOOD_ENV,VALIDATION_ALLOWED_HOSTS:undefined},503],
+    ["blank allowed hosts",{...GOOD_ENV,VALIDATION_ALLOWED_HOSTS:" , "},503]
   ])("refuses: %s",(_n,env,status)=>{
-    const g=checkEnvironment(env as any);
+    const g=checkEnvironment(env as any,HOST);
     expect(g.ok).toBe(false);if(!g.ok) expect(g.status).toBe(status);
+  });
+  it("only hostnames that were explicitly confirmed protected can serve the tool (other aliases are hidden)",()=>{
+    for(const h of ["giftly-content-studio.vercel.app","giftly-content-studio-abc123-team.vercel.app","evil.example","","giftly-test-preview.vercel.app.evil.example","sub.giftly-test-preview.vercel.app"]){
+      const g=checkEnvironment(GOOD_ENV,h);
+      expect(g.ok,h).toBe(false);if(!g.ok){expect(g.status).toBe(404);expect(g.code).toBe("HOST_NOT_ALLOWED");}
+    }
+    expect(checkEnvironment(GOOD_ENV,"GIFTLY-TEST-PREVIEW.vercel.app:443").ok).toBe(true); // case and port are ignored
+    expect(checkEnvironment({...GOOD_ENV,VALIDATION_ALLOWED_HOSTS:`a.vercel.app, ${HOST}`},HOST).ok).toBe(true);
+    expect(allowedHosts({VALIDATION_ALLOWED_HOSTS:" A.vercel.app:80 ,b.vercel.app,,"})).toEqual(["a.vercel.app","b.vercel.app"]);
+    expect(normaliseHost(null)).toBe("");
   });
   it("refuses to run next to any production credential, naming the variable but never its value",()=>{
     for(const name of PRODUCTION_SECRET_NAMES){
-      const g=checkEnvironment({...GOOD_ENV,[name]:"super-secret-value-123"});
+      const g=checkEnvironment({...GOOD_ENV,[name]:"super-secret-value-123"},HOST);
       expect(g.ok,name).toBe(false);
       if(!g.ok){expect(g.code).toBe("PRODUCTION_SECRETS_VISIBLE");expect(g.reason).toContain(name);expect(g.reason).not.toContain("super-secret");}
     }
   });
+  it("also refuses by prefix (SHOPIFY_*, GOOGLE_*, METRICOOL_*, OPENAI_*, CONTENT_FEED_*) for variables nobody listed",()=>{
+    for(const name of ["SHOPIFY_API_SECRET","GOOGLE_CLIENT_SECRET","GOOGLE_PRIVATE_KEY","METRICOOL_FOO","OPENAI_ORG_ID","CONTENT_FEED_X"]){
+      const g=checkEnvironment({...GOOD_ENV,[name]:"x"},HOST);
+      expect(g.ok,name).toBe(false);
+    }
+    expect(checkEnvironment({...GOOD_ENV,VERCEL_URL:"x.vercel.app",NEXT_PUBLIC_APP_NAME:"Giftly"},HOST).ok).toBe(true); // ordinary variables are fine
+    expect(checkEnvironment({...GOOD_ENV,GOOGLE_SHEET_ID:""},HOST).ok).toBe(true); // empty value = not visible
+  });
+  it("needs no application password or session secret any more",()=>{
+    expect(checkEnvironment({...GOOD_ENV,VALIDATION_PASSWORD:undefined,VALIDATION_SESSION_SECRET:undefined},HOST).ok).toBe(true);
+  });
   it("the local-development escape hatch never works on Vercel",()=>{
-    const local={...GOOD_ENV,VERCEL_ENV:undefined,VALIDATION_ALLOW_LOCAL:"1"};
-    expect(checkEnvironment(local as any).ok).toBe(true);
-    expect(checkEnvironment({...local,VERCEL:"1"} as any).ok).toBe(false);
-    expect(checkEnvironment({...local,VERCEL_ENV:"production"} as any).ok).toBe(false);
+    const local={...GOOD_ENV,VERCEL_ENV:undefined,VALIDATION_ALLOW_LOCAL:"1",VALIDATION_ALLOWED_HOSTS:"localhost"};
+    expect(checkEnvironment(local as any,"localhost:3000").ok).toBe(true);
+    expect(checkEnvironment({...local,VERCEL:"1"} as any,"localhost").ok).toBe(false);
+    expect(checkEnvironment({...local,VERCEL_ENV:"production"} as any,"localhost").ok).toBe(false);
   });
 });
 
-describe("password and session",()=>{
-  it("compares passwords in constant time and rejects wrong/empty",()=>{
-    expect(passwordMatches("correct horse battery",GOOD_ENV)).toBe(true);
-    expect(passwordMatches("correct horse batterY",GOOD_ENV)).toBe(false);
-    expect(passwordMatches("",GOOD_ENV)).toBe(false);
-    expect(passwordMatches("x",{})).toBe(false);
+describe("security headers",()=>{
+  it("CSP is strict: nothing allowed by default, scripts only by nonce, no unsafe-inline/eval, no wildcards or remote hosts",()=>{
+    const csp=buildCsp("NONCE123");
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("script-src 'nonce-NONCE123' 'strict-dynamic'");
+    expect(csp).toContain("frame-ancestors 'none'");expect(csp).toContain("form-action 'none'");expect(csp).toContain("base-uri 'none'");expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("connect-src 'self'");expect(csp).toContain("img-src 'self' blob: data:");
+    expect(csp).not.toMatch(/unsafe-inline|unsafe-eval|\*|https?:/);
+    expect(buildCsp("A")).not.toBe(buildCsp("B"));
   });
-  it("sessions: valid, tampered, expired, wrong secret, malformed all handled",()=>{
-    const t=issueSession(GOOD_ENV,1_000_000);
-    expect(verifySession(t,GOOD_ENV,1_000_000+1000)).toBe(true);
-    expect(verifySession(t,GOOD_ENV,1_000_000+13*3600*1000)).toBe(false); // 12h expiry
-    const [exp,n,s]=t.split(".");
-    expect(verifySession(`${Number(exp)+99999}.${n}.${s}`,GOOD_ENV,1_000_000)).toBe(false);
-    expect(verifySession(`${exp}.${n}.${s.slice(0,-2)}AA`,GOOD_ENV,1_000_000)).toBe(false);
-    expect(verifySession(t,{...GOOD_ENV,VALIDATION_SESSION_SECRET:"z".repeat(40)},1_000_000)).toBe(false);
-    for(const bad of ["","a.b","a.b.c.d",undefined,null,"..."]) expect(verifySession(bad as any,GOOD_ENV)).toBe(false);
-    expect(()=>issueSession({})).toThrow();
-  });
-  it("cookie is host-locked, HttpOnly, Secure, SameSite=Strict",()=>{
-    const c=cookieHeader("tok");
-    expect(c).toMatch(/^__Host-/);for(const a of ["HttpOnly","Secure","SameSite=Strict","Path=/"]) expect(c).toContain(a);
-    expect(c).not.toMatch(/Domain=/i);
-    expect(readCookie("a=1; __Host-giftly-validation=abc; b=2")).toBe("abc");
-  });
-  it("lockout after repeated failures, reset on success",()=>{
-    const l=new AttemptLimiter(3,60_000,120_000);
-    l.fail("ip",0);l.fail("ip",1);expect(l.blocked("ip",2)).toBe(false);
-    l.fail("ip",3);expect(l.blocked("ip",4)).toBe(true);expect(l.blocked("ip",130_000)).toBe(false);
-    l.fail("o",0);l.ok("o");l.fail("o",1);l.fail("o",2);expect(l.blocked("o",3)).toBe(false);
-  });
-});
-
-describe("login/logout endpoints",()=>{
-  const login=(body:unknown,headers:Record<string,string>={})=>handleLogin(new Request(`${ORIGIN}/api/validation/login`,{method:"POST",body:JSON.stringify(body),headers:{origin:ORIGIN,host:new URL(ORIGIN).host,"x-forwarded-for":"9.9.9.9",...headers}}),GOOD_ENV);
-  it("wrong password 401 without cookie; right password sets a verifiable cookie",async()=>{
-    const bad=await login({password:"nope nope nope"});
-    expect(bad.status).toBe(401);expect(bad.headers.get("set-cookie")).toBeNull();
-    const ok=await login({password:GOOD_ENV.VALIDATION_PASSWORD},{"x-forwarded-for":"8.8.8.8"});
-    expect(ok.status).toBe(200);
-    const c=ok.headers.get("set-cookie")!;
-    expect(verifySession(readCookie(c.split(";")[0]),GOOD_ENV)).toBe(true);
-    expect(ok.headers.get("cache-control")).toContain("no-store");
-  });
-  it("cross-site login/logout is refused; a disabled deployment returns 404",async()=>{
-    expect((await login({password:GOOD_ENV.VALIDATION_PASSWORD},{origin:"https://evil.example"})).status).toBe(403);
-    const r=new Request(`${ORIGIN}/api/validation/login`,{method:"POST",body:"{}",headers:{host:new URL(ORIGIN).host}}); // no Origin header
-    expect((await handleLogin(r,GOOD_ENV)).status).toBe(403);
-    expect((await handleLogin(r,{...GOOD_ENV,VERCEL_ENV:"production"})).status).toBe(404);
-    expect((await handleLogout(new Request(`${ORIGIN}/x`,{method:"POST",headers:{origin:"https://evil.example",host:new URL(ORIGIN).host}}),GOOD_ENV)).status).toBe(403);
-  });
-  it("brute force is throttled",async()=>{
-    for(let i=0;i<5;i++) await login({password:"wrong wrong wrong"},{"x-forwarded-for":"7.7.7.7"});
-    expect((await login({password:GOOD_ENV.VALIDATION_PASSWORD},{"x-forwarded-for":"7.7.7.7"})).status).toBe(429);
+  it("Permissions-Policy denies camera, microphone, location and the rest; only clipboard-write for self",()=>{
+    for(const f of ["camera","microphone","geolocation","payment","usb","serial","hid","display-capture","clipboard-read"]) expect(PERMISSIONS_POLICY).toContain(`${f}=()`);
+    expect(PERMISSIONS_POLICY).toContain("clipboard-write=(self)");
+    expect(PERMISSIONS_POLICY).not.toMatch(/=\(\*\)/);
   });
 });
 
@@ -153,26 +133,31 @@ describe("hint (camera metadata) is whitelisted; GPS can never pass",()=>{
 
 describe("run endpoint",()=>{
   const url=`${ORIGIN}/api/validation/run`;
-  it("hidden entirely when disabled or not Preview; explains misconfiguration only to the owner",async()=>{
+  it("hidden entirely when disabled, not Preview, or reached through any other alias; explains misconfiguration only to the owner",async()=>{
     const f=await postForm(url,{mode:"artwork-in-frame"});
-    for(const env of [{...GOOD_ENV,VERCEL_ENV:"production"},{...GOOD_ENV,VALIDATION_UI_ENABLED:undefined}]) expect((await handleRun(f.clone(),env as any)).status).toBe(404);
+    for(const env of [{...GOOD_ENV,VERCEL_ENV:"production"},{...GOOD_ENV,VALIDATION_UI_ENABLED:undefined},{...GOOD_ENV,VALIDATION_ALLOWED_HOSTS:"other.vercel.app"}]) expect((await handleRun(f.clone(),env as any)).status).toBe(404);
     expect((await handleRun(f.clone(),{...GOOD_ENV,CONTENT_FEED_TOKEN:"x"})).status).toBe(503);
+    expect((await handleRun(f.clone(),{...GOOD_ENV,VALIDATION_ALLOWED_HOSTS:undefined})).status).toBe(503);
+    const wrongHost=await postForm(url,{mode:"artwork-in-frame"},{host:"giftly-content-studio.vercel.app",origin:"https://giftly-content-studio.vercel.app"});
+    expect((await handleRun(wrongHost,GOOD_ENV)).status).toBe(404);
   });
-  it("401 without a valid session, 403 cross-site, 411/413/415 on bad framing",async()=>{
+  it("a spoofed X-Forwarded-Host never opens an unlisted alias; 403 cross-site; 411/413/415 on bad framing",async()=>{
     const base={mode:"artwork-in-frame"};
-    expect((await handleRun(await postForm(url,base),GOOD_ENV)).status).toBe(401);
-    expect((await handleRun(await postForm(url,base,{cookie:`${COOKIE_NAME}=forged.token.sig`}),GOOD_ENV)).status).toBe(401);
-    expect((await handleRun(await postForm(url,base,{cookie:cookieFor(),origin:"https://evil.example"}),GOOD_ENV)).status).toBe(403);
-    expect((await handleRun(await postForm(url,base,{cookie:cookieFor(),"content-length":"99999999"}),GOOD_ENV)).status).toBe(413);
-    const noLen=new Request(url,{method:"POST",body:"x",headers:{cookie:cookieFor(),origin:ORIGIN,host:new URL(ORIGIN).host}});
+    const spoof=await postForm(url,base,{host:"unprotected.vercel.app",origin:"https://unprotected.vercel.app","x-forwarded-host":HOST});
+    expect((await handleRun(spoof,GOOD_ENV)).status).toBe(404);
+    expect((await handleRun(await postForm(url,base,{origin:"https://evil.example"}),GOOD_ENV)).status).toBe(403);
+    const noOrigin=new Request(url,{method:"POST",body:"x",headers:{host:HOST,"content-length":"1","content-type":"multipart/form-data; boundary=x"}});
+    expect((await handleRun(noOrigin,GOOD_ENV)).status).toBe(403);
+    expect((await handleRun(await postForm(url,base,{"content-length":"99999999"}),GOOD_ENV)).status).toBe(413);
+    const noLen=new Request(url,{method:"POST",body:"x",headers:{origin:ORIGIN,host:HOST}});
     expect((await handleRun(noLen,GOOD_ENV)).status).toBe(411);
-    const wrongType=new Request(url,{method:"POST",body:"{}",headers:{cookie:cookieFor(),origin:ORIGIN,host:new URL(ORIGIN).host,"content-length":"2","content-type":"application/json"}});
+    const wrongType=new Request(url,{method:"POST",body:"{}",headers:{origin:ORIGIN,host:HOST,"content-length":"2","content-type":"application/json"}});
     expect((await handleRun(wrongType,GOOD_ENV)).status).toBe(415);
   });
   it("400 on non-JPEG, GPS in metadata, bad mode/level, absurd sizes",async()=>{
     const {source,reference}=await sampleUpload();
     const ok={mode:"artwork-in-frame",level:"environment",source,reference,sourceMeta:hint(640,480),referenceMeta:hint(1600,1200)};
-    const go=async(over:Record<string,any>)=>handleRun(await postForm(url,{...ok,...over},{cookie:cookieFor()}),GOOD_ENV);
+    const go=async(over:Record<string,any>)=>handleRun(await postForm(url,{...ok,...over}),GOOD_ENV);
     expect((await go({source:Buffer.from("<html>not an image</html>")})).status).toBe(400);
     expect((await go({source:await sharp(source).png().toBuffer()})).status).toBe(400);
     const gps=await go({sourceMeta:JSON.stringify({originalWidth:640,originalHeight:480,GPSLatitude:51.2})});
@@ -208,7 +193,7 @@ describe("end to end through the web layer (stateless, clean outputs, no leakage
       mode:"artwork-in-frame",level:"environment",source,reference,
       sourceMeta:JSON.stringify({originalWidth:srcDims[0],originalHeight:srcDims[1],focalLength35mm:28,make:"TestCam",model:"P1"}),
       referenceMeta:JSON.stringify({originalWidth:refDims[0],originalHeight:refDims[1],focalLength35mm:26})
-    },{cookie:cookieFor()},SECRET_NAME);
+    },{},SECRET_NAME);
     const res=await handleRun(req,GOOD_ENV);
     spies.forEach((s)=>s.mockRestore());
     expect(res.status).toBe(200);
@@ -245,34 +230,46 @@ describe("end to end through the web layer (stateless, clean outputs, no leakage
 
   it("only one generation at a time (protects memory on a small instance)",async()=>{
     const {source,reference,srcDims,refDims}=await sampleUpload();
-    const mk=async()=>handleRun(await postForm(`${ORIGIN}/api/validation/run`,{mode:"artwork-in-frame",level:"strict",source,reference,sourceMeta:hint(srcDims[0],srcDims[1]),referenceMeta:hint(refDims[0],refDims[1])},{cookie:cookieFor()}),GOOD_ENV);
+    const mk=async()=>handleRun(await postForm(`${ORIGIN}/api/validation/run`,{mode:"artwork-in-frame",level:"strict",source,reference,sourceMeta:hint(srcDims[0],srcDims[1]),referenceMeta:hint(refDims[0],refDims[1])}),GOOD_ENV);
     const [a,b]=await Promise.all([mk(),mk()]);
     expect([a.status,b.status].sort()).toEqual([200,429]);
   },120000);
 
-  it("isAuthenticated reflects the cookie",()=>{
-    expect(isAuthenticated(new Request(ORIGIN,{headers:{cookie:cookieFor()}}),GOOD_ENV)).toBe(true);
-    expect(isAuthenticated(new Request(ORIGIN),GOOD_ENV)).toBe(false);
-  });
 });
 
-describe("middleware scope",()=>{
+describe("middleware scope and headers",()=>{
+  const saved={...process.env};
+  const reset=()=>{for(const k of Object.keys(process.env)) if(!(k in saved)) delete process.env[k];Object.assign(process.env,saved);};
+  const req=(host=HOST)=>new NextRequest(`https://${host}/validation`,{headers:{host}});
   it("covers only the validation interface, never V2 routes",()=>{
-    expect(config.matcher).toEqual(["/validation","/validation/:path*","/api/validation/:path*"]);
-    for(const m of config.matcher) expect(m).not.toMatch(/api\/(content|media|upload|sync|metricool|health)/);
+    const flat=config.matcher.map((m:any)=>typeof m==="string"?m:m.source);
+    expect(flat).toEqual(["/validation","/validation/:path*","/api/validation/:path*"]);
+    for(const m of flat) expect(m).not.toMatch(/api\/(content|media|upload|sync|metricool|health)/);
   });
-  it("404 unless Preview+enabled; adds noindex headers when on",()=>{
-    const saved={...process.env};
+  it("404 unless an enabled Preview reached through an allowed host",()=>{
     try{
-      for(const k of ["VERCEL_ENV","VALIDATION_UI_ENABLED","VALIDATION_ALLOW_LOCAL","VERCEL"]) delete process.env[k];
-      const req=()=>new NextRequest("https://x.vercel.app/validation");
+      for(const k of ["VERCEL_ENV","VALIDATION_UI_ENABLED","VALIDATION_ALLOW_LOCAL","VERCEL","VALIDATION_ALLOWED_HOSTS"]) delete process.env[k];
       expect(middleware(req()).status).toBe(404);
-      process.env.VALIDATION_UI_ENABLED="1";process.env.VERCEL_ENV="production";
+      process.env.VALIDATION_UI_ENABLED="1";process.env.VERCEL_ENV="production";process.env.VALIDATION_ALLOWED_HOSTS=HOST;
       expect(middleware(req()).status).toBe(404);
       process.env.VERCEL_ENV="preview";
-      const r=middleware(req());expect(r.status).toBe(200);
-      expect(r.headers.get("x-robots-tag")).toContain("noindex");expect(r.headers.get("x-frame-options")).toBe("DENY");
-    }finally{for(const k of Object.keys(process.env)) if(!(k in saved)) delete process.env[k];Object.assign(process.env,saved);}
+      expect(middleware(req()).status).toBe(200);
+      expect(middleware(req("giftly-content-studio.vercel.app")).status).toBe(404);      // any other alias is hidden
+      expect(middleware(req("evil.example")).status).toBe(404);
+    }finally{reset();}
+  });
+  it("sets a fresh-nonce CSP, Permissions-Policy and the other headers, and forwards the nonce to the page",()=>{
+    try{
+      process.env.VALIDATION_UI_ENABLED="1";process.env.VERCEL_ENV="preview";process.env.VALIDATION_ALLOWED_HOSTS=HOST;
+      const a=middleware(req()),b=middleware(req());
+      const ca=a.headers.get("content-security-policy")!,cb=b.headers.get("content-security-policy")!;
+      expect(ca).toMatch(/script-src 'nonce-[A-Za-z0-9+\/=]{20,}' 'strict-dynamic'/);
+      expect(ca).not.toBe(cb);
+      expect(ca).not.toMatch(/unsafe-inline|unsafe-eval/);
+      expect(a.headers.get("permissions-policy")).toContain("camera=()");
+      for(const [k,v] of Object.entries({"x-robots-tag":"noindex","x-frame-options":"DENY","referrer-policy":"no-referrer","x-content-type-options":"nosniff","cross-origin-opener-policy":"same-origin","cache-control":"no-store"})) expect(a.headers.get(k),k).toContain(v);
+      expect(a.headers.get("x-middleware-request-content-security-policy")).toBe(ca); // Next reads the nonce from the forwarded request header
+    }finally{reset();}
   });
 });
 
@@ -289,6 +286,19 @@ describe("static guarantees about the validation code",()=>{
       const s=src(f);
       for(const n of PRODUCTION_SECRET_NAMES) expect(s,`${f} reads ${n}`).not.toContain(n);
       expect(s,f).not.toMatch(/giftly-v2|from ["']@\/app\/(?!validation)/);
+    }
+  });
+  it("there is no password form, password input, cookie auth or session code anywhere in the interface",()=>{
+    for(const f of files){
+      const s=src(f);
+      expect(s,f).not.toMatch(/type=["']password["']|<form\b|autoComplete=["']current-password|VALIDATION_PASSWORD|VALIDATION_SESSION_SECRET|Set-Cookie|document\.cookie|jsonwebtoken/i);
+    }
+    expect(fs.existsSync(path.resolve(__dirname,"../../app/api/validation/login"))).toBe(false);
+    expect(fs.existsSync(path.resolve(__dirname,"../../app/validation/Login.tsx"))).toBe(false);
+  });
+  it("no inline style attributes or inline scripts, so the strict CSP can stay free of unsafe-inline",()=>{
+    for(const f of files.filter((x)=>/\.tsx$/.test(x))){
+      expect(src(f),f).not.toMatch(/style=\{\{|dangerouslySetInnerHTML|<script\b/);
     }
   });
   it("is stateless: no storage SDKs, no file writes, no fetch to other hosts, no analytics",()=>{

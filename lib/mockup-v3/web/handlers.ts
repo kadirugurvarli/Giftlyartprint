@@ -1,6 +1,5 @@
 import sharp from "sharp";
 import {checkEnvironment,type Env} from "./guard";
-import {clearCookieHeader,cookieHeader,issueSession,loginLimiter,passwordMatches,readCookie,verifySession} from "./auth";
 import {MAX_PIXELS,MAX_SIDE,REQUEST_LIMIT_BYTES} from "./limits";
 import {HintError,parseHint} from "./hint";
 import {runWeb} from "./run";
@@ -18,8 +17,8 @@ export const SECURITY_HEADERS={
 const json=(status:number,body:unknown,extra:Record<string,string>={})=>
   new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json",...SECURITY_HEADERS,...extra}});
 
-function guardResponse(env:Env):Response|null{
-  const g=checkEnvironment(env);
+function guardResponse(req:Request,env:Env):Response|null{
+  const g=checkEnvironment(env,req.headers.get("host") ?? "");
   if(g.ok) return null;
   // 404 hides the interface entirely when disabled / not a preview; 503 explains misconfiguration to the owner
   return g.status===404?new Response("Not found",{status:404,headers:SECURITY_HEADERS}):json(503,{error:g.reason,code:g.code});
@@ -29,31 +28,7 @@ function guardResponse(env:Env):Response|null{
 function sameOrigin(req:Request):boolean{
   const origin=req.headers.get("origin");
   if(!origin) return false;
-  try{return new URL(origin).host===(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));}catch{return false;}
-}
-
-export function isAuthenticated(req:Request,env:Env):boolean{
-  return verifySession(readCookie(req.headers.get("cookie")),env);
-}
-
-const clientKey=(req:Request)=>(req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
-
-export async function handleLogin(req:Request,env:Env=process.env):Promise<Response>{
-  const g=guardResponse(env);if(g) return g;
-  if(!sameOrigin(req)) return json(403,{error:"Cross-site request refused."});
-  const key=clientKey(req);
-  if(loginLimiter.blocked(key)) return json(429,{error:"Too many attempts. Try again later."});
-  let pw="";
-  try{const b=await req.json();pw=typeof b?.password==="string"?b.password.slice(0,200):"";}catch{/* empty */}
-  if(!passwordMatches(pw,env)){loginLimiter.fail(key);return json(401,{error:"Wrong password."});}
-  loginLimiter.ok(key);
-  return json(200,{ok:true},{"Set-Cookie":cookieHeader(issueSession(env))});
-}
-
-export async function handleLogout(req:Request,env:Env=process.env):Promise<Response>{
-  const g=guardResponse(env);if(g) return g;
-  if(!sameOrigin(req)) return json(403,{error:"Cross-site request refused."});
-  return json(200,{ok:true},{"Set-Cookie":clearCookieHeader()});
+  try{return new URL(origin).host===req.headers.get("host");}catch{return false;}
 }
 
 let busy=0;
@@ -70,9 +45,8 @@ async function readImage(v:FormDataEntryValue|null,what:string){
 }
 
 export async function handleRun(req:Request,env:Env=process.env):Promise<Response>{
-  const g=guardResponse(env);if(g) return g;
+  const g=guardResponse(req,env);if(g) return g;
   if(!sameOrigin(req)) return json(403,{error:"Cross-site request refused."});
-  if(!isAuthenticated(req,env)) return json(401,{error:"Please sign in."});
   const len=Number(req.headers.get("content-length"));
   if(!Number.isFinite(len)||len<=0) return json(411,{error:"Content-Length required."});
   if(len>REQUEST_LIMIT_BYTES) return json(413,{error:"The upload is too large for the preview's request limit. The page should have shrunk it; refresh and try again."});
