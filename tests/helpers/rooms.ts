@@ -25,7 +25,10 @@ const wallXm=(xCm:number)=>-1.8+xCm/100,wallYm=(yCm:number)=>-1.0+yCm/100;
 export function syntheticRoom(o:{
   origin?:"owned-photo"|"ai-generated";jitterPx?:number;pitchDeg?:number;yawDeg?:number;withPlant?:boolean;
   light?:Partial<RoomDefinition["light"]>;
+  /** resolution multiplier (default 1 = 1600x1200) */
+  scale?:number;
 }={}):SyntheticRoom{
+  const k=o.scale ?? 1,ROOM_W=Math.round(1600*k),ROOM_H=Math.round(1200*k),ROOM_FOCAL=1440*k;
   const R=makeRoom({imgW:ROOM_W,imgH:ROOM_H,focalPx:ROOM_FOCAL,yawDeg:o.yawDeg ?? -14,pitchDeg:o.pitchDeg,seed:2});
   const truth=(xCm:number,yCm:number)=>R.wall(wallXm(xCm),wallYm(yCm));
   let image=R.image;

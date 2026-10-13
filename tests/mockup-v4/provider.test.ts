@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import {execFileSync,spawnSync} from "node:child_process";
 import sharp from "sharp";
@@ -128,13 +129,13 @@ describe("privacy and isolation of the V4 sources",()=>{
 });
 
 describe("experiment script is a dry run by default",()=>{
-  const run=(args:string[])=>spawnSync("npx",["tsx","scripts/v4-experiment.ts","--out","validation-output/v4-experiment-test",...args],{encoding:"utf8",env:{...process.env,OPENAI_API_KEY:""},timeout:120000});
+  const run=(args:string[])=>spawnSync("npx",["tsx","scripts/v4-experiment.ts","--synthetic","--out",path.join(os.tmpdir(),"v4-exp-test-provider"),...args],{encoding:"utf8",env:{...process.env,OPENAI_API_KEY:""},timeout:120000});
   it("prints DRY RUN and exits 0 without any flag; --execute alone and even full authorisation without an API key are refused",()=>{
     const d=run([]);
-    expect(d.status).toBe(0);expect(d.stdout).toContain("DRY RUN: no network call was made");
+    expect(d.status,d.stdout+d.stderr).toBe(0);expect(d.stdout).toContain("DRY RUN: no network call was made");
     for(const args of [["--execute"],["--execute","--authorize-paid","--max-spend-usd","1","--price-per-image-usd","0.1"]]){
       const r=run(args);
-      expect(r.status,args.join(" ")).toBe(3);expect(r.stderr).toContain("REFUSED");
+      expect(r.status,args.join(" ")+"\n"+r.stdout.slice(-600)+r.stderr.slice(-600)).toBe(3);expect(r.stderr).toContain("REFUSED");
     }
   },240000);
 });

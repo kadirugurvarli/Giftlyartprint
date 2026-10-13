@@ -3,9 +3,20 @@ import {compositeOver,warpToQuad} from "../mockup-v3/geometry/warp";
 import {featherAlpha} from "../mockup-v3/vision/mask";
 import {linearToSrgb8,SRGB_TO_LINEAR} from "../mockup-v3/composite/color";
 
-/** The original artwork projected onto the calibrated art quad (RGBA, coverage in alpha). This IS the expected warp. */
+/**
+ * The original artwork projected onto the calibrated art quad (RGBA, coverage in alpha). This IS the expected warp.
+ * The warp is done in a bbox-sized canvas (integer-shifted quad) and pasted back: V3's matrix inversion uses a tolerance relative to the
+ * largest matrix entry, which wrongly reports "singular" for a small quad far from the origin in a large image.
+ */
 export function expectedArtLayer(art:RawImage,artQuad:Quad,width:number,height:number):RawImage{
-  return warpToQuad(art,artQuad,width,height);
+  const xs=artQuad.map(p=>p.x),ys=artQuad.map(p=>p.y);
+  const x0=Math.max(0,Math.floor(Math.min(...xs))-2),y0=Math.max(0,Math.floor(Math.min(...ys))-2);
+  const x1=Math.min(width,Math.ceil(Math.max(...xs))+2),y1=Math.min(height,Math.ceil(Math.max(...ys))+2);
+  const bw=x1-x0,bh=y1-y0;
+  const local=warpToQuad(art,artQuad.map(p=>({x:p.x-x0,y:p.y-y0})) as Quad,bw,bh);
+  const out=new Uint8ClampedArray(width*height*4);
+  for(let y=0;y<bh;y++) out.set(local.data.subarray(y*bw*4,(y+1)*bw*4),((y0+y)*width+x0)*4);
+  return {width,height,data:out};
 }
 
 /**

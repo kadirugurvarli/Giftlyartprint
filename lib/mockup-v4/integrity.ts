@@ -52,3 +52,28 @@ export function pasteImage(base:RawImage,patch:RawImage,at:{x:number;y:number}):
   }
   return {width:base.width,height:base.height,data:out};
 }
+
+/** Separable box dilation of a 0/255 plane by `r` pixels (square structuring element). */
+export function dilateBinary(m:Uint8Array,w:number,h:number,r:number):Uint8Array{
+  if(r<=0) return m;
+  const tmp=new Uint8Array(m.length),out=new Uint8Array(m.length);
+  for(let y=0;y<h;y++){
+    let last=-1e9;
+    const row=y*w;
+    // forward/backward distance to the nearest set pixel along the row
+    const dist=new Int32Array(w).fill(1e9);
+    for(let x=0;x<w;x++){if(m[row+x])last=x;dist[x]=x-last;}
+    last=1e9;
+    for(let x=w-1;x>=0;x--){if(m[row+x])last=x;dist[x]=Math.min(dist[x],last-x);}
+    for(let x=0;x<w;x++) tmp[row+x]=dist[x]<=r?255:0;
+  }
+  for(let x=0;x<w;x++){
+    const dist=new Int32Array(h).fill(1e9);
+    let last=-1e9;
+    for(let y=0;y<h;y++){if(tmp[y*w+x])last=y;dist[y]=y-last;}
+    last=1e9;
+    for(let y=h-1;y>=0;y--){if(tmp[y*w+x])last=y;dist[y]=Math.min(dist[y],last-y);}
+    for(let y=0;y<h;y++) out[y*w+x]=dist[y]<=r?255:0;
+  }
+  return out;
+}

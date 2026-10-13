@@ -2,9 +2,11 @@ import type {Pt,Quad,RawImage} from "../mockup-v3/types";
 import {homographyFromPoints,applyHomography} from "../mockup-v3/geometry/homography";
 import {rectQuad} from "../mockup-v3/geometry/quad";
 import {rasterizePolygons} from "../mockup-v3/vision/mask";
-import {buildEditMask,chooseCrop,cropMask,type EditMask} from "./mask";
+import {buildEditMask,cropMask,type EditMask} from "./mask";
+import {planRequest} from "./request";
+import {resizeMask,resizeRaw} from "./resample";
 import {compositeHybrid} from "./composite";
-import {cropImage,pasteImage,regionDelta,type RegionDelta} from "./integrity";
+import {cropImage,dilateBinary,pasteImage,regionDelta,type RegionDelta} from "./integrity";
 import type {EditResult,HybridImageEditor,Rect} from "./types";
 
 export type HybridThresholds={
@@ -40,12 +42,15 @@ export type HybridInput={
   editor:HybridImageEditor;
   thresholds?:Partial<HybridThresholds>;
   contextPx?:number;
+  /** Frame moulding width in scene px; when given, the request is upscaled until the moulding is wide enough for detail. */
+  mouldingPx?:number;
+  minMouldingPx?:number;
 };
 
 export type HybridCheck={name:string;pass:boolean;detail:string};
 export type HybridOutcome=
   |{ok:false;error:string;detail?:string}
-  |{ok:true;verdict:"accept"|"reject";rejectReasons:string[];image:RawImage;candidateFull:RawImage;mask:EditMask;crop:Rect;checks:HybridCheck[];meta:EditResult["meta"];metrics:Record<string,RegionDelta>};
+  |{ok:true;verdict:"accept"|"reject";rejectReasons:string[];image:RawImage;candidateFull:RawImage;mask:EditMask;crop:Rect;checks:HybridCheck[];meta:EditResult["meta"];metrics:Record<string,RegionDelta>;scale:number};
 
 /** Art quad (inside the mount) from a rendered piece's print rectangle and the piece->scene outer quad. */
 export function printQuadFromPlan(outerQuad:Quad,piece:{width:number;height:number},print:Rect):Quad{
@@ -74,17 +79,24 @@ export async function runHybridEdit(i:HybridInput):Promise<HybridOutcome>{
   const mask=buildEditMask({width:W,height:H,outerQuad:i.outerQuad,artQuad:i.artQuad,shadowDir:i.shadowDir,shadowBandPx:i.shadowBandPx,wallAlpha:i.wallAlpha,protect:i.protect});
   if(mask.stats.editablePixels===0) return {ok:false,error:"EDIT_MASK_EMPTY"};
   if(mask.stats.share>T.maxEditableShare) return {ok:false,error:"EDIT_MASK_TOO_LARGE",detail:`${(mask.stats.share*100).toFixed(1)}% of the scene`};
-  const cropped=chooseCrop(mask,i.editor.constraints,i.contextPx ?? 48);
-  if(!cropped.ok) return {ok:false,error:cropped.error};
-  const crop=cropped.crop;
-  const request={image:cropImage(i.baseline,crop),mask:cropMask(mask,crop),prompt:i.prompt,references:i.references};
+  const plan=planRequest({mask,constraints:i.editor.constraints,contextPx:i.contextPx ?? 48,mouldingPx:i.mouldingPx,minMouldingPx:i.minMouldingPx});
+  if(!plan.ok) return {ok:false,error:plan.error};
+  const {crop,scale:k}=plan;
+  const rw=crop.width*k,rh=crop.height*k;
+  const baseCrop=cropImage(i.baseline,crop);
+  const request={image:await resizeRaw(baseCrop,rw,rh),mask:await resizeMask(cropMask(mask,crop),crop.width,crop.height,rw,rh),prompt:i.prompt,references:i.references};
   const res=await i.editor.edit(request);
-  if(res.image.width!==crop.width||res.image.height!==crop.height) return {ok:false,error:"CANDIDATE_SIZE_MISMATCH",detail:`${res.image.width}x${res.image.height} vs ${crop.width}x${crop.height}`};
-  const candidateFull=pasteImage(i.baseline,res.image,crop);
+  if(res.image.width!==rw||res.image.height!==rh) return {ok:false,error:"CANDIDATE_SIZE_MISMATCH",detail:`${res.image.width}x${res.image.height} vs ${rw}x${rh}`};
+  const candidateFull=pasteImage(i.baseline,await resizeRaw(res.image,crop.width,crop.height),crop);
+  // What an UNCHANGED model output would look like after the same up/down resampling. Drift is measured against this, so the
+  // resampling round trip itself is never mistaken for the model repainting something.
+  const identityFull=k===1?i.baseline:pasteImage(i.baseline,await resizeRaw(request.image,crop.width,crop.height),crop);
   const comp=compositeHybrid({baseline:i.baseline,candidate:candidateFull,editable:mask.editable,art:i.art,artQuad:i.artQuad});
   const final=comp.image;
 
   // ---- protected-region integrity
+  // resampling (×k request, Lanczos3) smears the mask edge by up to 3 px; the model is only judged beyond that band
+  const near=dilateBinary(mask.editable,W,H,k>1?4:0); // Lanczos3 reaches 3 output px
   const protAlpha=i.protect?.length?rasterizePolygons(i.protect,W,H):null;
   const inCrop=(k:number)=>{const x=k%W,y=(k-x)/W;return x>=crop.x&&x<crop.x+crop.width&&y>=crop.y&&y<crop.y+crop.height;};
   const layerA=comp.artLayer.data;
@@ -97,16 +109,17 @@ export async function runHybridEdit(i:HybridInput):Promise<HybridOutcome>{
   // 3. independent check: engine's own art pixels in the baseline vs the deterministic re-warp
   metrics.baselineArtVsWarp=regionDelta(i.baseline,final,(k)=>artCov(k)===255);
   // 4. what the MODEL did to protected areas (diagnostic, decides accept/reject)
-  metrics.candidateArtDrift=regionDelta(candidateFull,final,(k)=>artCov(k)===255&&inCrop(k));
-  metrics.candidateOutsideDrift=regionDelta(candidateFull,i.baseline,(k)=>!mask.editable[k]&&artCov(k)===0&&inCrop(k));
-  metrics.candidateFurnitureDrift=protAlpha?regionDelta(candidateFull,i.baseline,(k)=>protAlpha[k]>=250&&inCrop(k)):{count:0,changed:0,meanDE:0,p95DE:0,maxDE:0,bigFraction:0};
+  metrics.candidateArtDrift=regionDelta(candidateFull,final,(k)=>artCov(k)===255&&inCrop(k)); // model art vs the exact re-warp (diagnostic)
+  metrics.candidateArtDriftVsInput=regionDelta(candidateFull,identityFull,(k)=>artCov(k)===255&&inCrop(k));
+  metrics.candidateOutsideDrift=regionDelta(candidateFull,identityFull,(q)=>!near[q]&&artCov(q)===0&&inCrop(q));
+  metrics.candidateFurnitureDrift=protAlpha?regionDelta(candidateFull,identityFull,(k)=>protAlpha[k]>=250&&inCrop(k)):{count:0,changed:0,meanDE:0,p95DE:0,maxDE:0,bigFraction:0};
 
   const checks:HybridCheck[]=[];
   const add=(name:string,pass:boolean,detail:string)=>checks.push({name,pass,detail});
   add("final-outside-mask-identical",metrics.finalOutside.changed===0,`${metrics.finalOutside.changed} of ${metrics.finalOutside.count} pixels outside mask/art differ from baseline`);
   add("art-is-deterministic-warp",metrics.finalArtVsWarp.changed===0,`${metrics.finalArtVsWarp.changed} art pixels differ from the re-warp`);
   add("baseline-art-matches-warp",metrics.baselineArtVsWarp.meanDE<=T.maxBaselineArtMeanDE,`engine vs re-warp mean ΔE ${metrics.baselineArtVsWarp.meanDE.toFixed(2)} (limit ${T.maxBaselineArtMeanDE})`);
-  add("model-left-art-alone",metrics.candidateArtDrift.meanDE<=T.maxCandidateArtDriftMeanDE,`model art drift mean ΔE ${metrics.candidateArtDrift.meanDE.toFixed(2)}, max ${metrics.candidateArtDrift.maxDE.toFixed(1)} (limit ${T.maxCandidateArtDriftMeanDE})`);
+  add("model-left-art-alone",metrics.candidateArtDriftVsInput.meanDE<=T.maxCandidateArtDriftMeanDE,`model art drift vs its input mean ΔE ${metrics.candidateArtDriftVsInput.meanDE.toFixed(2)}, max ${metrics.candidateArtDriftVsInput.maxDE.toFixed(1)} (limit ${T.maxCandidateArtDriftMeanDE})`);
   const o=metrics.candidateOutsideDrift;
   add("model-left-room-alone",o.meanDE<=T.maxCandidateOutsideDriftMeanDE&&o.p95DE<=T.maxCandidateOutsideDriftP95DE&&o.bigFraction<=T.maxCandidateOutsideBigFraction,`outside-mask drift mean ${o.meanDE.toFixed(2)}, p95 ${o.p95DE.toFixed(1)}, ΔE>10 share ${(o.bigFraction*100).toFixed(2)}%`);
   const f=metrics.candidateFurnitureDrift;
@@ -115,5 +128,5 @@ export async function runHybridEdit(i:HybridInput):Promise<HybridOutcome>{
   const rejectReasons=checks.filter(c=>!c.pass).map(c=>c.name);
   // composite invariants failing is a bug (error); model drift failing is a rejection
   if(checks.some(c=>hard.includes(c.name)&&!c.pass)) return {ok:false,error:"COMPOSITE_INVARIANT_FAILED",detail:rejectReasons.join(",")};
-  return {ok:true,verdict:rejectReasons.length?"reject":"accept",rejectReasons,image:final,candidateFull,mask,crop,checks,meta:res.meta,metrics};
+  return {ok:true,verdict:rejectReasons.length?"reject":"accept",rejectReasons,image:final,candidateFull,mask,crop,checks,meta:res.meta,metrics,scale:k};
 }
