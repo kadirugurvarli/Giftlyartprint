@@ -119,9 +119,9 @@ describe("privacy and isolation of the V4 sources",()=>{
     for(const f of all){
       const t=src(f);
       expect(t,f).not.toMatch(/from "node:fs"|require\("fs"\)|console\.|localStorage|sessionStorage|\.toFile\(/);
-      if(f!=="openai.ts") expect(t,f).not.toMatch(/process\.env/);
+      if(f!=="openai.ts"&&f!=="roomgen.ts") expect(t,f).not.toMatch(/process\.env/);
     }
-    expect(src("openai.ts").match(/process\.env\.[A-Z_]+/g)).toEqual(["process.env.OPENAI_API_KEY"]);
+    for(const f of ["openai.ts","roomgen.ts"]) expect(src(f).match(/process\.env\.[A-Z_]+/g)).toEqual(["process.env.OPENAI_API_KEY"]);
   });
   it("does not import V2 code",()=>{
     for(const f of all) expect(src(f),f).not.toMatch(/giftly-v2|app\/api|giftly-art-director/);
