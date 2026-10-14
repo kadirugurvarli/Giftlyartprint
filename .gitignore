@@ -4,3 +4,23 @@ node_modules
 .env.local
 .vercel
 .DS_Store
+
+# V3 mockup engine: private/customer assets must never be committed (repo is public)
+fixtures/private/
+fixtures/**/private/
+private-fixtures/
+tests/output/
+*.local.png
+*.local.jpg
+*.local.jpeg
+*.local.webp
+*.heic
+*.HEIC
+coverage/
+*.tsbuildinfo
+
+# real-photo validation: inputs and outputs contain customer material and must never be committed
+validation-output/
+validation-input/
+private-inputs/
+v4-output/

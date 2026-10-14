@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V4 Room Annotation (local)</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#222;--mut:#6b6b6b;--acc:#2b6c5f;--bad:#b3261e;--ok:#1b7f3b;--line:#ddd}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#222220;--ink:#eee;--mut:#a5a5a0;--acc:#6bc4b0;--bad:#ff8a80;--ok:#7bd88f;--line:#3a3a36}}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:12px 16px;border-bottom:1px solid var(--line)}h1{font-size:17px;margin:0}header small{color:var(--mut)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;padding:12px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+canvas{width:100%;height:auto;border-radius:8px;background:#000;cursor:crosshair;display:block}
+label{display:block;margin:6px 0 2px;color:var(--mut);font-size:12px}input,select,textarea{width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}button{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);cursor:pointer;font:inherit}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}button.on{outline:2px solid var(--acc)}
+.bad{color:var(--bad)}.ok{color:var(--ok)}ul{margin:4px 0;padding-left:18px}h2{font-size:14px;margin:0 0 6px}
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.hint{color:var(--mut);font-size:12px}
+</style></head><body>
+<header><h1>V4 room annotation <small>— local only, nothing is uploaded</small></h1></header>
+<main>
+<section>
+  <div class="card">
+    <div class="modes">
+      <input type="file" id="roomFile" accept="image/png,image/jpeg,image/webp" style="width:auto">
+      <button id="mRef" class="on">1 Reference rectangle</button><button id="mWall">2 Wall outline</button><button id="mFurn">3 Furniture outline</button>
+      <button id="finish">Finish outline</button><button id="undo">Undo</button><button id="clear">Clear all</button>
+    </div>
+    <canvas id="cv" width="1200" height="800"></canvas>
+    <p class="hint" id="hint">Load the room image first.</p>
+  </div>
+</section>
+<aside>
+  <div class="card"><h2>Reference rectangle (on the wall plane)</h2>
+    <p class="hint">Click its four corners in the order top-left, top-right, bottom-right, bottom-left. Use a door leaf, window frame or similar straight-edged object on the SAME wall as the empty area. The first rectangle's top-left corner is the origin (0,0) of wall centimetres.</p>
+    <div class="row"><div><label>Label</label><input id="refLabel" value="door"></div><div></div></div>
+    <div class="row"><div><label>Width cm</label><input id="refW" type="number" value="76"></div><div><label>Height cm</label><input id="refH" type="number" value="198"></div></div>
+    <div class="row"><div><label>Offset X cm (not the first)</label><input id="refX" type="number" value="0"></div><div><label>Offset Y cm</label><input id="refY" type="number" value="0"></div></div>
+    <ul id="refs"></ul></div>
+  <div class="card"><h2>Safe placement box (wall cm)</h2>
+    <div class="row"><div><label>Left</label><input id="rl" type="number" value="150"></div><div><label>Top</label><input id="rt" type="number" value="-10"></div></div>
+    <div class="row"><div><label>Width (≥ 60)</label><input id="rw" type="number" value="190"></div><div><label>Height (≥ 80)</label><input id="rh" type="number" value="130"></div></div></div>
+  <div class="card"><h2>Light</h2>
+    <div class="row"><div><label>Shadow direction ° (0 = right, 90 = down)</label><input id="ld" type="number" value="63"></div><div><label>Intensity 0–0.6</label><input id="li" type="number" step="0.01" value="0.25"></div></div>
+    <div class="row"><div><label>Softness cm</label><input id="ls" type="number" step="0.1" value="2"></div><div><label>Colour temp K</label><input id="lk" type="number" value="5200"></div></div></div>
+  <div class="card"><h2>Scale &amp; camera</h2>
+    <label>Scale basis (what the cm are based on)</label><input id="sb" value="door leaf assumed 76 x 198 cm">
+    <div class="row"><div><label>Confidence</label><select id="sc"><option>medium</option><option>low</option></select></div><div><label>± uncertainty</label><input id="su" type="number" step="0.01" value="0.1"></div></div>
+    <label>Focal px (blank = suggested)</label><input id="fp" type="number"></div>
+  <div class="card"><h2>Live check</h2><div id="live" class="hint">Mark the rectangle and the wall outline.</div></div>
+  <div class="card"><h2>Save pack (git-ignored folder on this machine)</h2>
+    <label>Pack name</label><input id="pn" value="v4-room-pack"><label>Artwork (licensed, non-customer sample)</label><input type="file" id="artFile" accept="image/png,image/jpeg,image/webp">
+    <label>Artwork licence note</label><input id="al" placeholder="e.g. public domain / own work">
+    <label>Room generator (model name)</label><input id="gn" placeholder="e.g. gpt-image-2"><label>Generated on (YYYY-MM-DD)</label><input id="gd">
+    <label>Room licence note</label><input id="rn" placeholder="owner-generated, commercial use allowed">
+    <label><input type="checkbox" id="rc" style="width:auto"> I confirm I may use this room image</label>
+    <label><input type="checkbox" id="ew" style="width:auto"> I confirm the wall is empty (no frame, art, text)</label>
+    <button class="pri" id="save" style="margin-top:8px">Save pack</button> <button id="dl">Download annotation.json</button>
+    <div id="saveMsg" class="hint"></div></div>
+</aside></main>
+<script>
+const $=id=>document.getElementById(id);const cv=$("cv"),cx=cv.getContext("2d");
+let img=null,imgB64="",imgName="room.png",artB64="",artName="artwork.png",mode="ref";
+const st={refs:[],cur:[],wall:[],furn:[],poly:[],analysis:null};
+const num=id=>parseFloat($(id).value);
+function setMode(m){mode=m;st.cur=[];st.poly=[];["Ref","Wall","Furn"].forEach(k=>$("m"+k).classList.toggle("on",k.toLowerCase().startsWith(m)));draw();hint()}
+$("mRef").onclick=()=>setMode("ref");$("mWall").onclick=()=>setMode("wall");$("mFurn").onclick=()=>setMode("furn");
+function hint(){$("hint").textContent=!img?"Load the room image first.":mode==="ref"?`Click corner ${st.cur.length+1} of 4 (${["top-left","top-right","bottom-right","bottom-left"][st.cur.length]||"done"}).`:"Click the outline points, then press “Finish outline”."}
+$("roomFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;imgName=f.name;const url=URL.createObjectURL(f);img=new Image();img.onload=()=>{cv.width=img.naturalWidth;cv.height=img.naturalHeight;draw();hint();analyse()};img.src=url;const b=await f.arrayBuffer();imgB64=""};
+$("artFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;artName=f.name;artB64=b64(await f.arrayBuffer())};
+function b64(buf){let s="";const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+cv.onclick=e=>{if(!img)return;const r=cv.getBoundingClientRect(),p={x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height};
+ if(mode==="ref"){st.cur.push(p);if(st.cur.length===4){st.refs.push({label:$("refLabel").value||"ref"+st.refs.length,widthCm:num("refW"),heightCm:num("refH"),corners:st.cur.slice(),offsetCm:{x:num("refX")||0,y:num("refY")||0}});st.cur=[];refList();analyse()}}
+ else st.poly.push(p);draw();hint()};
+$("finish").onclick=()=>{if(st.poly.length>=3){(mode==="wall"?st.wall:st.furn).push(st.poly.slice())}st.poly=[];draw();analyse()};
+$("undo").onclick=()=>{if(st.cur.length)st.cur.pop();else if(st.poly.length)st.poly.pop();else if(mode==="ref")st.refs.pop();else (mode==="wall"?st.wall:st.furn).pop();refList();draw();analyse()};
+$("clear").onclick=()=>{st.refs=[];st.cur=[];st.wall=[];st.furn=[];st.poly=[];refList();draw();analyse()};
+function refList(){$("refs").innerHTML=st.refs.map(r=>`<li>${r.label} ${r.widthCm}×${r.heightCm} cm</li>`).join("")}
+function annotation(){return{schemaVersion:1,image:{width:img?img.naturalWidth:0,height:img?img.naturalHeight:0},references:st.refs,wallPolygons:st.wall,excludePolygons:st.furn,
+ region:{leftCm:num("rl"),topCm:num("rt"),widthCm:num("rw"),heightCm:num("rh")},light:{shadowDirectionDeg:num("ld"),intensity:num("li"),softnessCm:num("ls"),colourTempK:num("lk")},
+ scale:{basis:$("sb").value,confidence:$("sc").value,relativeUncertainty:num("su")},...(isFinite(num("fp"))?{focalPx:num("fp")}:{})}}
+function poly(pts,col,fill){if(!pts.length)return;cx.beginPath();pts.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y));cx.closePath();cx.lineWidth=Math.max(2,cv.width/600);cx.strokeStyle=col;cx.stroke();if(fill){cx.fillStyle=fill;cx.fill()}}
+function dot(p,c){cx.beginPath();cx.arc(p.x,p.y,Math.max(5,cv.width/250),0,7);cx.fillStyle=c;cx.fill();cx.strokeStyle="#000";cx.stroke()}
+function draw(){cx.clearRect(0,0,cv.width,cv.height);if(img)cx.drawImage(img,0,0);
+ st.wall.forEach(p=>poly(p,"#2b7fff","rgba(43,127,255,.15)"));st.furn.forEach(p=>poly(p,"#ff3b30","rgba(255,59,48,.25)"));
+ st.refs.forEach(r=>{poly(r.corners,"#34c759");r.corners.forEach(c=>dot(c,"#34c759"))});
+ st.cur.forEach(c=>dot(c,"#ffd60a"));st.poly.forEach(c=>dot(c,mode==="wall"?"#2b7fff":"#ff3b30"));
+ if(st.analysis&&st.analysis.regionPx&&st.analysis.regionPx.length)poly(st.analysis.regionPx,"#32ade6")}
+let t=null;["rl","rt","rw","rh","ld","li","ls","lk","sb","sc","su","fp"].forEach(id=>$(id).oninput=()=>{clearTimeout(t);t=setTimeout(analyse,250)});
+async function analyse(){if(!img)return;const r=await fetch("/api/analyse",{method:"POST",body:JSON.stringify(annotation())});const j=await r.json();st.analysis=j;draw();
+ const L=[];(j.shape||[]).forEach(i=>L.push(`<li class="bad">${i.code}${i.detail?" – "+i.detail:""}</li>`));(j.issues||[]).forEach(i=>L.push(`<li class="bad">${i.code}${i.detail?" – "+i.detail:""}</li>`));
+ const ok=!(j.shape||[]).length&&!(j.issues||[]).length;
+ $("live").innerHTML=(ok?`<b class="ok">Calibration valid.</b>`:`<b class="bad">Not valid yet.</b>`)+(j.rmsPx!=null?`<div>reprojection rms ${j.rmsPx.toFixed(2)} px, max ${j.maxPx.toFixed(2)} px</div>`:"")+(j.focal?`<div>focal ${Math.round(j.focal.focalPx)} px (${j.focal.basis})</div>`:"")+`<ul>${L.join("")}</ul>`}
+$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(annotation(),null,2)],{type:"application/json"}));a.download="annotation.json";a.click()};
+$("save").onclick=async()=>{if(!img||!artB64){$("saveMsg").textContent="Load the room image and the artwork first.";return}
+ const body={annotation:annotation(),roomImageBase64:await fileB64($("roomFile")),roomImageName:imgName,artworkBase64:artB64,artworkName:artName,packName:$("pn").value,
+  meta:{generator:$("gn").value,generatedOn:$("gd").value,licence:$("rn").value,rightsCleared:$("rc").checked,emptyWallConfirmed:$("ew").checked,artworkLicence:$("al").value,
+  frame:{mouldingWidthCm:2.4,mountWidthCm:3.5,frameDepthCm:3,mouldingColour:[66,48,34],mountColour:[238,233,222],description:"a dark walnut-brown wooden moulding, cream mount"}}};
+ const r=await fetch("/api/import",{method:"POST",body:JSON.stringify(body)});const j=await r.json();
+ $("saveMsg").innerHTML=j.ok?`<span class="ok">Saved to ${j.dir}</span>`:`<span class="bad">${(j.issues||[]).map(i=>i.code+(i.detail?" ("+i.detail+")":"")).join("; ")}</span>`};
+async function fileB64(inp){return b64(await inp.files[0].arrayBuffer())}
+</script></body></html>

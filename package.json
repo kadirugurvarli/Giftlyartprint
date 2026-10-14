@@ -6,17 +6,32 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:update-goldens": "UPDATE_GOLDENS=1 vitest run",
+    "previews": "PREVIEWS=1 vitest run tests/previews",
+    "validate:real": "tsx scripts/validate-real.ts",
+    "validate:preflight": "tsx scripts/validate-preflight.ts",
+    "validate:init": "tsx scripts/validate-init.ts",
+    "validate:fetch": "tsx scripts/validate-fetch.ts",
+    "calibrate": "tsx scripts/calibrate.ts",
+    "check:assets": "tsx scripts/check-assets.ts",
+    "validate:bundle": "tsx scripts/validate-bundle.ts"
   },
   "dependencies": {
+    "exif-reader": "^2.0.3",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "typescript": "^5.7.0"
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.0",
+    "vitest": "^5.0.3"
   }
 }
