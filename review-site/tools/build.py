@@ -27,9 +27,8 @@ def small_links(service):
             % (wa_href(service), mail_href(service)))
 
 def img(key, alt, eager=False, cap=None, cls=""):
-    name, url, w, h, kind = IMAGES[key]; USED.add(key)
-    c = cap if cap is not None else ("Illustrative mockup image from the current Giftly shop." if kind == "mockup" else "")
-    fc = '<figcaption>%s</figcaption>' % e(c) if c else ""
+    name, w, h, kind = IMAGES[key]; USED.add(key)
+    fc = '<figcaption>Illustrative image, not a finished Giftly job.</figcaption>' 
     return ('<figure class="fig %s"><img src="assets/img/%s" width="%d" height="%d" alt="%s" %s decoding="async">%s</figure>'
             % (cls, name, w, h, e(alt), 'fetchpriority="high"' if eager else 'loading="lazy"', fc))
 def ph(text, w=4, h=3):
@@ -105,7 +104,7 @@ def page(fname, title, desc, h1_html, body, service, current):
                      MAIL, MAIL, "".join('<li><a href="%s">%s</a></li>' % (f, l) for f, l in NAV), wa_href(service))
 
 def hero(eyebrow, h1, lede, svc, figure, extra=""):
-    return '''<section class="hero"><div class="wrap split"><div><p class="eyebrow">%s</p><h1>%s</h1><p class="lede">%s</p>%s%s</div>%s</div></section>''' % (
+    return '''<section class="hero"><div class="wrap hero-in"><p class="eyebrow">%s</p><h1>%s</h1><p class="lede">%s</p>%s%s</div><div class="wrap">%s</div></section>''' % (
         e(eyebrow), e(h1), lede, actions(svc), extra, figure)
 
 pages = {}
@@ -119,7 +118,7 @@ def ncard(h, p, link, svc, label):
 home = hero("Maidstone & Kent printing and framing studio",
     "Practical print and frame solutions that fit your budget",
     "Tell us what you want to do and what you already have, and we will suggest the simplest option that does the job. Straightforward prices, one person looking after your order.",
-    "Something else", img("framed-oak", "Oak-framed print hanging on a living room wall", eager=True))
+    "Something else", img("hero", "Oak-framed landscape print on a pale wall above an oak sideboard", eager=True))
 home += '''<section class="alt"><div class="wrap"><h2>Easy to start</h2>
 <p class="lede">You do not need to know sizes or paper types. Just send us the basics.</p>
 <ol class="steps"><li><h3>Message us</h3><p>Send your image and a few words on WhatsApp, or by email if you prefer.</p></li>
@@ -136,26 +135,26 @@ home += '''<section><div class="wrap"><h2>What would you like to do?</h2>
  ncard("I need a few prints for my business", "Flyers, cards, menus, posters and boards in the small quantities local businesses actually need.", "business-printing.html", "Business printing", "Business Printing")])
 home += '''</div></section>
 <section class="alt"><div class="wrap"><h2>Economical print and display examples</h2>
-<p class="lede">Real products from our current shop. Prices below are listing prices, still to be confirmed.</p><div class="grid g3">%s</div></div></section>''' % "".join([
- card(img("kapa-board", "Photo print mounted on Kapa-fix foam board", cap=""), "Print on Kapa-fix foam board", "Lightweight board with a paper surface. Good for temporary or budget display. From &pound;20 (listing, to be confirmed).", "framing-display.html#frameless", "Kapa-fix print on foam board", "Frameless options"),
+<p class="lede">Prices below are listing prices, still to be confirmed.</p><div class="grid g3">%s</div></div></section>''' % "".join([
+ card(img("kapa-board", "Foam board mounted print leaning on a wall"), "Print on Kapa-fix foam board", "Lightweight board with a paper surface. Good for temporary or budget display. From &pound;20 (listing, to be confirmed).", "framing-display.html#frameless", "Kapa-fix print on foam board", "Frameless options"),
  card(img("framed-black", "Black wood framed print", ), "Framed print, black or oak wood", "Ready to hang, no glass. 20x30cm from &pound;35 (listing, to be confirmed).", "framing-display.html#economy", "Economy framed print", "Economy framing"),
- card(ph("Removable poster photo to be supplied", 4, 3), "Removable poster", "A low-cost poster option for walls where a frame is not wanted. Price to be confirmed.", "framing-display.html#economy", "Removable poster", "About removable posters")])
+ card(img("removable-poster", "Hand repositioning a removable poster on a painted wall"), "Removable poster", "A low-cost poster option for walls where a frame is not wanted. Price to be confirmed.", "framing-display.html#economy", "Removable poster", "About removable posters")])
 home += '''</div></section>
 <section><div class="wrap split"><div><p class="eyebrow">For local businesses</p><h2>Business Printing</h2>
 <p>Small runs without minimum-order hassle: flyers, business cards, menus, price lists, posters, A-board panels, vinyl and rigid boards. We quote on product, quantity, size, file and date.</p>
-<p><a href="business-printing.html">See what we can print</a></p>%s</div>%s</div></section>''' % (actions("Business printing", "WhatsApp about business printing"), ph("Real business printing example to be supplied", 4, 3))
+<p><a href="business-printing.html">See what we can print</a></p>%s</div>%s</div></section>''' % (actions("Business printing", "WhatsApp about business printing"), img("business-print", "Flyers, business cards and a folded menu on an oak table"))
 home += '''<section class="alt"><div class="wrap split rev"><div><p class="eyebrow">Photography</p><h2>Iris Photography</h2>
 <p>A close-up portrait of the iris, printed and presented as a keepsake. Available for one person, a couple or a family, with gift vouchers if you want to give the session as a present.</p>
-<p><a href="iris-photography.html">How it works and what is included</a></p></div>%s</div></section>''' % img("iris-voucher", "Sample Iris Photography gift voucher design", cap="Gift voucher sample. Real session examples to be added.")
+<p><a href="iris-photography.html">How it works and what is included</a></p></div>%s</div></section>''' % img("iris", "Close-up of an iris print in a slim frame")
 home += '''<section><div class="wrap"><h2>Small personalised gifts</h2>
 <p class="lede">A short, chosen range rather than a catalogue.</p><div class="grid g3">%s</div><p><a href="personalised-gifts.html">See the full gift collection</a></p></div></section>''' % "".join([
- card(img("acrylic-block", "Magnetic acrylic photo block", cap=""), "Acrylic photo block", "A clear desk-top block for a favourite photo. From &pound;17 (listing, to be confirmed).", "personalised-gifts.html#acrylic", "Acrylic photo block", "Acrylic blocks"),
- card(img("wedding-collage", "Personalised wedding photo collage print", cap=""), "Wedding and anniversary collage", "Your photos arranged in a ready-made layout. From &pound;45 (listing, to be confirmed).", "personalised-gifts.html#collages", "Wedding collage print", "Collages"),
- card(img("newborn-collage", "Personalised newborn baby photo collage print", cap=""), "New baby collage", "A keepsake for the first weeks. From &pound;45 (listing, to be confirmed).", "personalised-gifts.html#collages", "New baby collage print", "Collages")])
+ card(img("acrylic-block", "Clear acrylic photo block on a wooden desk"), "Acrylic photo block", "A clear desk-top block for a favourite photo. From &pound;17 (listing, to be confirmed).", "personalised-gifts.html#acrylic", "Acrylic photo block", "Acrylic blocks"),
+ card(img("wedding-collage", "Personalised wedding photo collage print"), "Wedding and anniversary collage", "Your photos arranged in a ready-made layout. From &pound;45 (listing, to be confirmed).", "personalised-gifts.html#collages", "Wedding collage print", "Collages"),
+ card(img("newborn-collage", "Personalised newborn baby photo collage print"), "New baby collage", "A keepsake for the first weeks. From &pound;45 (listing, to be confirmed).", "personalised-gifts.html#collages", "New baby collage print", "Collages")])
 home += '''</div></div></section>
 <section class="alt"><div class="wrap split"><div><p class="eyebrow">Photo restoration</p><h2>Old, faded or damaged photos</h2>
 <p>We look first, then quote. Restoration, optional colourising, printing and framing are separate choices, so you only pay for what you want. Results depend on the original and we do not promise the same outcome for every photo.</p>
-<p><a href="photo-restoration.html">How restoration works</a></p></div>%s</div></section>''' % img("restoration", "Old photograph restoration example from the current Giftly shop", cap="From the current shop listing. To be confirmed as a genuine before and after.")
+<p><a href="photo-restoration.html">How restoration works</a></p></div>%s</div></section>''' % img("restoration", "Old faded photograph on a desk with a soft brush and cotton gloves")
 home += '''<section><div class="wrap split rev"><div><p class="eyebrow">When you want the very best</p><h2>Fine art prints and special presentation</h2>
 <p>For work that deserves it: Hahnemühle fine art papers, mounts, glazed frames, and framing for shirts, plates and objects. Most customers do not need this, and we will say so. If you do, it is here.</p>
 <p><a href="photo-fine-art-prints.html#compare">Photo or Fine Art paper?</a> &middot; <a href="framing-display.html#special">Special presentation</a></p></div>%s</div></section>''' % img("gallery-frame", "Black framed fine art print in a modern living room")
@@ -169,7 +168,7 @@ pages["index.html"] = page("index.html", "Printing, Framing & Photography in Mai
 # ---------------- PHOTO & FINE ART ----------------
 p = hero("Photo & Fine Art Prints", "Print your photo at the right size, on the right paper",
     "Not sure your file is good enough, what size to choose or which paper you need? Send it over and we will tell you plainly what will work.",
-    "Photo or fine art print", img("paper-tube", "Rolled photo print in Giftly Art Print packaging tube", eager=True, cap="Image from the current Giftly shop."))
+    "Photo or fine art print", img("paper-tube", "Rolled photo prints in a postal tube beside rolled fine art paper", eager=True))
 p += '''<section class="alt"><div class="wrap"><h2>Tell us first, then we choose the paper</h2>
 <p class="lede">What would you like to do? What do you already have? How can we help? Those three answers matter more than the paper name.</p>
 <ol class="steps"><li><h3>Send your image</h3><p>By WhatsApp or email, with where it will hang or be given.</p></li>
@@ -184,7 +183,7 @@ p += '''<section class="alt" id="existing-frame"><div class="wrap split"><div><h
 <ul class="checks"><li><strong>Exact fit:</strong> if your photo&rsquo;s shape matches, we print to size.</li>
 <li><strong>Approved crop:</strong> if the shapes differ, we show you the crop and only print once you agree.</li>
 <li><strong>Added border:</strong> or we add a white border instead of cropping into the picture.</li></ul>
-<p class="note">Please do not trim anything yourself. Measure the opening, not the outside of the frame.</p>%s</div>%s</div></section>''' % (actions("Print for my existing frame", "Send frame size on WhatsApp"), ph("Photo of a print being fitted to an existing frame to be supplied", 4, 3))
+<p class="note">Please do not trim anything yourself. Measure the opening, not the outside of the frame.</p>%s</div>%s</div></section>''' % (actions("Print for my existing frame", "Send frame size on WhatsApp"), img("existing-frame", "Hands sliding a print into an oak frame beside a tape measure"))
 p += '''<section id="compare"><div class="wrap"><h2>Photo paper or Fine Art paper?</h2>
 <p class="lede">Both are printed in the studio. The difference is mainly the look and feel. Descriptions below are in plain terms; ask us for advice on your image.</p>
 <div class="compare"><div><h3>Photo prints</h3><p>The familiar photo look: smoother, with a lustre or gloss surface and strong colour.</p>
@@ -228,35 +227,35 @@ f += '''<section class="alt"><div class="wrap"><h2>Four groups</h2><div class="g
 <div class="split"><div>%s</div><div>%s%s</div></div>''' % (facts(
  "You want something tidy on the wall without paying for glass and mounts.", "A ready-to-hang wood frame without glass, or a poster that can be removed later.",
  "Bedrooms, offices, rentals, quick refreshes.", "Print, wood frame (black, white or oak) and backing.", "Glass, mount, delivery and hanging fittings unless quoted.", "Send your image and size."),
- img("framed-black", "Black wood framed print"), img("framed-oak", "Oak wood framed print in a living room"))
+ img("framed-black", "Black wood framed print"), img("framed-oak", "Oak wood framed print leaning on a shelf"))
 f += '''<p><strong>No glass means the printed surface is exposed.</strong> It can mark if touched, so it suits dry, low-traffic rooms. If you want protection, ask about a glazed frame under Special presentation.</p>'''
 f += table("Framed print, wood frame, no glass (shop listing, to be confirmed)", ["Size", "Material", "Included", "Not included", "Price (listing)"], [
  [s, "Print + wood frame (black, white or oak)", "Print, frame, backing", "Glass, mount, delivery", pr] for s, pr in
  [("20x30cm", "&pound;35"), ("30x30cm", "&pound;40"), ("30x40cm", "&pound;45"), ("40x60cm", "&pound;55"), ("50x50cm", "&pound;55"), ("50x75cm", "&pound;75"), ("60x90cm", "&pound;95")]],
  PRICE_NOTE + " The shop listing does not state whether glass is included; this page assumes no glass, to be confirmed.")
-f += '''<h3>Removable poster</h3><div class="split"><div><p>A poster printed to be taken down again. Surface suitability and conditions of use are explained when you enquire, and we cannot promise it will come off every wall without a mark. Test a small hidden area first.</p></div>%s</div>''' % ph("Removable poster product photo to be supplied", 16, 9)
+f += '''<h3>Removable poster</h3><div class="split"><div><p>A poster printed to be taken down again. Surface suitability and conditions of use are explained when you enquire, and we cannot promise it will come off every wall without a mark. Test a small hidden area first.</p></div>%s</div>''' % img("removable-poster", "Hand repositioning a removable poster on a painted wall")
 f += table("Removable poster", ["Size", "Material", "Included", "Not included", "Price"], [["To be confirmed", "Removable poster material, to be confirmed", "Printed poster", "Frame", TBC]])
 f += '</div></section>'
 f += '''<section class="alt" id="no-drill"><div class="wrap"><h2>2. Hang without drilling: SnappyTack magnetic frames</h2>
 <div class="split"><div>%s</div><div>%s</div></div>''' % (facts(
  "You rent, have plasterboard you do not want to drill, or like to swap pictures often.", "A magnetic frame system where the print is held by magnets, so changing pictures is quick.",
  "Renters, offices, anyone who changes displays.", "Magnetic wooden frame (black or oak) with your print.", "Wall fixings or adhesive if the system needs them, delivery.", "Tell us the wall type and the picture size."),
- img("magnetic-frame", "Magnetic wooden framed print, no-drill", cap="Image from the current Giftly shop."))
+ img("magnetic-frame", "Oak magnetic frame on a wall with no visible fixings"))
 f += '''<p><strong>Check your surface and conditions of use.</strong> No-drill hanging depends on the wall surface, paint, weight and how it is fitted. We explain suitable surfaces and limits before you buy. We do not promise damage-free removal from every wall.</p>'''
 f += table("SnappyTack magnetic framed print (shop listing, to be confirmed)", ["Size", "Material", "Included", "Not included", "Price (listing)"], [
  ["30x30cm", "Magnetic wood frame, black or oak", "Frame, print", "Delivery", "&pound;49"],
  ["30x40cm", "Magnetic wood frame, black or oak", "Frame, print", "Delivery", "Black &pound;59, oak &pound;49"],
  ["40x50cm", "Magnetic wood frame, black or oak", "Frame, print", "Delivery", "Black &pound;74, oak &pound;49"]],
  PRICE_NOTE + " The oak price is the same at every size in the shop listing, which looks like an error: to be checked.")
-f += '''<h3>Magnetic poster hanger</h3><div class="split"><div><p>Two wood-and-magnet bars to hang a poster you already have. A4 (21x30cm) from &pound;29, A3 (30x42cm) &pound;39 (listing, to be confirmed). Poster not included.</p></div>%s</div></div></section>''' % img("magnetic-poster", "Magnetic poster hanger holding a poster", cap="Image from the current Giftly shop.")
+f += '''<h3>Magnetic poster hanger</h3><div class="split"><div><p>Two wood-and-magnet bars to hang a poster you already have. A4 (21x30cm) from &pound;29, A3 (30x42cm) &pound;39 (listing, to be confirmed). Poster not included.</p></div>%s</div></div></section>''' % img("magnetic-poster", "Poster hanging between two wooden magnetic bars")
 f += '''<section id="frameless"><div class="wrap"><h2>3. Frameless: Dibond and Foamex / PVC board</h2>
 <div class="split"><div>%s</div>%s</div>
-<div class="compare" style="margin-top:20px"><div><h3>Dibond</h3><p>A rigid aluminium-faced board. The print is mounted on it. A firm, modern look with no frame.</p></div>
+<div class="split" style="margin-top:28px"><div>%s</div><div><h3>Foamex / PVC board</h3><p>Rigid, lightweight PVC board for signs, shop displays and events. Quoted on request.</p></div></div><div class="compare" style="margin-top:20px"><div><h3>Dibond</h3><p>A rigid aluminium-faced board. The print is mounted on it. A firm, modern look with no frame.</p></div>
 <div><h3>Foamex / PVC board</h3><p>A rigid, lightweight PVC board, popular for signs and displays.</p></div>
 <div><h3>Kapa-fix / foamboard</h3><p>A different product: paper-faced foam board, lighter and more economical. Not the same as PVC board.</p></div></div>''' % (facts(
  "You want a clean, frameless look, or a rigid board for a shop or event.", "Your print mounted on rigid board, ready to display with hanging fittings if needed.",
  "Modern interiors, shops, exhibitions.", "Print mounted on board.", "Frame, stand, hanging fittings unless quoted, delivery.", "Send the image, size and where it will be used."),
- img("dibond", "Print mounted on Dibond board", cap="Image from the current Giftly shop."))
+ img("dibond", "Frameless board print on a white wall"), img("foamex", "Rigid printed board on an easel in a shop window area"))
 f += table("Dibond print (shop listing, to be confirmed)", ["Size", "Material", "Included", "Not included", "Price (listing)"], [
  ["20x30cm", "Dibond 3mm with Hahnemühle or Permajet paper", "Print mounted on Dibond", "Frame, delivery", "&pound;45"],
  ["30x40cm", "Same", "Print mounted on Dibond", "Frame, delivery", "&pound;65"],
@@ -268,8 +267,9 @@ f += '</div></section>'
 f += '''<section class="alt" id="special"><div class="wrap"><h2>4. Special presentation</h2>
 <p class="lede">Made to order and quoted individually. We show real examples as they are added.</p><div class="grid g3">%s</div>%s</div></section>''' % ("".join([
  card(img("gallery-frame", "Black framed fine art print"), "Mounted and glazed frames", "Print, mount and glass in a wood frame. Protects the print and gives it room.", "contact-visit.html", "Mounted and glazed frame", "Ask about this"),
- card(ph("Framed football shirt (forma) example to be supplied", 4, 3), "Shirts (forma), plates and objects", "Deep box frames for sports shirts, plates and keepsakes. Each piece is quoted after we see or measure it.", "contact-visit.html", "Framing a shirt, plate or object", "Ask about this"),
- card(ph("L / floating frame example for stretched canvas to be supplied", 4, 3), "L / floating frames for canvases", "For artists&rsquo; stretched canvases: a frame that leaves a small gap around the canvas edge.", "contact-visit.html", "L / floating frame for a stretched canvas", "Ask about this")]),
+ card(img("shirt-frame", "Shirt displayed in a deep black box frame"), "Shirts (forma)", "Deep box frames for sports shirts. Each piece is quoted after we see or measure it.", "contact-visit.html", "Framing a shirt", "Ask about this"),
+ card(img("plate-frame", "China plate displayed in a deep oak box frame"), "Plates and objects", "Deep box frames for plates and keepsakes, with a mount colour to suit.", "contact-visit.html", "Framing a plate or object", "Ask about this"),
+ card(img("l-frame", "Stretched canvas in an oak floating L frame"), "L / floating frames for canvases", "For artists&rsquo; stretched canvases: a frame that leaves a small gap around the canvas edge.", "contact-visit.html", "L / floating frame for a stretched canvas", "Ask about this")]),
  table("Special presentation", ["Item", "Material", "Included", "Not included", "Price"], [
  ["Mounted and glazed frame", "Wood frame, mount board, glass", "Frame, mount, glass, assembly", "Print unless ordered", TBC],
  ["Shirt, plate or object", "Deep box frame, mount", "To be agreed after inspection", "Items you supply may be returned unframed if unsuitable", TBC],
@@ -281,7 +281,7 @@ pages["framing-display.html"] = page("", "Framing & Display in Maidstone", "Econ
 # ---------------- IRIS ----------------
 i = hero("Iris Photography", "A close-up portrait of the iris, made into something to keep",
     "For one person, a couple or a family. Photographed, printed and presented, with gift vouchers if you would like to give it as a present.",
-    "Iris photography", img("iris-voucher", "Sample Iris Photography gift voucher design", eager=True, cap="Gift voucher sample. Real session examples are still to be supplied."))
+    "Iris photography", img("iris", "Close-up of an iris print in a slim frame", eager=True))
 i += '''<section class="alt"><div class="wrap"><h2>Real examples</h2><p class="lede">Real work only. These slots are reserved for photographs from past sessions, with the client&rsquo;s permission.</p>
 <div class="grid g3">%s%s%s</div></div></section>''' % (ph("Single-person iris example to be supplied", 1, 1), ph("Couple iris example to be supplied", 1, 1), ph("Family iris example to be supplied", 1, 1))
 i += '''<section><div class="wrap"><h2>How a session works</h2>
@@ -317,7 +317,7 @@ pages["iris-photography.html"] = page("", "Iris Photography in Maidstone", "Iris
 # ---------------- BUSINESS ----------------
 b = hero("Business Printing", "Small-run printing for Maidstone and Kent businesses",
     "Need 50 flyers, a set of menus or one big poster? We quote small quantities properly, with no pressure to order thousands.",
-    "Business printing", ph("Real business printing example to be supplied", 16, 10))
+    "Business printing", img("business-print", "Flyers, business cards and a folded menu on an oak table", eager=True))
 b += '''<section class="alt"><div class="wrap"><h2>What we can print</h2><div class="grid g3">%s</div></div></section>''' % "".join(
  ncard(h, t, "#quote", h, "Ask for a quote") for h, t in [
  ("Flyers and leaflets", "Promotions, events and information in small runs."), ("Business cards", "Simple cards for new or growing businesses."),
@@ -339,14 +339,15 @@ b += table("Business printing prices", ["Product and quantity", "Material", "Inc
  ["Menus / price lists", "Paper to be confirmed", "Printing", "Design, laminating unless quoted", TBC], ["Posters", "Paper to be confirmed", "Printing", "Frame", TBC],
  ["A-board panel", "Poster paper or board", "Printing", "A-board itself", TBC], ["Vinyl", "Vinyl", "Printing", "Application", TBC], ["Foamex / Dibond", "Board", "Print on board", "Fittings, installation", TBC]],
  "No source prices exist yet for business printing. Every price here is to be confirmed by Giftly.")
-b += '<div class="split"><div><h3>Rigid board prints</h3><p>Dibond is available now in the shop. Foamex and PVC board are quoted on request.</p></div>%s</div></div></section>' % img("dibond", "Print mounted on Dibond board", cap="Image from the current Giftly shop.")
+b += '<div class="split"><div><h3>Vinyl and window graphics</h3><p>Printed vinyl for windows and signs. Application is quoted separately.</p></div>%s</div>' % img("vinyl", "Printed vinyl graphic on a shop window")
+b += '<div class="split" style="margin-top:28px"><div><h3>Rigid board prints</h3><p>Dibond is available now in the shop. Foamex and PVC board are quoted on request.</p></div>%s</div></div></section>' % img("dibond", "Frameless board print on a white wall")
 b += quote_block("Business printing", SERVICES)
 pages["business-printing.html"] = page("", "Business Printing in Maidstone & Kent", "Small-run flyers, business cards, menus, posters, A-board panels, vinyl and board prints for Maidstone and Kent businesses.", "", b, "Business printing", "business-printing.html")
 
 # ---------------- RESTORATION ----------------
 r = hero("Photo Restoration", "Bring an old photograph back, without over-promising",
     "Fading, scratches, creases and stains can often be improved. We look at your photo first and then give you a price.",
-    "Photo restoration", img("restoration", "Old photograph restoration example from the current Giftly shop", eager=True, cap="From the current shop listing. To be confirmed as a genuine before and after."))
+    "Photo restoration", img("restoration", "Old faded photograph on a desk with a soft brush and cotton gloves", eager=True))
 r += '''<section class="alt"><div class="wrap"><h2>Real before and after examples</h2><div class="grid g2">%s%s</div><p class="note">Real client work, with permission, is to be supplied. Please do not use stock examples here.</p></div></section>''' % (ph("Before image to be supplied", 4, 3), ph("After image to be supplied", 4, 3))
 r += '''<section><div class="wrap"><h2>How it works</h2>
 <ol class="steps"><li><h3>Send the photo</h3><p>A clear scan or a photo of the original, by WhatsApp or email.</p></li><li><h3>We assess</h3><p>We look at fading, scratches and damage and tell you what can be improved.</p></li>
@@ -370,22 +371,22 @@ pages["photo-restoration.html"] = page("", "Photo Restoration in Maidstone", "Ol
 # ---------------- GIFTS ----------------
 g = hero("Personalised Gifts", "A short list of gifts we do well",
     "Photo blocks, collages and Iris vouchers. A small, chosen range, personalised with your pictures.",
-    "Personalised gift", img("photo-gifts", "Personalised photo gifts on a desk", eager=True, cap="Image from the current Giftly shop."))
+    "Personalised gift", img("photo-gifts", "Acrylic block, small wood frame and collage print arranged on a desk", eager=True))
 g += '''<section class="alt"><div class="wrap"><h2>Ready-made design or fully custom?</h2><div class="compare">
 <div><h3>Ready-made design, your details</h3><p>You choose a layout and we add your photos and wording. Quicker and more affordable. Prices below are for this.</p></div>
 <div><h3>Custom design</h3><p>If you want something drawn up from scratch, we quote the design work separately before starting. Send your idea.</p></div></div></div></section>
 <section id="acrylic"><div class="wrap"><h2>Acrylic photo blocks</h2><div class="split"><div>%s</div>%s</div>''' % (facts(
  "You want a photo that sits on a desk or shelf without a frame.", "A clear acrylic block with your photo, with a magnetic version in the shop.", "Birthdays, Mother&rsquo;s Day, Valentine&rsquo;s Day, new homes.", "Block and your printed photo.", "Gift wrapping if offered, delivery.", "Send your photo and the size."),
- img("acrylic-block", "Magnetic acrylic photo block", cap="Image from the current Giftly shop."))
+ img("acrylic-block", "Clear acrylic photo block on a wooden desk"))
 g += table("Acrylic photo block (shop listing, to be confirmed)", ["Size", "Material", "Included", "Not included", "Price (listing)"], [
  ["10x10cm", "Acrylic", "Block and print", "Delivery", "&pound;17"], ["10x15cm", "Acrylic", "Block and print", "Delivery", "&pound;20"], ["13x18cm", "Acrylic", "Block and print", "Delivery", "&pound;25"]], PRICE_NOTE)
 g += '</div></section><section class="alt" id="collages"><div class="wrap"><h2>Wedding, anniversary, family and new baby prints; photo collages</h2><div class="grid g2">%s%s</div>' % (
- img("wedding-collage", "Personalised wedding photo collage print", cap="Image from the current Giftly shop."), img("newborn-collage", "Personalised newborn baby photo collage print", cap="Image from the current Giftly shop."))
+ img("wedding-collage", "Personalised wedding photo collage print"), img("newborn-collage", "Personalised newborn baby photo collage print"))
 g += table("Collage prints (shop listing, to be confirmed)", ["Product and size", "Material", "Included", "Not included", "Price (listing)"], [
  ["Wedding collage 30x40cm", "Print", "Ready-made layout, your photos", "Frame, custom design", "&pound;45"], ["Wedding collage 40x50cm", "Print", "Ready-made layout, your photos", "Frame, custom design", "&pound;60"],
  ["New baby collage 30x40cm", "Print, frame colour black, oak or white", "Ready-made layout, your photos", "Custom design", "&pound;45"], ["New baby collage 40x50cm", "Print, frame colour black, oak or white", "Ready-made layout, your photos", "Custom design", "&pound;65"],
  ["Anniversary and family prints", "To be confirmed", "To be confirmed", "To be confirmed", TBC]], PRICE_NOTE + " Whether the shop prices include the frame is not stated: to be confirmed.")
-g += '</div></section><section><div class="wrap"><h2>Iris gift vouchers</h2><div class="split"><div><p>Give an Iris Photography session. Choose a voucher and the person redeems it with us. See the packages and prices on the Iris Photography page.</p><p><a href="iris-photography.html">Iris Photography and vouchers</a></p></div>%s</div></div></section>' % img("iris-voucher", "Sample Iris Photography gift voucher design", cap="Gift voucher sample.")
+g += '</div></section><section><div class="wrap"><h2>Iris gift vouchers</h2><div class="split"><div><p>Give an Iris Photography session. Choose a voucher and the person redeems it with us. See the packages and prices on the Iris Photography page.</p><p><a href="iris-photography.html">Iris Photography and vouchers</a></p></div>%s</div></div></section>' % img("iris-gift", "Cream gift voucher card on tissue paper with a green ribbon")
 g += '<section class="alt"><div class="wrap"><p>Send your photo, the occasion and the date you need the gift.</p>%s</div></section>' % actions("Personalised gift")
 g += quote_block("Personalised gift", SERVICES)
 pages["personalised-gifts.html"] = page("", "Personalised Gifts in Maidstone", "A small range of personalised photo gifts: acrylic blocks, wedding, anniversary, family and new baby prints, collages and Iris vouchers.", "", g, "Personalised gift", "personalised-gifts.html")
@@ -411,9 +412,7 @@ for fn, content in pages.items():
     with open(os.path.join(ROOT, fn), "w", encoding="utf-8") as fh:
         fh.write(content)
 print("pages:", len(pages)); print("unused images:", [k for k in IMAGES if k not in USED])
-# sources file for used images
 with open(os.path.join(ROOT, "assets/img/SOURCES.md"), "w") as fh:
-    fh.write("# Image sources\n\nAll images below come from the current Giftly Shopify store (cdn.shopify.com). Rights belong to Giftly Art Print. Items marked mockup are styled or generated shop images, not photographs of finished customer work.\nRun `../../fetch-assets.sh` to download them (needs access to cdn.shopify.com).\n\n| File | Type | Source URL | Size |\n|---|---|---|---|\n")
+    fh.write("# Image sources\n\nEvery image here is an **illustrative image generated for this review draft** with the OpenAI Images API (model gpt-image-2) using the prompts in `tools/gen_images.py`. They are not photographs of Giftly products or customer work and must not be presented as such.\n\nReplace them with real Giftly photographs before launch. Real shop images exist on the current Shopify store (not downloaded: that host was blocked in the build environment).\n\n| File | Used for |\n|---|---|\n")
     for k in IMAGES:
-        if k in USED:
-            n, u, w, h, kind = IMAGES[k]; fh.write("| %s | %s | %s | %dx%d |\n" % (n, kind, u.split("?")[0], w, h))
+        if k in USED: fh.write("| %s | illustrative |\n" % IMAGES[k][0])

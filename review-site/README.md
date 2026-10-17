@@ -7,13 +7,10 @@ Open `index.html` in a browser. No build step. Folders: `assets/css/site.css`, `
 Pages: `index`, `photo-fine-art-prints`, `framing-display`, `iris-photography`, `business-printing`, `photo-restoration`, `personalised-gifts`, `contact-visit`.
 The pages are generated from `tools/build.py` (content) and `tools/images.py` (image list). Run `python3 -I tools/build.py` after editing.
 
-## Images are NOT included yet
-The working environment could not reach `cdn.shopify.com`, so the image files could not be downloaded. Pages reference the correct local filenames with width, height and alt text, so layout space is reserved, but the pictures show as empty boxes until you run:
+## Design and images
+The look follows the Apple website style: SF system font stack, white and light grey, one blue accent, pill buttons, a slim translucent dark global menu and a full-screen mobile menu.
 
-```
-./fetch-assets.sh
-```
-That downloads each image from the current Giftly shop into `assets/img/`. Sources and types are in `assets/img/SOURCES.md`. Alt text was written from product titles, not by viewing the images; check each one once the files are in.
+The 25 images in `assets/img/` are **illustrative images generated for this draft** (OpenAI gpt-image-2, prompts in `tools/gen_images.py`). Each carries the caption "Illustrative image, not a finished Giftly job". They are not Giftly products or customer work. `assets/img/SOURCES.md` lists them. Replace them with real Giftly photographs before launch. Real Iris examples and restoration before/after pictures are still dashed placeholders on purpose, because those must be genuine work.
 
 ## Source access: what was and was not read
 - **Live site and the prototype link:** neither could be opened from this environment (network blocked). Their page text and the prototype were **not read**.
@@ -22,7 +19,7 @@ That downloads each image from the current Giftly shop into `assets/img/`. Sourc
 ## Still needed or awaiting approval
 - All prices: copied from Shopify listings and marked as such; anything without a source says "To be confirmed" (removable poster, business printing, special presentation, Iris deposit/balance, anniversary and family prints).
 - Opening hours, postcode, parking and access (not stated anywhere, so not written).
-- Real photos: Iris examples (single, couple, family), restoration before and after, business printing examples, removable poster, shirt/plate/object framing, L / floating frame, studio front. These are dashed placeholder boxes.
+- Real photos to replace the illustrative images, plus Iris examples (single, couple, family), restoration before and after and the studio front, which are still dashed placeholder boxes.
 - Whether framed-print prices include glass (the page assumes no glass, per the brief).
 - Paper descriptions, Iris package contents (inferred from voucher options) and voucher contents.
 - Order links: none used. Every button goes to WhatsApp or email, because the live shop links could not be tested.
@@ -40,11 +37,11 @@ See `url-map.md`.
 
 ## Checked
 - 8 pages build; every local link and anchor resolves; one `<h1>` per page; `noindex, nofollow` on all; every `<img>` has alt, width and height.
-- Headless Chromium at 360px and 1280px wide: no horizontal overflow on any page (images missing at the time).
+- Headless Chromium at 360px and 1280px wide: no horizontal overflow on any page .
 - Mobile menu opens (button state and visibility), and the WhatsApp/email enquiry link updates from the form fields.
 
 ## Not tested
-- Real images (layout with real photos, loading behaviour, alt-text accuracy).
+- Layout with real Giftly photographs (the current images are generated); alt text was written for the generated images.
 - Real devices, Safari, Firefox, screen reader, full keyboard walk-through (focus styles and skip link are in place; not tested by hand).
 - WhatsApp and mailto links on a phone (URLs are well-formed; sending was not attempted).
 - Page weight and speed; spelling and British English read-through by the owner.
