@@ -1,0 +1,317 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Contact / Visit",
+            "heading": "Message us first, then visit if you like",
+            "subheading": "WhatsApp is the quickest way to start. Email works well too. Send your image and details and we will reply with a clear quote.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "Studio or shop front photo to be supplied",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Something%20else%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Something%20else",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Visit details are incomplete",
+            "intro": "Please message before travelling.",
+            "text": "<p>Opening hours, postcode, parking and access details are to be confirmed. An approved studio or shop-front photograph is still to be supplied.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "What to send",
+            "block_id": "send",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "send",
+            "label": "Image",
+            "text": "The photo or file."
+          }
+        },
+        "b05": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "send",
+            "label": "Size",
+            "text": "The size you want, or where it will go."
+          }
+        },
+        "b06": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "send",
+            "label": "Quantity and budget",
+            "text": "Tell us the quantity and budget if you have one."
+          }
+        },
+        "b07": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "send",
+            "label": "Date",
+            "text": "Tell us when you need it."
+          }
+        },
+        "b08": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Choose how to contact us",
+            "intro": "",
+            "block_id": "channels",
+            "columns": "2",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b09": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "channels",
+            "title": "1. WhatsApp (best)",
+            "text": "<p>07445 250359</p>",
+            "link_label": "Open WhatsApp",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Something%20else%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b10": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "channels",
+            "title": "2. Email",
+            "text": "<p>giftlyartprint@gmail.com</p>",
+            "link_label": "Write an email",
+            "link": "mailto:giftlyartprint@gmail.com",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b11": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Visit the studio",
+            "block_id": "visit",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "visit",
+            "label": "Address",
+            "text": "Giftly Art Print, Units 24–25, Royal Star Arcade, Maidstone, Kent."
+          }
+        },
+        "b13": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "visit",
+            "label": "Opening hours",
+            "text": "To be confirmed. Please message before travelling."
+          }
+        },
+        "b14": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "visit",
+            "label": "Postcode, parking and access",
+            "text": "To be confirmed."
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "visit",
+            "label": "Collections and deliveries",
+            "text": "The visit address is not necessarily the dispatch or return address; order-specific details are supplied when you order."
+          }
+        },
+        "b16": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Ordering online",
+            "intro": "",
+            "text": "<p>During review, no order is placed through the prototype. Quotes and orders go through WhatsApp or email. Individual shop order links will be added only after each link and product has been checked.</p>",
+            "text_size": "md",
+            "max_width": "wide",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56,
+            "btn_label": "",
+            "btn_link": "",
+            "btn_style": "outline",
+            "btn_size": "md"
+          }
+        },
+        "b17": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Something%20else%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b18": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Something else",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

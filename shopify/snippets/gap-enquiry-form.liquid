@@ -1,0 +1,24 @@
+<div class="gap-pad gap-{{ alignment }}"><div class="gap-inner">
+  {%- if settings.eyebrow != blank -%}<span class="gap-eyebrow">{{ settings.eyebrow }}</span>{%- endif -%}
+  {%- if settings.heading != blank -%}<h2 class="gap-h gap-h--{{ heading_size }}">{{ settings.heading }}</h2>{%- endif -%}
+  {%- if settings.intro != blank -%}<p class="gap-lede">{{ settings.intro }}</p>{%- endif -%}
+  {%- assign form_id = 'gapq-' | append: block_id -%}
+  <form class="gap-form" id="{{ form_id }}" onsubmit="return false" style="background:{{ settings.card_background | default: '#ffffff' }}" data-wa="{{ settings.wa_number | default: '447445250359' }}" data-mail="{{ settings.email | default: 'giftlyartprint@gmail.com' }}">
+    <label>What is it for?<select name="service">{%- assign options = settings.services | split: '
+' -%}{%- for option in options -%}{%- assign option_text = option | strip -%}{%- if option_text != blank -%}<option{% if option_text == settings.service %} selected{% endif %}>{{ option_text }}</option>{%- endif -%}{%- endfor -%}</select></label>
+    <label>Size<input name="size" placeholder="e.g. A3, or 30x40cm"></label>
+    <label>Quantity<input name="qty" inputmode="numeric" placeholder="e.g. 1"></label>
+    <label>Needed by<input name="date" placeholder="e.g. 20 December"></label>
+    <label>Budget (optional)<input name="budget" placeholder="e.g. around £40"></label>
+    <label class="gap-full">Anything else?<textarea name="notes" rows="2"></textarea></label>
+    <div class="gap-actions gap-full"><a class="gap-btn gap-btn--whatsapp" data-role="wa" href="https://wa.me/{{ settings.wa_number | default: '447445250359' }}" target="_blank" rel="noopener">Open WhatsApp with this message</a><a class="gap-btn gap-btn--outline" data-role="mail" href="mailto:{{ settings.email | default: 'giftlyartprint@gmail.com' }}">Email this instead</a></div>
+    <p class="gap-note gap-full" style="margin:0">Nothing is sent until you press send in WhatsApp or your email app. Please do not send payment details.</p>
+  </form>
+  <script>
+    (function(){var f=document.getElementById({{ form_id | json }});if(!f)return;var wa=f.querySelector('[data-role=wa]'),ml=f.querySelector('[data-role=mail]');
+    function v(n){var e=f.elements[n];return e&&e.value.trim()?e.value.trim():'(to confirm)';}
+    function b(){var t=['Hello Giftly Art Print,',"I'd like a quote for: "+v('service'),'Size: '+v('size'),'Quantity: '+v('qty'),'Needed by: '+v('date'),'Budget: '+v('budget'),'Notes: '+v('notes'),"I'll send my image/file in this chat."].join('\n');
+    wa.href='https://wa.me/'+f.dataset.wa+'?text='+encodeURIComponent(t);ml.href='mailto:'+f.dataset.mail+'?subject='+encodeURIComponent('Quote request: '+v('service'))+'&body='+encodeURIComponent(t.replace('in this chat','by email'));}
+    f.addEventListener('input',b);f.addEventListener('change',b);b();})();
+  </script>
+</div></div>

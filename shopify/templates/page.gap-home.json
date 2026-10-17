@@ -1,0 +1,328 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Maidstone & Kent printing and framing studio",
+            "heading": "Practical print and frame solutions that fit your budget",
+            "subheading": "Tell us what you want to do and what you already have, and we will suggest the simplest option that does the job. Straightforward prices, one person looking after your order.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "Oak-framed landscape print on a pale wall above an oak sideboard",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Something%20else%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Something%20else",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Content and images are still under review",
+            "intro": "This template is not ready for the live theme.",
+            "text": "<p>Product prices marked as listing prices still need confirmation. Theme-editor images must be replaced with approved Giftly work; do not present illustrative or sample images as completed customer jobs.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "Easy to start",
+            "block_id": "start",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "step",
+          "settings": {
+            "parent_id": "start",
+            "title": "Message us",
+            "text": "Send your image and a few words on WhatsApp, or by email if you prefer."
+          }
+        },
+        "b05": {
+          "type": "step",
+          "settings": {
+            "parent_id": "start",
+            "title": "We check and advise",
+            "text": "We look at your file, suggest a size and an option that suits your budget, and give you a clear quote."
+          }
+        },
+        "b06": {
+          "type": "step",
+          "settings": {
+            "parent_id": "start",
+            "title": "You decide",
+            "text": "Only when you are happy with the quote do we go ahead. Collect from the studio or ask about delivery."
+          }
+        },
+        "b07": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "What would you like to do?",
+            "intro": "Start with the job, not the product list. Pick the one closest to yours.",
+            "block_id": "needs",
+            "columns": "3",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b08": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I want to print my photo",
+            "text": "<p>Send the picture and tell us where it will go. We check the file and suggest a size.</p>",
+            "link_label": "Photo & Fine Art Prints",
+            "link": "/pages/photo-fine-art-prints",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b09": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I want to use my existing frame",
+            "text": "<p>Tell us the frame's opening size. We size the print to fit, with cropping or borders only if you approve.</p>",
+            "link_label": "How we fit your frame",
+            "link": "/pages/photo-fine-art-prints#existing-frame",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b10": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I want an economical display",
+            "text": "<p>Wood frame without glass, a removable poster or a lightweight board. Simple and tidy.</p>",
+            "link_label": "Economy options",
+            "link": "/pages/framing-display#economy",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b11": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I want to hang it without drilling",
+            "text": "<p>Magnetic frames designed for no-drill hanging, with honest notes on which walls suit them.</p>",
+            "link_label": "No-drill options",
+            "link": "/pages/framing-display#no-drill",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b12": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I want my old photo renewed",
+            "text": "<p>Send the photo and we assess fading, scratches and damage before giving you a price.</p>",
+            "link_label": "Photo Restoration",
+            "link": "/pages/photo-restoration",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b13": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "needs",
+            "title": "I need a few prints for my business",
+            "text": "<p>Flyers, cards, menus, posters and boards in the small quantities local businesses actually need.</p>",
+            "link_label": "Business Printing",
+            "link": "/pages/business-printing",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b14": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Local, personal, easy to reach",
+            "block_id": "local",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "local",
+            "label": "One person, your order",
+            "text": "Giftly Art Print is a one-person studio. You deal with the same person from enquiry to collection."
+          }
+        },
+        "b16": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "local",
+            "label": "Visit the studio",
+            "text": "Units 24–25, Royal Star Arcade, Maidstone, Kent. Opening hours to be confirmed, so please message first."
+          }
+        },
+        "b17": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "local",
+            "label": "Honest advice",
+            "text": "If a cheaper option will do the job, we will tell you. If your file is too small for the size you want, we will say so before you pay."
+          }
+        },
+        "b18": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Something%20else%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b19": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Something else",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

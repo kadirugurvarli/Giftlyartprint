@@ -1,0 +1,329 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Iris Photography",
+            "heading": "A close-up portrait of the iris, made into something to keep",
+            "subheading": "For one person, a couple or a family. Photographed, printed and presented, with gift vouchers if you would like to give it as a present.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "Close-up of an iris print in a slim frame",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Iris%20photography%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Iris%20photography",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Real examples and package details are still required",
+            "intro": "Review before launch.",
+            "text": "<p>Single, couple and family examples must be approved real work. Session length, digital-file inclusion, deposits, balances and some package contents are to be confirmed.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Real examples",
+            "intro": "Real work only. These slots are reserved for photographs from past sessions, with the client's permission.",
+            "block_id": "iris_examples",
+            "columns": "3",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "iris_examples",
+            "title": "Single-person example",
+            "text": "<p>Approved image to be supplied.</p>",
+            "link_label": "Ask about a session",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20One-person%20Iris%20photography%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "iris_examples",
+            "title": "Couple example",
+            "text": "<p>Approved image to be supplied.</p>",
+            "link_label": "Ask about a session",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Couple%20Iris%20photography%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b06": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "iris_examples",
+            "title": "Family example",
+            "text": "<p>Approved image to be supplied.</p>",
+            "link_label": "Ask about a session",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Family%20Iris%20photography%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b07": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How a session works",
+            "block_id": "iris_steps",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b08": {
+          "type": "step",
+          "settings": {
+            "parent_id": "iris_steps",
+            "title": "Message us",
+            "text": "Tell us who the session is for, how many people and what you would like to end up with."
+          }
+        },
+        "b09": {
+          "type": "step",
+          "settings": {
+            "parent_id": "iris_steps",
+            "title": "Choose a package",
+            "text": "Packages are based on how many irises are photographed, then print size and finish."
+          }
+        },
+        "b10": {
+          "type": "step",
+          "settings": {
+            "parent_id": "iris_steps",
+            "title": "The session",
+            "text": "Session length, place and preparation are confirmed when you enquire."
+          }
+        },
+        "b11": {
+          "type": "step",
+          "settings": {
+            "parent_id": "iris_steps",
+            "title": "Choose pictures and products",
+            "text": "Digital files and physical products are separate choices unless the confirmed package says otherwise."
+          }
+        },
+        "b12": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "At a glance",
+            "block_id": "iris_facts",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b13": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "iris_facts",
+            "label": "Who it suits",
+            "text": "Individuals, couples, families and gift givers."
+          }
+        },
+        "b14": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "iris_facts",
+            "label": "Included",
+            "text": "The session and the package you choose. Exact inclusions are to be confirmed by Giftly."
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "iris_facts",
+            "label": "Extra cost",
+            "text": "Extra irises, bigger sizes, other finishes and digital files if not included in the package."
+          }
+        },
+        "b16": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "iris_facts",
+            "label": "Prices",
+            "text": "Current voucher listing examples run from £129 to £479; package contents and prices must be confirmed before launch."
+          }
+        },
+        "b17": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Deposit and balance",
+            "intro": "To be confirmed.",
+            "text": "<p>The deposit amount, remaining balance and payment timing have not yet been supplied. Do not publish booking-payment claims until these are confirmed.</p>",
+            "text_size": "md",
+            "max_width": "wide",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56,
+            "btn_label": "",
+            "btn_link": "",
+            "btn_style": "outline",
+            "btn_size": "md"
+          }
+        },
+        "b18": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Iris%20photography%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b19": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Iris photography",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

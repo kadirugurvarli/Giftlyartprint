@@ -1,0 +1,317 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Personalised Gifts",
+            "heading": "A short list of gifts we do well",
+            "subheading": "Photo blocks, collages and Iris vouchers. A small, chosen range, personalised with your pictures.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "Acrylic block, small wood frame and collage print arranged on a desk",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Personalised%20gift%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Personalised%20gift",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Gift prices and inclusions need final confirmation",
+            "intro": "Review before launch.",
+            "text": "<p>Acrylic and collage figures are current shop listing prices. Frame inclusion for some collage products and anniversary or family-product details are to be confirmed.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Ready-made design or fully custom?",
+            "intro": "",
+            "block_id": "design_choice",
+            "columns": "2",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "design_choice",
+            "title": "Ready-made design, your details",
+            "text": "<p>Choose a layout and we add your photos and wording. Quicker and more affordable; listed prices refer to this.</p>",
+            "link_label": "Ask about a design",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Ready-made%20personalised%20gift%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "design_choice",
+            "title": "Custom design",
+            "text": "<p>If you want something drawn up from scratch, design work is quoted separately before starting.</p>",
+            "link_label": "Send your idea",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Custom%20personalised%20gift%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b06": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Acrylic photo blocks",
+            "block_id": "acrylic",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b07": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "acrylic",
+            "label": "Who it suits",
+            "text": "Birthdays, Mother's Day, Valentine's Day and new homes."
+          }
+        },
+        "b08": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "acrylic",
+            "label": "Included",
+            "text": "Acrylic block and your printed photo."
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "acrylic",
+            "label": "Not included",
+            "text": "Delivery and gift wrapping unless confirmed."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "acrylic",
+            "label": "Listing prices",
+            "text": "10x10cm £17, 10x15cm £20 and 13x18cm £25; all to be confirmed before launch."
+          }
+        },
+        "b11": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Collage prints",
+            "block_id": "collages",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "collages",
+            "label": "Wedding collage",
+            "text": "Current listing examples: 30x40cm £45 and 40x50cm £60; to be confirmed."
+          }
+        },
+        "b13": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "collages",
+            "label": "New baby collage",
+            "text": "Current listing examples: 30x40cm £45 and 40x50cm £65; frame inclusion is to be confirmed."
+          }
+        },
+        "b14": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "collages",
+            "label": "Anniversary and family prints",
+            "text": "Material, inclusions and price are to be confirmed."
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "collages",
+            "label": "Custom design",
+            "text": "Quoted separately from ready-made layouts."
+          }
+        },
+        "b16": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Iris gift vouchers",
+            "intro": "",
+            "text": "<p>Give an Iris Photography session. Choose a voucher and the recipient redeems it with us. Package contents and prices must be checked on the Iris Photography page before launch.</p>",
+            "text_size": "md",
+            "max_width": "wide",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56,
+            "btn_label": "See Iris Photography",
+            "btn_link": "/pages/iris-photography",
+            "btn_style": "outline",
+            "btn_size": "md"
+          }
+        },
+        "b17": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Personalised%20gift%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b18": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Personalised gift",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

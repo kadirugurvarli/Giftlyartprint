@@ -1,0 +1,378 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Framing & Display",
+            "heading": "Choose how it hangs: frame, board, magnet or something special",
+            "subheading": "Four ways to display a print, from simple and economical to bespoke. Tell us your wall, your budget and what you have, and we will point you to the right one.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "White wood framed print on a wall",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Economy%20framed%20print%20or%20poster%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Economy%20framed%20print%20or%20poster",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Product details and prices need confirmation",
+            "intro": "Review before launch.",
+            "text": "<p>Glass inclusion, removable-poster material, magnetic-frame surface limits, Foamex prices and all special framing prices are not yet confirmed.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Four groups",
+            "intro": "",
+            "block_id": "display_groups",
+            "columns": "2",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "display_groups",
+            "title": "1. Economy",
+            "text": "<p>Wood frame without glass, or a removable poster.</p>",
+            "link_label": "See economy options",
+            "link": "/pages/framing-display#economy",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "display_groups",
+            "title": "2. Hang without drilling",
+            "text": "<p>SnappyTack magnetic frames. Wall suitability must be checked before purchase.</p>",
+            "link_label": "See no-drill options",
+            "link": "/pages/framing-display#no-drill",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b06": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "display_groups",
+            "title": "3. Frameless",
+            "text": "<p>Dibond and Foamex / PVC board.</p>",
+            "link_label": "See frameless options",
+            "link": "/pages/framing-display#frameless",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b07": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "display_groups",
+            "title": "4. Special presentation",
+            "text": "<p>Mounted and glazed frames, shirts, plates, objects and artists' canvases.</p>",
+            "link_label": "See special framing",
+            "link": "/pages/framing-display#special",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b08": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Economy: wood frame and removable poster",
+            "block_id": "economy",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "economy",
+            "label": "Who it suits",
+            "text": "Bedrooms, offices, rentals and quick refreshes."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "economy",
+            "label": "Included",
+            "text": "Print, wood frame in black, white or oak, and backing, subject to final product confirmation."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "economy",
+            "label": "Not included",
+            "text": "Glass, mount, delivery and hanging fittings unless quoted."
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "economy",
+            "label": "Important",
+            "text": "Without glass the print surface is exposed. Removable poster suitability varies by wall; test a hidden area first."
+          }
+        },
+        "b13": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Hang without drilling",
+            "block_id": "no-drill",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b14": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "no-drill",
+            "label": "The option",
+            "text": "A magnetic frame system designed for changing pictures quickly."
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "no-drill",
+            "label": "Surface warning",
+            "text": "No-drill hanging depends on wall surface, paint, weight and fitting. Damage-free removal cannot be promised for every wall."
+          }
+        },
+        "b16": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "no-drill",
+            "label": "Pricing",
+            "text": "Current shop listing prices and colour differences are to be confirmed before launch."
+          }
+        },
+        "b17": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Frameless boards",
+            "block_id": "frameless",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b18": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "frameless",
+            "label": "Dibond",
+            "text": "Rigid aluminium-composite board for a clean, modern look."
+          }
+        },
+        "b19": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "frameless",
+            "label": "Foamex",
+            "text": "PVC board; prices and suitability are to be confirmed."
+          }
+        },
+        "b20": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "frameless",
+            "label": "Kapa-fix",
+            "text": "Lightweight paper-faced foam board for temporary or budget display."
+          }
+        },
+        "b21": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Special presentation",
+            "intro": "",
+            "text": "<p>Mounted and glazed frames, shirt framing, plate and object framing, and L / floating frames are quoted after we see photos, sizes and the item. All special presentation prices are to be confirmed.</p>",
+            "text_size": "md",
+            "max_width": "wide",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56,
+            "btn_label": "",
+            "btn_link": "",
+            "btn_style": "outline",
+            "btn_size": "md"
+          }
+        },
+        "b22": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Economy%20framed%20print%20or%20poster%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b23": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Economy framed print or poster",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

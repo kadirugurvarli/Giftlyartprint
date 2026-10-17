@@ -1,0 +1,316 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Photo Restoration",
+            "heading": "Bring an old photograph back, without over-promising",
+            "subheading": "Fading, scratches, creases and stains can often be improved. We look at your photo first and then give you a price.",
+            "heading_tag": "h1",
+            "layout_width": "contained",
+            "heading_size": "xl",
+            "text_align": "center",
+            "image_alt": "Old faded photograph on a desk with a soft brush and cotton gloves",
+            "aspect_ratio": "3/2",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Photo%20restoration%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Photo%20restoration",
+            "btn2_style": "outline",
+            "btn_size": "md",
+            "background_color": "#ffffff",
+            "padding_top": 48,
+            "padding_bottom": 40
+          }
+        },
+        "b02": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "Review note",
+            "heading": "Approved before-and-after examples are still required",
+            "intro": "Use real client work only, with permission.",
+            "text": "<p>The fixed shop prices are review starting points. The final quote follows assessment, and results depend on the condition of the original.</p>",
+            "text_size": "md",
+            "max_width": "normal",
+            "layout_width": "contained",
+            "heading_size": "md",
+            "text_align": "left",
+            "background_color": "#fff4e5",
+            "accent_color": "#8a3b00",
+            "padding_top": 32,
+            "padding_bottom": 32
+          }
+        },
+        "b03": {
+          "type": "grid_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Real before and after examples",
+            "intro": "",
+            "block_id": "restoration_examples",
+            "columns": "2",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "restoration_examples",
+            "title": "Before",
+            "text": "<p>Approved real client image to be supplied.</p>",
+            "link_label": "Send a photo for assessment",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Photo%20restoration%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "restoration_examples",
+            "title": "After",
+            "text": "<p>Matching approved result image to be supplied.</p>",
+            "link_label": "Send a photo for assessment",
+            "link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Photo%20restoration%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "aspect_ratio": "4/3",
+            "image_fit": "cover"
+          }
+        },
+        "b06": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "restoration_steps",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b07": {
+          "type": "step",
+          "settings": {
+            "parent_id": "restoration_steps",
+            "title": "Send the photo",
+            "text": "Send a clear scan or a photo of the original by WhatsApp or email."
+          }
+        },
+        "b08": {
+          "type": "step",
+          "settings": {
+            "parent_id": "restoration_steps",
+            "title": "We assess",
+            "text": "We look at fading, scratches and damage and tell you what can be improved."
+          }
+        },
+        "b09": {
+          "type": "step",
+          "settings": {
+            "parent_id": "restoration_steps",
+            "title": "You get a price",
+            "text": "Only after we have seen the photo. Results vary and the same outcome cannot be promised for every photo."
+          }
+        },
+        "b10": {
+          "type": "step",
+          "settings": {
+            "parent_id": "restoration_steps",
+            "title": "Choose your extras",
+            "text": "Colourising, printing and framing are optional."
+          }
+        },
+        "b11": {
+          "type": "facts_section",
+          "settings": {
+            "eyebrow": "",
+            "heading": "At a glance",
+            "block_id": "restoration_facts",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "card_background": "#ffffff",
+            "card_radius": 18,
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "restoration_facts",
+            "label": "The problem",
+            "text": "Old family photos may be faded, scratched, torn or stained."
+          }
+        },
+        "b13": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "restoration_facts",
+            "label": "What we offer",
+            "text": "Digital restoration, with optional colourising, printing and framing as separate choices."
+          }
+        },
+        "b14": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "restoration_facts",
+            "label": "Included",
+            "text": "Assessment and the restoration option you choose."
+          }
+        },
+        "b15": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "restoration_facts",
+            "label": "Extra cost",
+            "text": "Colourising, print, frame and complex repair."
+          }
+        },
+        "b16": {
+          "type": "text_block",
+          "settings": {
+            "eyebrow": "",
+            "heading": "Prices",
+            "intro": "Shop listing prices, to be confirmed.",
+            "text": "<p>Review starting points are £20 for digital restoration only, £25 with colourising, and higher for fine art prints or framed prints. Heavily damaged photos are quoted individually. The unverified certification claim from the shop copy is intentionally not repeated.</p>",
+            "text_size": "md",
+            "max_width": "wide",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "left",
+            "background_color": "#ffffff",
+            "padding_top": 56,
+            "padding_bottom": 56,
+            "btn_label": "",
+            "btn_link": "",
+            "btn_style": "outline",
+            "btn_size": "md"
+          }
+        },
+        "b17": {
+          "type": "cta",
+          "settings": {
+            "eyebrow": "Next step",
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "overlay": 40,
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "aspect_ratio": "21/9",
+            "image_fit": "cover",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Photo%20restoration%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light",
+            "btn_size": "md",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        },
+        "b18": {
+          "type": "enquiry",
+          "settings": {
+            "eyebrow": "Contact",
+            "heading": "Start your enquiry",
+            "intro": "Fill in what you know. Nothing is sent until you press send in WhatsApp or your email app.",
+            "service": "Photo restoration",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else",
+            "wa_number": "447445250359",
+            "email": "giftlyartprint@gmail.com",
+            "layout_width": "contained",
+            "heading_size": "lg",
+            "text_align": "center",
+            "card_background": "#ffffff",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "padding_top": 56,
+            "padding_bottom": 56
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    },
+    "recent_work": {
+      "type": "gap-recent-work",
+      "settings": {
+        "eyebrow": "Recent work",
+        "heading": "Our latest jobs",
+        "intro": "Real completed work will appear here once approved entries are added.",
+        "layout": "carousel",
+        "layout_width": "contained",
+        "items_shown": 4,
+        "columns": "3",
+        "show_arrows": true,
+        "all_label": "See all recent work",
+        "all_link": "/pages/recent-work",
+        "order": "date",
+        "show_date": true,
+        "show_category": true,
+        "aspect_ratio": "4/3",
+        "image_fit": "cover",
+        "heading_size": "lg",
+        "text_align": "left",
+        "background_color": "#f5f5f7",
+        "card_background": "#ffffff",
+        "heading_color": "#1d1d1f",
+        "text_color": "#1d1d1f",
+        "accent_color": "#b64400",
+        "card_radius": 18,
+        "padding_top": 64,
+        "padding_bottom": 64,
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recent_work"
+  ]
+}

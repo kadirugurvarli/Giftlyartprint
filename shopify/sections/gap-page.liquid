@@ -55,8 +55,8 @@
 .gap-tbl thead th{background:var(--gap-soft);font-size:.75rem;font-weight:600;color:var(--gap-muted);text-transform:uppercase;letter-spacing:.04em}
 .gap-tbl td:last-child{font-weight:600;white-space:nowrap}
 .gap-note{font-size:.85rem;color:var(--gap-muted)}
-.gap-faq details{background:var(--gap-card,var(--gap-soft));border-radius:14px;padding:1rem 1.3rem;margin:.7rem 0;text-align:left}
-.gap-faq summary{cursor:pointer;font-weight:600}.gap-faq details p{margin:.6rem 0 0;color:var(--gap-muted)}
+[data-gap-faq] details{background:var(--gap-card,var(--gap-soft));border-radius:14px;padding:1rem 1.3rem;margin:.7rem 0;text-align:left}
+[data-gap-faq] summary{cursor:pointer;font-weight:600}[data-gap-faq] details p{margin:.6rem 0 0;color:var(--gap-muted)}
 .gap-cta{position:relative;overflow:hidden}
 .gap-cta__bg{position:absolute;inset:0}.gap-cta__bg .gap-media{height:100%;border-radius:0!important;aspect-ratio:auto!important}
 .gap-cta__bg::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--gap-overlay,.45))}
@@ -255,7 +255,7 @@
         <div class="gap-pad gap-{{ al }}"><div class="gap-inner">
           {%- if s.eyebrow != blank -%}<span class="gap-eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
           {%- if s.heading != blank -%}<h2 class="gap-h gap-h--{{ hs }}">{{ s.heading }}</h2>{%- endif -%}
-          <div class="gap-faq" style="{% if s.card_background != blank %}--gap-card:{{ s.card_background }};{% endif %}">
+          <div data-gap-faq style="{% if s.card_background != blank %}--gap-card:{{ s.card_background }};{% endif %}">
             {%- for c in section.blocks -%}{%- if c.type == 'faq_item' and c.settings.parent_id == s.block_id -%}<details {{ c.shopify_attributes }}><summary>{{ c.settings.question }}</summary><div class="gap-rich gap-rich--md">{{ c.settings.answer }}</div></details>{%- endif -%}{%- endfor -%}
           </div>
         </div></div>
@@ -290,29 +290,7 @@
       {%- elsif block.type == 'spacer' -%}
         <div style="height:{{ s.height | default: 40 }}px"></div>
       {%- elsif block.type == 'enquiry' -%}
-        <div class="gap-pad gap-{{ al }}"><div class="gap-inner">
-          {%- if s.eyebrow != blank -%}<span class="gap-eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
-          {%- if s.heading != blank -%}<h2 class="gap-h gap-h--{{ hs }}">{{ s.heading }}</h2>{%- endif -%}{%- if s.intro != blank -%}<p class="gap-lede">{{ s.intro }}</p>{%- endif -%}
-          {%- assign fid = 'gapq-' | append: block.id -%}
-          <form class="gap-form" id="{{ fid }}" onsubmit="return false" style="background:{{ s.card_background | default: '#ffffff' }}" data-wa="{{ s.wa_number | default: '447445250359' }}" data-mail="{{ s.email | default: 'giftlyartprint@gmail.com' }}">
-            <label>What is it for?<select name="service">{%- assign opts = s.services | split: '
-' -%}{%- for o in opts -%}{%- assign ot = o | strip -%}{%- if ot != blank -%}<option{% if ot == s.service %} selected{% endif %}>{{ ot }}</option>{%- endif -%}{%- endfor -%}</select></label>
-            <label>Size<input name="size" placeholder="e.g. A3, or 30x40cm"></label>
-            <label>Quantity<input name="qty" inputmode="numeric" placeholder="e.g. 1"></label>
-            <label>Needed by<input name="date" placeholder="e.g. 20 December"></label>
-            <label>Budget (optional)<input name="budget" placeholder="e.g. around £40"></label>
-            <label class="gap-full">Anything else?<textarea name="notes" rows="2"></textarea></label>
-            <div class="gap-actions gap-full"><a class="gap-btn gap-btn--whatsapp" data-role="wa" href="https://wa.me/{{ s.wa_number | default: '447445250359' }}" target="_blank" rel="noopener">Open WhatsApp with this message</a><a class="gap-btn gap-btn--outline" data-role="mail" href="mailto:{{ s.email | default: 'giftlyartprint@gmail.com' }}">Email this instead</a></div>
-            <p class="gap-note gap-full" style="margin:0">Nothing is sent until you press send in WhatsApp or your email app. Please do not send payment details.</p>
-          </form>
-          <script>
-            (function(){var f=document.getElementById({{ fid | json }});if(!f)return;var wa=f.querySelector('[data-role=wa]'),ml=f.querySelector('[data-role=mail]');
-            function v(n){var e=f.elements[n];return e&&e.value.trim()?e.value.trim():'(to confirm)';}
-            function b(){var t=['Hello Giftly Art Print,',"I'd like a quote for: "+v('service'),'Size: '+v('size'),'Quantity: '+v('qty'),'Needed by: '+v('date'),'Budget: '+v('budget'),'Notes: '+v('notes'),"I'll send my image/file in this chat."].join('\n');
-            wa.href='https://wa.me/'+f.dataset.wa+'?text='+encodeURIComponent(t);ml.href='mailto:'+f.dataset.mail+'?subject='+encodeURIComponent('Quote request: '+v('service'))+'&body='+encodeURIComponent(t.replace('in this chat','by email'));}
-            f.addEventListener('input',b);f.addEventListener('change',b);b();})();
-          </script>
-        </div></div>
+        {%- render 'gap-enquiry-form', settings: s, block_id: block.id, alignment: al, heading_size: hs -%}
       {%- endif -%}
     </div>
   </div>
