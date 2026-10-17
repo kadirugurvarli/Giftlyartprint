@@ -1,0 +1,464 @@
+{%- comment -%}
+  gap-recent-work.liquid: latest jobs, newest first. Data lives in the metaobject definition "recent_work"
+  (fields: title, date, category, description, image, image_alt, link). One list feeds every page and the archive page.
+  Layout "carousel" = sliding row for any page (put it in the footer section group to show on every page).
+  Layout "grid"     = full list for the archive page, with a "Show more" button.
+{%- endcomment -%}
+<style>.gap-rw{--gap-ink:#1d1d1f;--gap-muted:#6e6e73;--gap-link:#0066cc;letter-spacing:-.02em;line-height:1.47;color:var(--rw-text);background:var(--rw-bg)}
+.gap-rw *{box-sizing:border-box}.gap-rw img{max-width:100%;height:auto;display:block}
+.gap-rw .gap-outer--contained{max-width:var(--rw-max,1024px);margin:0 auto;padding:0 22px}
+.gap-rw .gap-outer--fullwidth{padding:0 22px}
+.gap-rw__pad{padding-top:var(--rw-pt);padding-bottom:var(--rw-pb)}
+.gap-rw__head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.gap-rw__eyebrow{display:block;font-size:1.05rem;font-weight:600;color:var(--rw-accent);margin:0 0 .5rem}
+.gap-rw__h{margin:0 0 .4em;font-weight:700;color:var(--rw-heading);letter-spacing:-.03em;line-height:1.1}
+.gap-rw__h--sm{font-size:clamp(1.25rem,2.4vw,1.6rem)}.gap-rw__h--md{font-size:clamp(1.5rem,3.4vw,2.1rem)}.gap-rw__h--lg{font-size:clamp(1.8rem,4.6vw,2.8rem)}.gap-rw__h--xl{font-size:clamp(2.3rem,7vw,4rem)}
+.gap-rw__intro{color:var(--gap-muted);font-size:1.15rem;max-width:44em;margin:0}
+.gap-rw__align--center{text-align:center}.gap-rw__align--center .gap-rw__head{justify-content:center}.gap-rw__align--center .gap-rw__intro{margin:0 auto}
+.gap-rw__arrows{display:flex;gap:8px}
+.gap-rw__arrow{width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:#1d1d1f;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #d2d2d7}
+.gap-rw__arrow:hover{background:#1d1d1f;color:#fff}
+.gap-rw__list{list-style:none;margin:24px 0 0;padding:0}
+.gap-rw--carousel .gap-rw__list{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;-webkit-overflow-scrolling:touch}
+.gap-rw--carousel .gap-rw__list>li{flex:0 0 min(82%,340px);scroll-snap-align:start}
+@media(min-width:900px){.gap-rw--carousel .gap-rw__list>li{flex-basis:calc((100% - (var(--rw-cols) - 1) * 20px) / var(--rw-cols))}}
+.gap-rw--grid .gap-rw__list{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+@media(min-width:900px){.gap-rw--grid .gap-rw__list{grid-template-columns:repeat(var(--rw-cols),1fr)}}
+.gap-rw__card{background:var(--rw-card);border-radius:var(--rw-radius);overflow:hidden;height:100%}
+.gap-rw__media{aspect-ratio:var(--rw-ratio);overflow:hidden;background:#e8e8ed}
+.gap-rw__media img{width:100%;height:100%;object-fit:var(--rw-fit)}
+.gap-rw__body{padding:18px 20px 22px}
+.gap-rw__meta{font-size:.78rem;color:var(--gap-muted);margin:0 0 .3rem}
+.gap-rw__tag{display:inline-block;background:#f5f5f7;border-radius:980px;padding:.1rem .55rem;margin-right:.4rem;font-weight:600}
+.gap-rw__body h3{margin:.2rem 0 .4rem;font-size:1.1rem;line-height:1.2;color:var(--rw-heading)}
+.gap-rw__body p{margin:0;color:var(--gap-muted);font-size:.95rem}
+.gap-rw__more{margin:18px 0 0}.gap-rw__more a{color:var(--gap-link)}
+.gap-rw__btn{font:inherit;display:inline-flex;min-height:44px;align-items:center;padding:.6rem 1.4rem;border-radius:980px;border:1px solid currentColor;background:transparent;color:var(--gap-link);cursor:pointer}
+.gap-rw a:focus-visible,.gap-rw button:focus-visible,.gap-rw__list:focus-visible{outline:4px solid rgba(0,113,227,.55);outline-offset:2px}</style>
+{%- liquid
+  assign s = section.settings
+  assign list = shop.metaobjects.recent_work.values
+  if s.order == 'date'
+    assign list = list | sort: 'date' | reverse
+  elsif s.order == 'admin_reverse'
+    assign list = list | reverse
+  endif
+  assign cat = s.category | strip
+  assign layout = s.layout | default: 'carousel'
+  assign first_n = s.items_shown | default: 4
+  assign col_n = s.columns | default: '3'
+  assign ratio = s.aspect_ratio | default: '4/3'
+  assign hs = s.heading_size | default: 'lg'
+  assign al = s.text_align | default: 'left'
+  assign w = s.layout_width | default: 'contained'
+  assign shown = 0
+  assign total = 0
+-%}
+<section class="gap-rw gap-rw--{{ layout }} gap-rw__align--{{ al }}" id="gap-rw-{{ section.id }}" aria-labelledby="gap-rw-h-{{ section.id }}"
+  style="--rw-bg:{{ s.background_color | default: '#f5f5f7' }};--rw-text:{{ s.text_color | default: '#1d1d1f' }};--rw-heading:{{ s.heading_color | default: '#1d1d1f' }};--rw-accent:{{ s.accent_color | default: '#b64400' }};--rw-card:{{ s.card_background | default: '#ffffff' }};--rw-radius:{{ s.card_radius | default: 18 }}px;--rw-ratio:{{ ratio }};--rw-fit:{{ s.image_fit | default: 'cover' }};--rw-cols:{{ col_n }};--rw-pt:{{ s.padding_top | default: 64 }}px;--rw-pb:{{ s.padding_bottom | default: 64 }}px;--rw-max:{{ s.max_width | default: 1024 }}px">
+  <div class="gap-outer gap-outer--{{ w }}"><div class="gap-rw__pad">
+    <div class="gap-rw__head">
+      <div>
+        {%- if s.eyebrow != blank -%}<span class="gap-rw__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+        <h2 class="gap-rw__h gap-rw__h--{{ hs }}" id="gap-rw-h-{{ section.id }}">{{ s.heading }}</h2>
+        {%- if s.intro != blank -%}<p class="gap-rw__intro">{{ s.intro }}</p>{%- endif -%}
+      </div>
+      {%- if layout == 'carousel' and s.show_arrows -%}
+        <div class="gap-rw__arrows"><button type="button" class="gap-rw__arrow" data-dir="-1" aria-label="Previous jobs">&lsaquo;</button><button type="button" class="gap-rw__arrow" data-dir="1" aria-label="Next jobs">&rsaquo;</button></div>
+      {%- endif -%}
+    </div>
+    {%- if list.size == 0 -%}
+      {%- if request.design_mode -%}<p class="gap-rw__intro" style="margin-top:24px">No recent work yet. Add entries under Content &gt; Metaobjects &gt; Recent work.</p>{%- endif -%}
+    {%- else -%}
+      <ul class="gap-rw__list" {% if layout == 'carousel' %}tabindex="0" role="region" aria-label="Recent jobs, scrollable"{% endif %}>
+        {%- for w_item in list -%}
+          {%- if cat != blank and w_item.category.value != cat -%}{%- continue -%}{%- endif -%}
+          {%- assign total = total | plus: 1 -%}
+          {%- if layout == 'carousel' and shown >= first_n -%}{%- continue -%}{%- endif -%}
+          {%- assign hidden = false -%}
+          {%- if layout == 'grid' and shown >= first_n %}{% assign hidden = true %}{% endif -%}
+          {%- assign shown = shown | plus: 1 -%}
+          {%- assign ttl = w_item.title.value -%}
+          <li{% if hidden %} hidden data-rw-extra{% endif %}>
+            <article class="gap-rw__card">
+              {%- if w_item.image.value != blank -%}
+                <div class="gap-rw__media">{{ w_item.image.value | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 500, 700, 900', sizes: '(min-width: 900px) 33vw, 82vw', alt: w_item.image_alt.value | default: ttl }}</div>
+              {%- endif -%}
+              <div class="gap-rw__body">
+                <p class="gap-rw__meta">{%- if s.show_category and w_item.category.value != blank -%}<span class="gap-rw__tag">{{ w_item.category.value }}</span>{%- endif -%}{%- if s.show_date and w_item.date.value != blank -%}<time datetime="{{ w_item.date.value | date: '%Y-%m-%d' }}">{{ w_item.date.value | date: '%-d %B %Y' }}</time>{%- endif -%}</p>
+                <h3>{%- if w_item.link.value != blank -%}<a href="{{ w_item.link.value }}">{{ ttl }}</a>{%- else -%}{{ ttl }}{%- endif -%}</h3>
+                <p>{{ w_item.description.value | escape }}</p>
+              </div>
+            </article>
+          </li>
+        {%- endfor -%}
+      </ul>
+      {%- if layout == 'grid' and total > first_n -%}
+        <p class="gap-rw__more"><button type="button" class="gap-rw__btn" data-rw-more data-step="{{ first_n }}">{{ s.more_label | default: 'Show more' }}</button></p>
+      {%- elsif layout == 'carousel' and s.all_link != blank and total > 0 -%}
+        <p class="gap-rw__more"><a href="{{ s.all_link }}">{{ s.all_label | default: 'See all recent work' }}</a></p>
+      {%- endif -%}
+    {%- endif -%}
+  </div></div>
+  <script>
+    (function () {
+      var r = document.getElementById('gap-rw-{{ section.id }}'); if (!r) return;
+      var list = r.querySelector('.gap-rw__list');
+      r.querySelectorAll('.gap-rw__arrow').forEach(function (b) {
+        b.addEventListener('click', function () { list.scrollBy({ left: (list.firstElementChild.offsetWidth + 20) * Number(b.dataset.dir), behavior: 'smooth' }); });
+      });
+      var m = r.querySelector('[data-rw-more]');
+      if (m) m.addEventListener('click', function () {
+        var hid = r.querySelectorAll('[data-rw-extra][hidden]'), n = Number(m.dataset.step) || 6;
+        for (var i = 0; i < hid.length && i < n; i++) hid[i].hidden = false;
+        if (r.querySelectorAll('[data-rw-extra][hidden]').length === 0) m.parentNode.hidden = true;
+      });
+    })();
+  </script>
+</section>
+{% schema %}
+{
+  "name": "GAP Recent work",
+  "tag": "section",
+  "class": "gap-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Small label",
+      "default": "Recent work"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Our latest jobs"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro text",
+      "default": "The newest job is always first."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "carousel",
+          "label": "Sliding row (for every page)"
+        },
+        {
+          "value": "grid",
+          "label": "Full list (for the archive page)"
+        }
+      ],
+      "default": "carousel"
+    },
+    {
+      "type": "select",
+      "id": "layout_width",
+      "label": "Page width",
+      "options": [
+        {
+          "value": "contained",
+          "label": "Standard (centred)"
+        },
+        {
+          "value": "fullwidth",
+          "label": "Full width"
+        }
+      ],
+      "default": "contained"
+    },
+    {
+      "type": "range",
+      "id": "items_shown",
+      "label": "Jobs shown (carousel) / shown first (grid)",
+      "min": 2,
+      "max": 50,
+      "step": 1,
+      "unit": "",
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Jobs visible at once on desktop",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show arrows (carousel)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "all_label",
+      "label": "'See all' link label",
+      "default": "See all recent work"
+    },
+    {
+      "type": "url",
+      "id": "all_link",
+      "label": "'See all' link (archive page)"
+    },
+    {
+      "type": "text",
+      "id": "more_label",
+      "label": "'Show more' button label (grid)",
+      "default": "Show more"
+    },
+    {
+      "type": "header",
+      "content": "Data"
+    },
+    {
+      "type": "select",
+      "id": "order",
+      "label": "Order",
+      "options": [
+        {
+          "value": "date",
+          "label": "By date, newest first (recommended)"
+        },
+        {
+          "value": "admin_reverse",
+          "label": "Reverse admin order"
+        },
+        {
+          "value": "admin",
+          "label": "Admin order"
+        }
+      ],
+      "default": "date",
+      "info": "If date sorting does not work in your theme, switch to an admin order."
+    },
+    {
+      "type": "text",
+      "id": "category",
+      "label": "Only show this category (optional)",
+      "info": "Leave empty to show all jobs."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_category",
+      "label": "Show category",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        {
+          "value": "3/2",
+          "label": "3:2 landscape"
+        },
+        {
+          "value": "4/3",
+          "label": "4:3 landscape"
+        },
+        {
+          "value": "16/9",
+          "label": "16:9 wide"
+        },
+        {
+          "value": "21/9",
+          "label": "21:9 panorama"
+        },
+        {
+          "value": "1/1",
+          "label": "1:1 square"
+        },
+        {
+          "value": "4/5",
+          "label": "4:5 portrait"
+        },
+        {
+          "value": "3/4",
+          "label": "3:4 portrait"
+        }
+      ],
+      "default": "4/3"
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill and crop"
+        },
+        {
+          "value": "contain",
+          "label": "Show whole image"
+        }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "header",
+      "content": "Text"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra large"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Heading alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Colours"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background",
+      "default": "#f5f5f7"
+    },
+    {
+      "type": "color",
+      "id": "card_background",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading colour",
+      "default": "#1d1d1f"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text colour",
+      "default": "#1d1d1f"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Label colour",
+      "default": "#b64400"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Standard content width",
+      "min": 720,
+      "max": 1400,
+      "step": 8,
+      "unit": "px",
+      "default": 1024
+    }
+  ],
+  "presets": [
+    {
+      "name": "GAP Recent work"
+    }
+  ]
+}
+{% endschema %}

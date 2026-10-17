@@ -1,0 +1,23 @@
+# NOT EXECUTED. Run in the Shopify admin GraphQL app (or ask me to run it) to create the "Recent work" list.
+# Creates a metaobject definition with storefront access so the theme sections can read it.
+mutation {
+  metaobjectDefinitionCreate(definition: {
+    type: "recent_work"
+    name: "Recent work"
+    displayNameKey: "title"
+    access: { storefront: PUBLIC_READ }
+    fieldDefinitions: [
+      { key: "title",       name: "Title",              type: "single_line_text_field", required: true }
+      { key: "date",        name: "Date",               type: "date",                    required: true }
+      { key: "category",    name: "Category",           type: "single_line_text_field" }
+      { key: "description", name: "What was done",      type: "multi_line_text_field",   required: true }
+      { key: "image",       name: "Photo",              type: "file_reference",          required: true,
+        validations: [{ name: "file_type_options", value: "[\"Image\"]" }] }
+      { key: "image_alt",   name: "Photo alt text",     type: "single_line_text_field" }
+      { key: "link",        name: "Link (optional)",    type: "url" }
+    ]
+  }) {
+    metaobjectDefinition { id type }
+    userErrors { field message code }
+  }
+}

@@ -10,6 +10,12 @@ The pages are generated from `tools/build.py` (content) and `tools/images.py` (i
 ## Menu and product pages
 The global menu has drop-down panels (hover or keyboard focus on desktop, accordion on mobile; Esc closes) listing every product page under Prints, Framing, Iris, Business and Gifts. Each product page follows the same order: the questions customers ask, the problem and our answer, what is included and extra, how it works, a price list, common questions, related products and the enquiry form. Product content lives in `tools/products_data.py`; the template is in `tools/build.py`.
 
+## Recent work
+Every page ends with a "Recent work" row (newest job first, arrows, last 4 shown) and links to `recent-work.html` (full list). Entries come from `tools/recent_work.py`. **All six entries are samples** with a visible "Sample entry" tag; replace them with real jobs.
+
+## Shopify
+The editable Shopify version (sections, 19 page templates, install steps) is in `../shopify/`. See `../shopify/README.md`.
+
 ## Design and images
 The look follows the Apple website style: SF system font stack, white and light grey, one blue accent, pill buttons, a slim translucent dark global menu and a full-screen mobile menu.
 

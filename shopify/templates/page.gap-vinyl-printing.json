@@ -1,0 +1,277 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Business Printing · Business",
+            "heading": "Vinyl printing",
+            "subheading": "Printed vinyl for shop windows, walls and signs. Printing is quoted first; fitting is separate.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "image_alt": "Printed vinyl graphic on a shop window",
+            "aspect_ratio": "3/2",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Vinyl%20printing%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Vinyl%20printing",
+            "btn2_style": "outline",
+            "padding_top": 48,
+            "padding_bottom": 40,
+            "background_color": "#ffffff"
+          }
+        },
+        "b02": {
+          "type": "grid_section",
+          "settings": {
+            "heading": "Does this sound like you?",
+            "block_id": "qa",
+            "columns": "2",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff",
+            "heading_size": "lg",
+            "text_align": "left",
+            "layout_width": "contained"
+          }
+        },
+        "b03": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "I want my window to look better. Is vinyl right?",
+            "text": "<p>Vinyl is a common choice for windows and walls.</p>"
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Do you fit it?",
+            "text": "<p>Application is not included unless agreed, and may not be offered. To be confirmed.</p>"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "What do you need?",
+            "text": "<p>Size, surface, artwork and your date.</p>"
+          }
+        },
+        "b06": {
+          "type": "image_text",
+          "settings": {
+            "heading": "The problem, and our answer",
+            "text": "<p><strong>The problem.</strong> Plain windows and walls do not advertise you.</p><p><strong>What we offer.</strong> Printed vinyl in the size and finish you need.</p>",
+            "image_position": "right",
+            "image_alt": "Rigid printed board",
+            "aspect_ratio": "4/3",
+            "background_color": "#ffffff"
+          }
+        },
+        "b07": {
+          "type": "facts_section",
+          "settings": {
+            "heading": "At a glance",
+            "block_id": "facts",
+            "background_color": "#ffffff",
+            "padding_top": 0
+          }
+        },
+        "b08": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Who it suits",
+            "text": "Shops, salons, offices, events."
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Included",
+            "text": "Printed vinyl."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Extra cost",
+            "text": "Application, design, delivery."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "What to do now",
+            "text": "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+          }
+        },
+        "b12": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "steps",
+            "text_align": "center",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b13": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "Send the details",
+            "text": "Business: product, quantity, size, file, date. Others: your image or item, size and where it will go."
+          }
+        },
+        "b14": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "We check and quote",
+            "text": "You get a clear quote with what is included and what is extra."
+          }
+        },
+        "b15": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "You decide",
+            "text": "We only go ahead when you are happy with the quote."
+          }
+        },
+        "b16": {
+          "type": "price_table",
+          "settings": {
+            "block_id": "prices",
+            "caption": "Vinyl printing",
+            "note": "No price source exists yet. To be confirmed by Giftly.",
+            "col1": "Size / quantity",
+            "col2": "Material",
+            "col3": "Included",
+            "col4": "Not included",
+            "col5": "Price (listing)",
+            "btn_label": "Ask about this on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Vinyl%20printing%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "background_color": "#ffffff"
+          }
+        },
+        "b17": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Size to be agreed",
+            "c2": "Vinyl type to be confirmed",
+            "c3": "Printed vinyl",
+            "c4": "Application, design, delivery",
+            "c5": "TBC"
+          }
+        },
+        "b18": {
+          "type": "faq_section",
+          "settings": {
+            "heading": "Common questions",
+            "block_id": "faq",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b19": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Indoor or outdoor?",
+            "answer": "<p>To be confirmed.</p>"
+          }
+        },
+        "b20": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Removable?",
+            "answer": "<p>To be confirmed.</p>"
+          }
+        },
+        "b21": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Measuring?",
+            "answer": "<p>Send photos and sizes.</p>"
+          }
+        },
+        "b22": {
+          "type": "cta",
+          "settings": {
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "image_alt": "A-board sign",
+            "text_align": "center",
+            "heading_color": "#ffffff",
+            "text_color": "#ffffff",
+            "background_color": "#1d1d1f",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Vinyl%20printing%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light"
+          }
+        },
+        "b23": {
+          "type": "enquiry",
+          "settings": {
+            "heading": "Start your enquiry",
+            "service": "Vinyl printing",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else\nVinyl printing",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "text_align": "center"
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

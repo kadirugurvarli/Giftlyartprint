@@ -1,0 +1,370 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Framing & Display · Frameless",
+            "heading": "Dibond print",
+            "subheading": "Your print mounted on rigid Dibond (aluminium composite) board: a clean, frameless, modern look that hangs flat.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "image_alt": "Frameless board print on a white wall",
+            "aspect_ratio": "3/2",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Dibond%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Dibond%20print",
+            "btn2_style": "outline",
+            "padding_top": 48,
+            "padding_bottom": 40,
+            "background_color": "#ffffff"
+          }
+        },
+        "b02": {
+          "type": "grid_section",
+          "settings": {
+            "heading": "Does this sound like you?",
+            "block_id": "qa",
+            "columns": "2",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff",
+            "heading_size": "lg",
+            "text_align": "left",
+            "layout_width": "contained"
+          }
+        },
+        "b03": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "I do not like frames. What else is there?",
+            "text": "<p>Dibond: the print is mounted straight on a rigid board, with no frame.</p>"
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Will it bend or curl?",
+            "text": "<p>It is a rigid board, so it stays flat.</p>"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Is it protected by glass?",
+            "text": "<p>No. Handle and clean it gently.</p>"
+          }
+        },
+        "b06": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Is Dibond the same as Foamex?",
+            "text": "<p>No. Dibond has an aluminium face. Foamex is PVC. See the Foamex page.</p>"
+          }
+        },
+        "b07": {
+          "type": "image_text",
+          "settings": {
+            "heading": "The problem, and our answer",
+            "text": "<p><strong>The problem.</strong> Frames can feel heavy or fussy, and bare prints curl.</p><p><strong>What we offer.</strong> A paper print mounted on Dibond with a choice of papers.</p>",
+            "image_position": "right",
+            "image_alt": "Fine art paper and rolled prints",
+            "aspect_ratio": "4/3",
+            "background_color": "#ffffff"
+          }
+        },
+        "b08": {
+          "type": "facts_section",
+          "settings": {
+            "heading": "At a glance",
+            "block_id": "facts",
+            "background_color": "#ffffff",
+            "padding_top": 0
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Who it suits",
+            "text": "Modern interiors, shops, exhibitions, anyone wanting a frameless look."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Included",
+            "text": "Print mounted on 3mm Dibond."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Extra cost",
+            "text": "Frame, delivery, special hanging fittings unless quoted."
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "What to do now",
+            "text": "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+          }
+        },
+        "b13": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "steps",
+            "text_align": "center",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b14": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "Send the details",
+            "text": "Business: product, quantity, size, file, date. Others: your image or item, size and where it will go."
+          }
+        },
+        "b15": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "We check and quote",
+            "text": "You get a clear quote with what is included and what is extra."
+          }
+        },
+        "b16": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "You decide",
+            "text": "We only go ahead when you are happy with the quote."
+          }
+        },
+        "b17": {
+          "type": "price_table",
+          "settings": {
+            "block_id": "prices",
+            "caption": "Dibond print (shop listing, to be confirmed)",
+            "note": "Review draft: prices are copied from the current Shopify listing and must be confirmed by Giftly before launch. Final quote depends on your file and requirements. The shop has two live Dibond listings at different prices (£45–175 and £79.99–164.90): to be resolved.",
+            "col1": "Size / quantity",
+            "col2": "Material",
+            "col3": "Included",
+            "col4": "Not included",
+            "col5": "Price (listing)",
+            "btn_label": "Ask about this on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Dibond%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "background_color": "#ffffff"
+          }
+        },
+        "b18": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "20x30cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£45"
+          }
+        },
+        "b19": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "30x30cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£55"
+          }
+        },
+        "b20": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "30x40cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£65"
+          }
+        },
+        "b21": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "40x40cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£85"
+          }
+        },
+        "b22": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "40x55cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£110"
+          }
+        },
+        "b23": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "40x60cm",
+            "c2": "Dibond 3mm, Hahnemühle or Permajet paper",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "£110"
+          }
+        },
+        "b24": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Larger sizes up to 60x90cm",
+            "c2": "Same",
+            "c3": "Print mounted on Dibond",
+            "c4": "Frame, delivery",
+            "c5": "up to £175"
+          }
+        },
+        "b25": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Magnetic Dibond print, 20x20 to 50x70cm",
+            "c2": "Magnetic Dibond (details to be confirmed)",
+            "c3": "Print on magnetic Dibond",
+            "c4": "Delivery",
+            "c5": "£70 – £160"
+          }
+        },
+        "b26": {
+          "type": "faq_section",
+          "settings": {
+            "heading": "Common questions",
+            "block_id": "faq",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b27": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Which paper is used?",
+            "answer": "<p>A choice of Hahnemühle and Permajet papers. Ask us which suits your image.</p>"
+          }
+        },
+        "b28": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "How do I hang it?",
+            "answer": "<p>Hanging fittings are quoted with your order.</p>"
+          }
+        },
+        "b29": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "What is a magnetic Dibond print?",
+            "answer": "<p>A listed shop product; Giftly to confirm details.</p>"
+          }
+        },
+        "b30": {
+          "type": "cta",
+          "settings": {
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "image_alt": "Framed print for comparison",
+            "text_align": "center",
+            "heading_color": "#ffffff",
+            "text_color": "#ffffff",
+            "background_color": "#1d1d1f",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Dibond%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light"
+          }
+        },
+        "b31": {
+          "type": "enquiry",
+          "settings": {
+            "heading": "Start your enquiry",
+            "service": "Dibond print",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else\nDibond print",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "text_align": "center"
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23",
+        "b24",
+        "b25",
+        "b26",
+        "b27",
+        "b28",
+        "b29",
+        "b30",
+        "b31"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Iris Photography · Gifts",
+            "heading": "Iris gift vouchers",
+            "subheading": "Give an Iris Photography session as a present. Choose a voucher, and the person redeems it with us.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "image_alt": "Cream gift voucher card on tissue paper with a green ribbon",
+            "aspect_ratio": "3/2",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Iris%20gift%20vouchers%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Iris%20gift%20vouchers",
+            "btn2_style": "outline",
+            "padding_top": 48,
+            "padding_bottom": 40,
+            "background_color": "#ffffff"
+          }
+        },
+        "b02": {
+          "type": "grid_section",
+          "settings": {
+            "heading": "Does this sound like you?",
+            "block_id": "qa",
+            "columns": "2",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff",
+            "heading_size": "lg",
+            "text_align": "left",
+            "layout_width": "contained"
+          }
+        },
+        "b03": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "What do I give someone who has everything?",
+            "text": "<p>A personal portrait of their iris, made into a print or keepsake.</p>"
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "How do they use the voucher?",
+            "text": "<p>They message us to book. Details are confirmed when you enquire.</p>"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Is a physical product included?",
+            "text": "<p>Depends on the voucher. See the table.</p>"
+          }
+        },
+        "b06": {
+          "type": "image_text",
+          "settings": {
+            "heading": "The problem, and our answer",
+            "text": "<p><strong>The problem.</strong> Generic gifts are forgettable.</p><p><strong>What we offer.</strong> An experience plus a keepsake, bought as a voucher.</p>",
+            "image_position": "right",
+            "image_alt": "Iris print in a slim frame",
+            "aspect_ratio": "4/3",
+            "background_color": "#ffffff"
+          }
+        },
+        "b07": {
+          "type": "facts_section",
+          "settings": {
+            "heading": "At a glance",
+            "block_id": "facts",
+            "background_color": "#ffffff",
+            "padding_top": 0
+          }
+        },
+        "b08": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Who it suits",
+            "text": "Birthdays, anniversaries, couples, parents."
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Included",
+            "text": "Voucher as listed."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Extra cost",
+            "text": "Items outside the voucher, delivery."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "What to do now",
+            "text": "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+          }
+        },
+        "b12": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "steps",
+            "text_align": "center",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b13": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "Send the details",
+            "text": "Business: product, quantity, size, file, date. Others: your image or item, size and where it will go."
+          }
+        },
+        "b14": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "We check and quote",
+            "text": "You get a clear quote with what is included and what is extra."
+          }
+        },
+        "b15": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "You decide",
+            "text": "We only go ahead when you are happy with the quote."
+          }
+        },
+        "b16": {
+          "type": "price_table",
+          "settings": {
+            "block_id": "prices",
+            "caption": "Iris gift vouchers (shop listing, to be confirmed)",
+            "note": "Review draft: prices are copied from the current Shopify listing and must be confirmed by Giftly before launch. Final quote depends on your file and requirements. Voucher contents are inferred from product names only.",
+            "col1": "Size / quantity",
+            "col2": "Material",
+            "col3": "Included",
+            "col4": "Not included",
+            "col5": "Price (listing)",
+            "btn_label": "Ask about this on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Iris%20gift%20vouchers%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "background_color": "#ffffff"
+          }
+        },
+        "b17": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Iris Photography Gift Voucher (1 to 6 eyes)",
+            "c2": "Gallery frame or acrylic print",
+            "c3": "Session and print",
+            "c4": "Digital files",
+            "c5": "£129 – £479"
+          }
+        },
+        "b18": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Mini Framed Iris",
+            "c2": "Mini frame",
+            "c3": "Session, mini framed print",
+            "c4": "Other products",
+            "c5": "£69 – £119"
+          }
+        },
+        "b19": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Iris Acrylic Block",
+            "c2": "Acrylic block",
+            "c3": "Session, block",
+            "c4": "Other products",
+            "c5": "£89 – £119"
+          }
+        },
+        "b20": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Iris Necklace",
+            "c2": "Necklace",
+            "c3": "Session, necklace",
+            "c4": "Other products",
+            "c5": "£74"
+          }
+        },
+        "b21": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Iris Round Photo Slate",
+            "c2": "Slate",
+            "c3": "Session, slate",
+            "c4": "Other products",
+            "c5": "£74 – £104"
+          }
+        },
+        "b22": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Iris Aluminium Desk Plate",
+            "c2": "Aluminium",
+            "c3": "Session, plate",
+            "c4": "Other products",
+            "c5": "£78 – £108"
+          }
+        },
+        "b23": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "Digital Art HD voucher",
+            "c2": "Digital",
+            "c3": "Digital files",
+            "c4": "Print",
+            "c5": "£49 – £79"
+          }
+        },
+        "b24": {
+          "type": "faq_section",
+          "settings": {
+            "heading": "Common questions",
+            "block_id": "faq",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b25": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Does it expire?",
+            "answer": "<p>To be confirmed.</p>"
+          }
+        },
+        "b26": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Can I choose the date?",
+            "answer": "<p>The recipient books with us.</p>"
+          }
+        },
+        "b27": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Deposit and balance?",
+            "answer": "<p>To be confirmed.</p>"
+          }
+        },
+        "b28": {
+          "type": "cta",
+          "settings": {
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "image_alt": "Acrylic block gift",
+            "text_align": "center",
+            "heading_color": "#ffffff",
+            "text_color": "#ffffff",
+            "background_color": "#1d1d1f",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Iris%20gift%20vouchers%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light"
+          }
+        },
+        "b29": {
+          "type": "enquiry",
+          "settings": {
+            "heading": "Start your enquiry",
+            "service": "Iris gift vouchers",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else\nIris gift vouchers",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "text_align": "center"
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23",
+        "b24",
+        "b25",
+        "b26",
+        "b27",
+        "b28",
+        "b29"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

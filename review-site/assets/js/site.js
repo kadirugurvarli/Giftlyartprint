@@ -17,6 +17,14 @@
     if (e.key !== 'Escape') return;
     document.querySelectorAll('.has-sub.open').forEach(function (li) { li.classList.remove('open'); li.querySelector('.sub-toggle').setAttribute('aria-expanded', 'false'); });
   });
+  document.querySelectorAll('.rw').forEach(function (s) {
+    var t = s.querySelector('.rw-track');
+    s.querySelectorAll('.rw-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        t.scrollBy({ left: (t.firstElementChild.offsetWidth + 20) * Number(b.dataset.dir), behavior: 'smooth' });
+      });
+    });
+  });
   var f = document.querySelector('form.quote-form');
   if (!f) return;
   var wa = document.getElementById('q-wa'), em = document.getElementById('q-mail');

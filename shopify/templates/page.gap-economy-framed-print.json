@@ -1,0 +1,358 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Framing & Display · Economy",
+            "heading": "Economy framed print",
+            "subheading": "Your photo printed and fitted in a ready-to-hang wood frame, without glass. The simple, budget-friendly way to get a picture on the wall.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "image_alt": "Black wood framed print on a pale wall",
+            "aspect_ratio": "3/2",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Economy%20framed%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Economy%20framed%20print",
+            "btn2_style": "outline",
+            "padding_top": 48,
+            "padding_bottom": 40,
+            "background_color": "#ffffff"
+          }
+        },
+        "b02": {
+          "type": "grid_section",
+          "settings": {
+            "heading": "Does this sound like you?",
+            "block_id": "qa",
+            "columns": "2",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff",
+            "heading_size": "lg",
+            "text_align": "left",
+            "layout_width": "contained"
+          }
+        },
+        "b03": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "I just want it framed and on the wall. What is the cheapest sensible option?",
+            "text": "<p>A wood frame without glass. You pay for the print and frame, not for glass and a mount.</p>"
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Will the print be protected?",
+            "text": "<p>There is no glass, so the printed surface is exposed. Keep it out of kitchens, bathrooms and places it will be touched.</p>"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Can I choose the frame colour?",
+            "text": "<p>Yes: black, white or oak wood.</p>"
+          }
+        },
+        "b06": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "What if my photo does not fit the frame shape?",
+            "text": "<p>We show you a crop or an added border and only print once you approve it.</p>"
+          }
+        },
+        "b07": {
+          "type": "image_text",
+          "settings": {
+            "heading": "The problem, and our answer",
+            "text": "<p><strong>The problem.</strong> Glass, mounts and bespoke framing can cost more than the picture is worth to you.</p><p><strong>What we offer.</strong> A standard-size wood frame with your print and backing, ready to hang.</p>",
+            "image_position": "right",
+            "image_alt": "White wood framed coastal print",
+            "aspect_ratio": "4/3",
+            "background_color": "#ffffff"
+          }
+        },
+        "b08": {
+          "type": "facts_section",
+          "settings": {
+            "heading": "At a glance",
+            "block_id": "facts",
+            "background_color": "#ffffff",
+            "padding_top": 0
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Who it suits",
+            "text": "Bedrooms, hallways, offices, rentals, quick refreshes and gifts on a budget."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Included",
+            "text": "Print, wood frame (black, white or oak) and backing."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Extra cost",
+            "text": "Glass, mount, delivery, hanging fittings unless quoted."
+          }
+        },
+        "b12": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "What to do now",
+            "text": "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+          }
+        },
+        "b13": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "steps",
+            "text_align": "center",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b14": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "Send the details",
+            "text": "Business: product, quantity, size, file, date. Others: your image or item, size and where it will go."
+          }
+        },
+        "b15": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "We check and quote",
+            "text": "You get a clear quote with what is included and what is extra."
+          }
+        },
+        "b16": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "You decide",
+            "text": "We only go ahead when you are happy with the quote."
+          }
+        },
+        "b17": {
+          "type": "price_table",
+          "settings": {
+            "block_id": "prices",
+            "caption": "Economy framed print (shop listing, to be confirmed)",
+            "note": "Review draft: prices are copied from the current Shopify listing and must be confirmed by Giftly before launch. Final quote depends on your file and requirements. The listing does not say whether glass is included; this page assumes none, to be confirmed.",
+            "col1": "Size / quantity",
+            "col2": "Material",
+            "col3": "Included",
+            "col4": "Not included",
+            "col5": "Price (listing)",
+            "btn_label": "Ask about this on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Economy%20framed%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "background_color": "#ffffff"
+          }
+        },
+        "b18": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "20x30cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£35"
+          }
+        },
+        "b19": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "30x30cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£40"
+          }
+        },
+        "b20": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "30x40cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£45"
+          }
+        },
+        "b21": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "40x60cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£55"
+          }
+        },
+        "b22": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "50x50cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£55"
+          }
+        },
+        "b23": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "50x75cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£75"
+          }
+        },
+        "b24": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "60x90cm",
+            "c2": "Print + wood frame, no glass",
+            "c3": "Print, frame, backing",
+            "c4": "Glass, mount, delivery",
+            "c5": "£95"
+          }
+        },
+        "b25": {
+          "type": "faq_section",
+          "settings": {
+            "heading": "Common questions",
+            "block_id": "faq",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b26": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Can I use my own frame instead?",
+            "answer": "<p>Yes. Tell us the opening size and we print to fit. See Photo & Fine Art Prints.</p>"
+          }
+        },
+        "b27": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Can I add glass or a mount later?",
+            "answer": "<p>That is a different frame. Ask us about a framed fine art print.</p>"
+          }
+        },
+        "b28": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "How big can I go?",
+            "answer": "<p>The listing runs to 60x90cm. Larger sizes on request.</p>"
+          }
+        },
+        "b29": {
+          "type": "cta",
+          "settings": {
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "image_alt": "Oak wood framed print leaning on a shelf",
+            "text_align": "center",
+            "heading_color": "#ffffff",
+            "text_color": "#ffffff",
+            "background_color": "#1d1d1f",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Economy%20framed%20print%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light"
+          }
+        },
+        "b30": {
+          "type": "enquiry",
+          "settings": {
+            "heading": "Start your enquiry",
+            "service": "Economy framed print",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else\nEconomy framed print",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "text_align": "center"
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23",
+        "b24",
+        "b25",
+        "b26",
+        "b27",
+        "b28",
+        "b29",
+        "b30"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

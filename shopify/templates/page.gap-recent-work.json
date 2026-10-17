@@ -1,0 +1,43 @@
+{
+  "sections": {
+    "hero": {
+      "type": "gap-page",
+      "blocks": {
+        "h": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Recent work",
+            "heading": "Every job we have shared",
+            "subheading": "Newest first. Each entry shows what was asked for and what we did.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "padding_bottom": 8
+          }
+        }
+      },
+      "block_order": [
+        "h"
+      ],
+      "settings": {}
+    },
+    "archive": {
+      "type": "gap-recent-work",
+      "settings": {
+        "layout": "grid",
+        "items_shown": 9,
+        "columns": "3",
+        "eyebrow": "",
+        "heading": "All recent work",
+        "intro": "",
+        "order": "date",
+        "heading_size": "md",
+        "background_color": "#ffffff"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "archive"
+  ]
+}

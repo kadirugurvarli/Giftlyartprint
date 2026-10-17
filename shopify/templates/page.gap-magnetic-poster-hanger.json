@@ -1,0 +1,289 @@
+{
+  "sections": {
+    "main": {
+      "type": "gap-page",
+      "blocks": {
+        "b01": {
+          "type": "hero",
+          "settings": {
+            "eyebrow": "Framing & Display · Hang without drilling",
+            "heading": "Magnetic poster hanger",
+            "subheading": "Two wood-and-magnet bars that hold a poster you already own, top and bottom. Quick to fit, easy to change.",
+            "heading_tag": "h1",
+            "text_align": "center",
+            "heading_size": "xl",
+            "image_alt": "Poster hanging between two wooden magnetic bars",
+            "aspect_ratio": "3/2",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Magnetic%20poster%20hanger%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com?subject=Quote%20request%3A%20Magnetic%20poster%20hanger",
+            "btn2_style": "outline",
+            "padding_top": 48,
+            "padding_bottom": 40,
+            "background_color": "#ffffff"
+          }
+        },
+        "b02": {
+          "type": "grid_section",
+          "settings": {
+            "heading": "Does this sound like you?",
+            "block_id": "qa",
+            "columns": "2",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff",
+            "heading_size": "lg",
+            "text_align": "left",
+            "layout_width": "contained"
+          }
+        },
+        "b03": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "I have a poster but no frame. What is the simplest way to show it?",
+            "text": "<p>A magnetic hanger: no glass, no frame, just the poster between two bars.</p>"
+          }
+        },
+        "b04": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "Is the poster included?",
+            "text": "<p>No. It is the hanger only. We can print a poster for you separately.</p>"
+          }
+        },
+        "b05": {
+          "type": "grid_item",
+          "settings": {
+            "parent_id": "qa",
+            "title": "What sizes?",
+            "text": "<p>A4 (21x30cm) and A3 (30x42cm).</p>"
+          }
+        },
+        "b06": {
+          "type": "image_text",
+          "settings": {
+            "heading": "The problem, and our answer",
+            "text": "<p><strong>The problem.</strong> A loose poster curls, tears at the corners and is awkward to pin up.</p><p><strong>What we offer.</strong> A hanger set that holds the poster flat and straight.</p>",
+            "image_position": "right",
+            "image_alt": "Hand adjusting a poster on a wall",
+            "aspect_ratio": "4/3",
+            "background_color": "#ffffff"
+          }
+        },
+        "b07": {
+          "type": "facts_section",
+          "settings": {
+            "heading": "At a glance",
+            "block_id": "facts",
+            "background_color": "#ffffff",
+            "padding_top": 0
+          }
+        },
+        "b08": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Who it suits",
+            "text": "Posters, prints and kids’ artwork you want to rotate."
+          }
+        },
+        "b09": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Included",
+            "text": "Pair of wood-and-magnet bars."
+          }
+        },
+        "b10": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "Extra cost",
+            "text": "The poster itself, wall fixings, delivery."
+          }
+        },
+        "b11": {
+          "type": "fact",
+          "settings": {
+            "parent_id": "facts",
+            "label": "What to do now",
+            "text": "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+          }
+        },
+        "b12": {
+          "type": "steps_section",
+          "settings": {
+            "heading": "How it works",
+            "block_id": "steps",
+            "text_align": "center",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b13": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "Send the details",
+            "text": "Business: product, quantity, size, file, date. Others: your image or item, size and where it will go."
+          }
+        },
+        "b14": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "We check and quote",
+            "text": "You get a clear quote with what is included and what is extra."
+          }
+        },
+        "b15": {
+          "type": "step",
+          "settings": {
+            "parent_id": "steps",
+            "title": "You decide",
+            "text": "We only go ahead when you are happy with the quote."
+          }
+        },
+        "b16": {
+          "type": "price_table",
+          "settings": {
+            "block_id": "prices",
+            "caption": "Magnetic poster hanger (shop listing, to be confirmed)",
+            "note": "Review draft: prices are copied from the current Shopify listing and must be confirmed by Giftly before launch. Final quote depends on your file and requirements.",
+            "col1": "Size / quantity",
+            "col2": "Material",
+            "col3": "Included",
+            "col4": "Not included",
+            "col5": "Price (listing)",
+            "btn_label": "Ask about this on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Magnetic%20poster%20hanger%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "background_color": "#ffffff"
+          }
+        },
+        "b17": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "A4 21x30cm",
+            "c2": "Wood and magnet",
+            "c3": "Hanger set",
+            "c4": "Poster, delivery",
+            "c5": "£29"
+          }
+        },
+        "b18": {
+          "type": "price_row",
+          "settings": {
+            "parent_id": "prices",
+            "c1": "A3 30x42cm",
+            "c2": "Wood and magnet",
+            "c3": "Hanger set",
+            "c4": "Poster, delivery",
+            "c5": "£39"
+          }
+        },
+        "b19": {
+          "type": "faq_section",
+          "settings": {
+            "heading": "Common questions",
+            "block_id": "faq",
+            "background_color": "#f5f5f7",
+            "card_background": "#ffffff"
+          }
+        },
+        "b20": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Does it hang on a nail?",
+            "answer": "<p>To be confirmed by Giftly.</p>"
+          }
+        },
+        "b21": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "Can I print a poster to fit?",
+            "answer": "<p>Yes, ask about Business or Photo prints.</p>"
+          }
+        },
+        "b22": {
+          "type": "faq_item",
+          "settings": {
+            "parent_id": "faq",
+            "question": "What wood and finish?",
+            "answer": "<p>To be confirmed.</p>"
+          }
+        },
+        "b23": {
+          "type": "cta",
+          "settings": {
+            "heading": "Ready to start?",
+            "text": "For a clear quote, please send your image and requirements by WhatsApp or email.",
+            "image_alt": "Poster on a worktable",
+            "text_align": "center",
+            "heading_color": "#ffffff",
+            "text_color": "#ffffff",
+            "background_color": "#1d1d1f",
+            "btn_label": "Message us on WhatsApp",
+            "btn_link": "https://wa.me/447445250359?text=Hello%20Giftly%20Art%20Print%2C%0AI%27d%20like%20a%20quote%20for%3A%20Magnetic%20poster%20hanger%0ASize%3A%20%0AQuantity%3A%20%0ANeeded%20by%3A%20%0AI%27ll%20send%20my%20image/file%20in%20this%20chat.",
+            "btn_style": "whatsapp",
+            "btn2_label": "Email instead",
+            "btn2_link": "mailto:giftlyartprint@gmail.com",
+            "btn2_style": "light"
+          }
+        },
+        "b24": {
+          "type": "enquiry",
+          "settings": {
+            "heading": "Start your enquiry",
+            "service": "Magnetic poster hanger",
+            "services": "Photo or fine art print\nPrint for my existing frame\nEconomy framed print or poster\nNo-drill magnetic frame\nDibond / Foamex board print\nSpecial presentation framing\nIris photography\nBusiness printing\nPhoto restoration\nPersonalised gift\nSomething else\nMagnetic poster hanger",
+            "background_color": "#1d1d1f",
+            "heading_color": "#ffffff",
+            "text_color": "#f5f5f7",
+            "text_align": "center"
+          }
+        }
+      },
+      "block_order": [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+        "b13",
+        "b14",
+        "b15",
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23",
+        "b24"
+      ],
+      "settings": {
+        "font": "apple",
+        "max_width": 1024
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

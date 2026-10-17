@@ -4,6 +4,7 @@ import sys, os, html, urllib.parse
 sys.path.insert(0, os.path.dirname(__file__))
 from images import IMAGES
 from products_data import PRODUCTS
+from recent_work import WORKS
 PBY = {p['slug']: p for p in PRODUCTS}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 USED = set()
@@ -107,7 +108,22 @@ SERVICES = ["Photo or fine art print", "Print for my existing frame", "Economy f
             "Dibond / Foamex board print", "Special presentation framing", "Iris photography", "Business printing",
             "Photo restoration", "Personalised gift", "Something else"]
 
+import datetime
+def fdate(d):
+    return datetime.date.fromisoformat(d).strftime("%-d %B %Y")
+def work_card(w):
+    return ('<article class="rw-item"><figure class="fig">%s</figure><div class="rw-body"><p class="rw-meta"><span class="tag">%s</span> <time datetime="%s">%s</time> <span class="tag warn">Sample entry</span></p><h3>%s</h3><p>%s</p></div></article>'
+            % (img(w["img"], w["alt"]).split("</figure>")[0].split(">", 1)[1], e(w["cat"]), w["date"], fdate(w["date"]), e(w["title"]), e(w["text"])))
+def recent_work_section(n=4):
+    items = "".join("<li>%s</li>" % work_card(w) for w in WORKS[:n])
+    return ('<section class="rw alt" aria-labelledby="rw-h"><div class="wrap"><div class="rw-head"><div><p class="eyebrow">Recent work</p><h2 id="rw-h">Our latest jobs</h2>'
+            '<p class="lede">The newest job is always first. Slide to see the last few, or open the full list.</p></div>'
+            '<div class="rw-ctl"><button type="button" class="rw-btn" data-dir="-1" aria-label="Previous jobs">&lsaquo;</button><button type="button" class="rw-btn" data-dir="1" aria-label="Next jobs">&rsaquo;</button></div></div>'
+            '<ul class="rw-track" tabindex="0" role="region" aria-label="Recent jobs, scrollable">%s</ul>'
+            '<p class="rw-all"><a href="recent-work.html">See all recent work</a></p></div></section>' % items)
 def page(fname, title, desc, h1_html, body, service, current, section=None):
+    if current != "recent-work.html":
+        body += recent_work_section()
     nav = nav_html(current, section)
     return '''<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -137,7 +153,7 @@ def page(fname, title, desc, h1_html, body, service, current, section=None):
 <a class="btn btn-wa sticky-wa" href="%s" target="_blank" rel="noopener">WhatsApp</a>
 <script src="assets/js/site.js" defer></script>
 </body></html>''' % (e(title), e(desc), nav, body.replace("{{H1}}", h1_html), WA + "?text=" + urllib.parse.quote("Hello Giftly Art Print, I'd like a quote for: " + service),
-                     MAIL, MAIL, "".join('<li><a href="%s">%s</a></li>' % (f, LONG[f]) for f, l in NAV), wa_href(service))
+                     MAIL, MAIL, "".join('<li><a href="%s">%s</a></li>' % (f, LONG[f]) for f, l in NAV) + '<li><a href="recent-work.html">Recent work</a></li>', wa_href(service))
 
 def hero(eyebrow, h1, lede, svc, figure, extra=""):
     return '''<section class="hero"><div class="wrap hero-in"><p class="eyebrow">%s</p><h1>%s</h1><p class="lede">%s</p>%s%s</div><div class="wrap">%s</div></section>''' % (
@@ -471,6 +487,13 @@ for pr in PRODUCTS:
     body += prodsec(pr["related"], "You may also like", "Related options, each with its own price list.")
     body += quote_block(pr["name"], SERVICES)
     pages[pu(pr["slug"])] = page("", pr["name"] + " in Maidstone", pr["lede"].replace("&rsquo;", "'").replace("&amp;", "&"), "", body, pr["name"], pu(pr["slug"]), sec)
+
+
+# ---------------- RECENT WORK ARCHIVE ----------------
+ar = hero("Recent work", "Every job we have shared", "Newest first. Each entry shows what was asked for and what we did.", "Something else", img("hero", "Oak-framed print on a pale wall", eager=True))
+ar += '<section><div class="wrap"><p class="note">Review draft: every entry below is a sample, not a real job. Replace with real photos, descriptions and dates.</p><ul class="rw-grid">%s</ul></div></section>' % "".join('<li>%s</li>' % work_card(w) for w in WORKS)
+ar += quote_block("Something else", SERVICES)
+pages["recent-work.html"] = page("", "Recent Work, Giftly Art Print Maidstone", "Recent printing, framing, restoration and gift jobs from Giftly Art Print in Maidstone.", "", ar, "Something else", "recent-work.html")
 
 for fn, content in pages.items():
     with open(os.path.join(ROOT, fn), "w", encoding="utf-8") as fh:
