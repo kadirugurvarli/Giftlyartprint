@@ -1,5 +1,7 @@
 # Current URL to new page map (migration planning only)
 
+The site now has 8 main pages plus 19 product landing pages (`product-*.html`). Product pages are listed at the end of this file.
+
 Built from the handles listed in the Shopify admin (read-only). No redirects have been set up and the live theme is untouched. Existing paths are shown without the domain `https://www.giftlyartprint.co.uk`.
 
 | Current URL(s) | New page | Notes |
@@ -21,3 +23,21 @@ Built from the handles listed in the Shopify admin (read-only). No redirects hav
 - **Canvas print** (`/products/canvas-print`, active; the stretched 20mm version is archived): not in the brief.
 - **ID & passport photos**, `/pages/art-gallery*`, `/collections/apparel`: not covered by the eight pages.
 - **Duplicate-looking handles:** `.../upload-your-photo-copy`, `/products/hahnemuhle-fine-art-print-copy-1` and similar `-copy` handles should be renamed when URLs move.
+
+## Product landing pages
+
+| New page | Current Shopify source | Notes |
+|---|---|---|
+| `product-economy-framed-print.html` | `/products/framed-fine-art-print-black-wood-frame-upload-your-photo`, `...-copy` (white), `/products/framed-fine-art-print-oak-wood-frame` | Three listings become one page |
+| `product-removable-poster.html` | none | No product or price yet |
+| `product-snappytack-magnetic-frame.html` | `/products/magnetic-wooden-framed-print` | |
+| `product-magnetic-poster-hanger.html` | `/products/magnetic-poster-hanger` | |
+| `product-dibond-print.html` | `/products/dibond-print-3mm-aluminium-composite-wall-art-uk`, `/products/dibond-print-fine-art-wall-print-snappytack`, `/products/magnetic-dibond-print`, `/products/print-on-dibond` (archived) | Keep one Dibond listing |
+| `product-foamex-board-print.html` | none | No product or price yet |
+| `product-kapa-fix-foam-board.html` | `/products/print-on-kapa-fix-foam-board` | |
+| `product-framed-fine-art-print.html` | `/products/hahnemuhle-fine-art-print-copy-1` | |
+| `product-shirt-frame.html`, `product-plate-and-object-frame.html`, `product-l-floating-frame.html` | none | Quoted jobs |
+| `product-acrylic-photo-block.html` | `/products/magnetic-acrylic-block` | |
+| `product-photo-collage-prints.html` | `/products/personalised-wedding-collage-print-1`, `/products/personalised-newborn-collage-print-custom-baby-photo-artwork` | |
+| `product-iris-gift-vouchers.html` | `/products/iris-photography-gift-voucher` and the other `iris-*` and `digital-art-hd` vouchers | |
+| `product-flyers-and-leaflets.html`, `product-business-cards.html`, `product-menus-and-price-lists.html`, `product-posters-and-a-boards.html`, `product-vinyl-printing.html` | none | New services, all prices to be confirmed |

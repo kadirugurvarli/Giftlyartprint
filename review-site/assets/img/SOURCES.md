@@ -25,6 +25,11 @@ Replace them with real Giftly photographs before launch. Real shop images exist 
 | iris-gift.jpg | illustrative |
 | wedding-collage.jpg | illustrative |
 | newborn-collage.jpg | illustrative |
+| flyers.jpg | illustrative |
+| business-cards.jpg | illustrative |
+| menu-print.jpg | illustrative |
+| a-board.jpg | illustrative |
+| poster-print.jpg | illustrative |
 | photo-gifts.jpg | illustrative |
 | paper-tube.jpg | illustrative |
 | existing-frame.jpg | illustrative |

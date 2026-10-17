@@ -4,13 +4,16 @@ A static, noindex review site. It does not touch the live Shopify theme, domain 
 
 ## Open it
 Open `index.html` in a browser. No build step. Folders: `assets/css/site.css`, `assets/js/site.js`, `assets/img/`.
-Pages: `index`, `photo-fine-art-prints`, `framing-display`, `iris-photography`, `business-printing`, `photo-restoration`, `personalised-gifts`, `contact-visit`.
+Pages: 8 main pages (`index`, `photo-fine-art-prints`, `framing-display`, `iris-photography`, `business-printing`, `photo-restoration`, `personalised-gifts`, `contact-visit`) plus 19 product landing pages named `product-*.html`.
 The pages are generated from `tools/build.py` (content) and `tools/images.py` (image list). Run `python3 -I tools/build.py` after editing.
+
+## Menu and product pages
+The global menu has drop-down panels (hover or keyboard focus on desktop, accordion on mobile; Esc closes) listing every product page under Prints, Framing, Iris, Business and Gifts. Each product page follows the same order: the questions customers ask, the problem and our answer, what is included and extra, how it works, a price list, common questions, related products and the enquiry form. Product content lives in `tools/products_data.py`; the template is in `tools/build.py`.
 
 ## Design and images
 The look follows the Apple website style: SF system font stack, white and light grey, one blue accent, pill buttons, a slim translucent dark global menu and a full-screen mobile menu.
 
-The 25 images in `assets/img/` are **illustrative images generated for this draft** (OpenAI gpt-image-2, prompts in `tools/gen_images.py`). Each carries the caption "Illustrative image, not a finished Giftly job". They are not Giftly products or customer work. `assets/img/SOURCES.md` lists them. Replace them with real Giftly photographs before launch. Real Iris examples and restoration before/after pictures are still dashed placeholders on purpose, because those must be genuine work.
+The 30 images in `assets/img/` are **illustrative images generated for this draft** (OpenAI gpt-image-2, prompts in `tools/gen_images.py`). Each carries the caption "Illustrative image, not a finished Giftly job". They are not Giftly products or customer work. `assets/img/SOURCES.md` lists them. Replace them with real Giftly photographs before launch. Real Iris examples and restoration before/after pictures are still dashed placeholders on purpose, because those must be genuine work.
 
 ## Source access: what was and was not read
 - **Live site and the prototype link:** neither could be opened from this environment (network blocked). Their page text and the prototype were **not read**.

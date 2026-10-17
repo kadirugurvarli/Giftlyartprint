@@ -31,6 +31,11 @@ P = {
  "existing-frame": "Hands carefully sliding a printed photograph into an empty oak picture frame on a work table, tape measure and pencil beside it, close view, hands only.",
  "shirt-frame": "A football shirt neatly mounted in a deep black box frame on a pale wall, shirt is plain with no logo and no text.",
  "plate-frame": "A decorative china plate displayed in a deep oak box frame on a dark green mount, pale wall, no text.",
+ "flyers": "A neat stack of A5 flyers fanned on a light oak counter in a small independent cafe, blank abstract layout in green and terracotta shapes, no readable text.",
+ "business-cards": "A fan of plain business cards with a simple abstract geometric design on a pale stone surface next to a small plant, no readable text.",
+ "menu-print": "A folded restaurant menu and a single price list sheet on a cafe table with a coffee cup, layouts shown as abstract blocks, no readable text.",
+ "a-board": "A wooden A-board pavement sign outside a small independent shop on a high street, with a printed poster panel showing abstract colour shapes, no readable text.",
+ "poster-print": "A large printed poster of abstract colour shapes being unrolled on a clean worktable beside a metal ruler, tidy print studio feel.",
  "l-frame": "A stretched artist's canvas of an abstract painting in a slim oak floating L frame with a small gap around the canvas edge, hanging on a pale wall.",
 }
 def gen(k):

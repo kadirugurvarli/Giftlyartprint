@@ -3,6 +3,8 @@
 import sys, os, html, urllib.parse
 sys.path.insert(0, os.path.dirname(__file__))
 from images import IMAGES
+from products_data import PRODUCTS
+PBY = {p['slug']: p for p in PRODUCTS}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 USED = set()
 WA = "https://wa.me/447445250359"
@@ -47,11 +49,45 @@ def table(caption, heads, rows, note=None):
 PRICE_NOTE = ("Review draft: prices are copied from the current Shopify listing and must be confirmed by Giftly before launch. "
               "Prices are not discounts; final quote depends on your file and requirements.")
 
-NAV = [("index.html", "Home"), ("photo-fine-art-prints.html", "Photo & Fine Art Prints"), ("framing-display.html", "Framing & Display"),
-       ("iris-photography.html", "Iris Photography"), ("business-printing.html", "Business Printing"),
-       ("photo-restoration.html", "Photo Restoration"), ("personalised-gifts.html", "Personalised Gifts"), ("contact-visit.html", "Contact / Visit")]
+def pu(slug): return "product-%s.html" % slug
+def grp(heading, slugs): return (heading, [(PBY[x]["name"], pu(x)) for x in slugs])
+TREE = [
+ ("index.html", "Home", []),
+ ("photo-fine-art-prints.html", "Prints", [("Prints", [("Photo &amp; Fine Art Prints overview", "photo-fine-art-prints.html"), ("Fit a print to your frame", "photo-fine-art-prints.html#existing-frame"), ("Photo or Fine Art paper?", "photo-fine-art-prints.html#compare")]), grp("Presented", ["framed-fine-art-print"])]),
+ ("framing-display.html", "Framing", [grp("Economy", ["economy-framed-print", "removable-poster"]), grp("Hang without drilling", ["snappytack-magnetic-frame", "magnetic-poster-hanger"]),
+    grp("Frameless", ["dibond-print", "foamex-board-print", "kapa-fix-foam-board"]), grp("Special presentation", ["framed-fine-art-print", "shirt-frame", "plate-and-object-frame", "l-floating-frame"])]),
+ ("iris-photography.html", "Iris", [("Iris Photography", [("How a session works", "iris-photography.html"), ("Package prices", "iris-photography.html")]), grp("Gifts", ["iris-gift-vouchers"])]),
+ ("business-printing.html", "Business", [grp("Print", ["flyers-and-leaflets", "business-cards", "menus-and-price-lists", "posters-and-a-boards"]), grp("Signs and boards", ["vinyl-printing", "foamex-board-print"])]),
+ ("photo-restoration.html", "Restoration", []),
+ ("personalised-gifts.html", "Gifts", [grp("Gifts", ["acrylic-photo-block", "photo-collage-prints", "iris-gift-vouchers"])]),
+ ("contact-visit.html", "Contact", []),
+]
+SECTION_OF = {"Framing & Display": "framing-display.html", "Personalised Gifts": "personalised-gifts.html", "Iris Photography": "iris-photography.html", "Business Printing": "business-printing.html"}
+NAV = [(f, l) for f, l, _ in TREE]
+LONG = {"index.html": "Home", "photo-fine-art-prints.html": "Photo & Fine Art Prints", "framing-display.html": "Framing & Display", "iris-photography.html": "Iris Photography",
+        "business-printing.html": "Business Printing", "photo-restoration.html": "Photo Restoration", "personalised-gifts.html": "Personalised Gifts", "contact-visit.html": "Contact / Visit"}
+def nav_html(current, section):
+    out = ""
+    for f, label, cols in TREE:
+        cur = ' aria-current="page"' if f == current else (' class="cur"' if f == section else "")
+        if not cols:
+            out += '<li><a href="%s"%s>%s</a></li>' % (f, cur, label); continue
+        i = "mega-" + label.lower()
+        colh = "".join('<div class="mcol"><p class="mh">%s</p><ul>%s</ul></div>' % (h, "".join('<li><a href="%s">%s</a></li>' % (u, l) for l, u in links)) for h, links in cols)
+        out += ('<li class="has-sub"><a href="%s"%s>%s</a><button type="button" class="sub-toggle" aria-expanded="false" aria-controls="%s" aria-label="Show %s menu"></button>'
+                '<div class="mega" id="%s"><div class="wrap mega-in">%s</div></div></li>') % (f, cur, label, i, label, i, colh)
+    return out
+
+def prodsec(slugs, title="Product pages", lede="Each product has its own page with the problem it solves, what is included and a price list."):
+    cards = ""
+    for x in slugs:
+        p = PBY[x]
+        cards += ('<article class="card"><a class="cimg" href="%s" tabindex="-1" aria-hidden="true">%s</a><div class="body"><h3><a href="%s">%s</a></h3><p>%s</p><div class="more"><a href="%s">View product page</a></div></div></article>'
+                  % (pu(x), img(p["imgs"][0][0], p["imgs"][0][1]), pu(x), p["name"], p["lede"].split(". ")[0].rstrip(".") + ".", pu(x)))
+    return '<section><div class="wrap"><h2>%s</h2><p class="lede">%s</p><div class="grid g3">%s</div></div></section>' % (title, lede, cards)
 
 def quote_block(service, options, title="Start your enquiry"):
+    options = list(options) + ([service] if service not in options else [])
     opts = "".join('<option%s>%s</option>' % (" selected" if o == service else "", e(o)) for o in options)
     return '''<section class="dark" id="quote"><div class="wrap"><div class="quote">
 <h2>%s</h2>
@@ -71,8 +107,8 @@ SERVICES = ["Photo or fine art print", "Print for my existing frame", "Economy f
             "Dibond / Foamex board print", "Special presentation framing", "Iris photography", "Business printing",
             "Photo restoration", "Personalised gift", "Something else"]
 
-def page(fname, title, desc, h1_html, body, service, current):
-    nav = "".join('<li><a href="%s"%s>%s</a></li>' % (f, ' aria-current="page"' if f == current else "", l) for f, l in NAV)
+def page(fname, title, desc, h1_html, body, service, current, section=None):
+    nav = nav_html(current, section)
     return '''<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>%s | Giftly Art Print, Maidstone</title>
@@ -101,7 +137,7 @@ def page(fname, title, desc, h1_html, body, service, current):
 <a class="btn btn-wa sticky-wa" href="%s" target="_blank" rel="noopener">WhatsApp</a>
 <script src="assets/js/site.js" defer></script>
 </body></html>''' % (e(title), e(desc), nav, body.replace("{{H1}}", h1_html), WA + "?text=" + urllib.parse.quote("Hello Giftly Art Print, I'd like a quote for: " + service),
-                     MAIL, MAIL, "".join('<li><a href="%s">%s</a></li>' % (f, l) for f, l in NAV), wa_href(service))
+                     MAIL, MAIL, "".join('<li><a href="%s">%s</a></li>' % (f, LONG[f]) for f, l in NAV), wa_href(service))
 
 def hero(eyebrow, h1, lede, svc, figure, extra=""):
     return '''<section class="hero"><div class="wrap hero-in"><p class="eyebrow">%s</p><h1>%s</h1><p class="lede">%s</p>%s%s</div><div class="wrap">%s</div></section>''' % (
@@ -211,6 +247,7 @@ p += table("Prints on Kapa-fix foam board (shop listing, to be confirmed)", ["Si
  ["60x90cm", "Photo paper on Kapa-fix foam board", "Print mounted on board", "Frame, glass, hanging fittings", "&pound;80 (&pound;95)"]],
  "Kapa-fix is a paper-faced foam board. It is not the same as Foamex (PVC) board; see Framing &amp; Display. Brackets show the price for the heavier fine art papers.")
 p += '''<p>We do not promise a perfect print at every size from every file. We promise to tell you honestly what we expect before you commit.</p>%s</div></section>''' % actions("Photo or fine art print")
+p += prodsec(["framed-fine-art-print","kapa-fix-foam-board","dibond-print"], "Presenting your print")
 p += quote_block("Photo or fine art print", SERVICES)
 pages["photo-fine-art-prints.html"] = page("", "Photo & Fine Art Prints in Maidstone", "Send your photo and we will check the file, advise on size and paper, and fit prints to your existing frame. Maidstone, Kent.", "", p, "Photo or fine art print", "photo-fine-art-prints.html")
 
@@ -275,6 +312,7 @@ f += '''<section class="alt" id="special"><div class="wrap"><h2>4. Special prese
  ["Shirt, plate or object", "Deep box frame, mount", "To be agreed after inspection", "Items you supply may be returned unframed if unsuitable", TBC],
  ["L / floating frame", "Wood L-profile", "Frame for your canvas", "Canvas", TBC]], "Each is a quoted job: send photos, sizes and what the piece is for."))
 f += actions("Special presentation framing") + '</div></section>'
+f += prodsec([x["slug"] for x in PRODUCTS if x["group"]=="Framing & Display"], "Every display option, with prices")
 f += quote_block("Economy framed print or poster", SERVICES)
 pages["framing-display.html"] = page("", "Framing & Display in Maidstone", "Economy frames, no-drill magnetic frames, Dibond and Foamex boards, and special presentation framing from a Maidstone studio.", "", f, "Economy framed print or poster", "framing-display.html")
 
@@ -311,6 +349,7 @@ i += '<h3>Other voucher and gift options (shop listing)</h3>' + table("Iris gift
  ["Iris Aluminium Desk Plate", "Aluminium", "Session and plate", "Other products", "&pound;78 &ndash; &pound;108"],
  ["Digital Art HD voucher", "Digital", "Digital files", "Print", "&pound;49 &ndash; &pound;79"]], "Voucher contents are inferred from product names only: to be confirmed.")
 i += '''<h3>Order again from a session you have already had</h3><p>If you have had an Iris session with us, message with the name and rough date and we will find your pictures and quote another print, gift or digital copy.</p>%s</div></section>''' % actions("Iris photography", "Ask about Iris on WhatsApp")
+i += prodsec(["iris-gift-vouchers"], "Iris gift vouchers")
 i += quote_block("Iris photography", SERVICES)
 pages["iris-photography.html"] = page("", "Iris Photography in Maidstone", "Iris photography for one person, couples and families, with gift vouchers. Maidstone, Kent.", "", i, "Iris photography", "iris-photography.html")
 
@@ -341,6 +380,7 @@ b += table("Business printing prices", ["Product and quantity", "Material", "Inc
  "No source prices exist yet for business printing. Every price here is to be confirmed by Giftly.")
 b += '<div class="split"><div><h3>Vinyl and window graphics</h3><p>Printed vinyl for windows and signs. Application is quoted separately.</p></div>%s</div>' % img("vinyl", "Printed vinyl graphic on a shop window")
 b += '<div class="split" style="margin-top:28px"><div><h3>Rigid board prints</h3><p>Dibond is available now in the shop. Foamex and PVC board are quoted on request.</p></div>%s</div></div></section>' % img("dibond", "Frameless board print on a white wall")
+b += prodsec(["flyers-and-leaflets","business-cards","menus-and-price-lists","posters-and-a-boards","vinyl-printing","foamex-board-print"], "Business printing products")
 b += quote_block("Business printing", SERVICES)
 pages["business-printing.html"] = page("", "Business Printing in Maidstone & Kent", "Small-run flyers, business cards, menus, posters, A-board panels, vinyl and board prints for Maidstone and Kent businesses.", "", b, "Business printing", "business-printing.html")
 
@@ -388,6 +428,7 @@ g += table("Collage prints (shop listing, to be confirmed)", ["Product and size"
  ["Anniversary and family prints", "To be confirmed", "To be confirmed", "To be confirmed", TBC]], PRICE_NOTE + " Whether the shop prices include the frame is not stated: to be confirmed.")
 g += '</div></section><section><div class="wrap"><h2>Iris gift vouchers</h2><div class="split"><div><p>Give an Iris Photography session. Choose a voucher and the person redeems it with us. See the packages and prices on the Iris Photography page.</p><p><a href="iris-photography.html">Iris Photography and vouchers</a></p></div>%s</div></div></section>' % img("iris-gift", "Cream gift voucher card on tissue paper with a green ribbon")
 g += '<section class="alt"><div class="wrap"><p>Send your photo, the occasion and the date you need the gift.</p>%s</div></section>' % actions("Personalised gift")
+g += prodsec(["acrylic-photo-block","photo-collage-prints","iris-gift-vouchers"], "Gift product pages")
 g += quote_block("Personalised gift", SERVICES)
 pages["personalised-gifts.html"] = page("", "Personalised Gifts in Maidstone", "A small range of personalised photo gifts: acrylic blocks, wedding, anniversary, family and new baby prints, collages and Iris vouchers.", "", g, "Personalised gift", "personalised-gifts.html")
 
@@ -407,6 +448,29 @@ c += '''<section><div class="wrap"><h2>Visit the studio</h2><dl class="facts">
 <h2>Ordering online</h2><p>During this review nothing is ordered through this prototype. Quotes and orders go through WhatsApp or email. The existing online shop at <a href="https://www.giftlyartprint.co.uk/" rel="noopener">giftlyartprint.co.uk</a> is unchanged. Individual shop order links will be added only once each has been checked.</p></div></section>'''
 c += quote_block("Something else", SERVICES)
 pages["contact-visit.html"] = page("", "Contact & Visit Giftly Art Print, Maidstone", "Contact Giftly Art Print by WhatsApp or email, and find the studio in Royal Star Arcade, Maidstone.", "", c, "Something else", "contact-visit.html")
+
+
+# ---------------- PRODUCT PAGES ----------------
+CRUMB_HUB = {}
+for pr in PRODUCTS:
+    sec = SECTION_OF[pr["group"]]
+    steps = ("<ol class='steps'><li><h3>Send the details</h3><p>%s</p></li><li><h3>We check and quote</h3><p>You get a clear quote with what is included and what is extra.</p></li><li><h3>You decide</h3><p>We only go ahead when you are happy with the quote.</p></li></ol>"
+             % ("Product, quantity, size, your file, date needed and collection or delivery." if pr["group"] == "Business Printing" else "Your image or item, the size you have in mind and where it will go."))
+    nextstep = "Send the details by WhatsApp or email. For a clear quote, please send your image and requirements."
+    t = pr["table"]
+    body = hero(pr["group"] + " · " + pr["sub"], pr["name"], pr["lede"], pr["name"], img(pr["imgs"][0][0], pr["imgs"][0][1], eager=True))
+    body = body.replace('<section class="hero">', '<nav class="crumbs" aria-label="Breadcrumb"><div class="wrap"><a href="index.html">Home</a> / <a href="%s">%s</a> / <a href="%s">%s</a> / <span aria-current="page">%s</span></div></nav><section class="hero">' % (sec, e(LONG[sec]), pr["hub"], pr["sub"], e(pr["name"])), 1)
+    body += '<section class="alt"><div class="wrap"><h2>Does this sound like you?</h2><div class="grid g2">%s</div></div></section>' % "".join(
+        '<article class="qa"><h3>%s</h3><p>%s</p></article>' % (q, a) for q, a in pr["qa"])
+    body += '<section><div class="wrap split"><div><h2>The problem, and our answer</h2>%s</div>%s</div></section>' % (
+        facts(pr["problem"], pr["solution"], pr["who"], pr["included"], pr["extra"], nextstep), img(pr["imgs"][1][0], pr["imgs"][1][1]))
+    body += '<section class="alt"><div class="wrap center"><h2>How it works</h2>%s</div></section>' % steps
+    body += '<section><div class="wrap"><h2>Price list</h2>%s%s</div></section>' % (table(t["caption"], t["heads"], t["rows"], t["note"]), actions(pr["name"], "Ask about this on WhatsApp"))
+    faq = "".join("<details><summary>%s</summary><p>%s</p></details>" % (q, a) for q, a in pr["faq"])
+    body += '<section class="alt"><div class="wrap split rev"><div><h2>Common questions</h2>%s</div>%s</div></section>' % (faq, img(pr["imgs"][2][0], pr["imgs"][2][1]))
+    body += prodsec(pr["related"], "You may also like", "Related options, each with its own price list.")
+    body += quote_block(pr["name"], SERVICES)
+    pages[pu(pr["slug"])] = page("", pr["name"] + " in Maidstone", pr["lede"].replace("&rsquo;", "'").replace("&amp;", "&"), "", body, pr["name"], pu(pr["slug"]), sec)
 
 for fn, content in pages.items():
     with open(os.path.join(ROOT, fn), "w", encoding="utf-8") as fh:

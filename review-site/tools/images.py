@@ -3,4 +3,4 @@
 IMAGES = {k: (k + ".jpg", 1536, 1024, "illustrative") for k in [
  "hero","framed-oak","framed-black","framed-white","gallery-frame","acrylic-block","kapa-board","magnetic-frame","magnetic-poster",
  "removable-poster","dibond","foamex","business-print","vinyl","restoration","iris","iris-gift","wedding-collage","newborn-collage",
- "photo-gifts","paper-tube","existing-frame","shirt-frame","plate-frame","l-frame"]}
+ "flyers","business-cards","menu-print","a-board","poster-print","photo-gifts","paper-tube","existing-frame","shirt-frame","plate-frame","l-frame"]}

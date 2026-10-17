@@ -8,6 +8,15 @@
       if (e.key === 'Escape' && n.classList.contains('open')) { n.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); t.focus(); }
     });
   }
+  document.querySelectorAll('.sub-toggle').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var li = b.parentNode, o = li.classList.toggle('open'); b.setAttribute('aria-expanded', o);
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.has-sub.open').forEach(function (li) { li.classList.remove('open'); li.querySelector('.sub-toggle').setAttribute('aria-expanded', 'false'); });
+  });
   var f = document.querySelector('form.quote-form');
   if (!f) return;
   var wa = document.getElementById('q-wa'), em = document.getElementById('q-mail');
