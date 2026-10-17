@@ -110,7 +110,8 @@ SERVICES = ["Photo or fine art print", "Print for my existing frame", "Economy f
 
 import datetime
 def fdate(d):
-    return datetime.date.fromisoformat(d).strftime("%-d %B %Y")
+    value = datetime.date.fromisoformat(d)
+    return f"{value.day} {value.strftime('%B %Y')}"
 def work_card(w):
     return ('<article class="rw-item"><figure class="fig">%s</figure><div class="rw-body"><p class="rw-meta"><span class="tag">%s</span> <time datetime="%s">%s</time> <span class="tag warn">Sample entry</span></p><h3>%s</h3><p>%s</p></div></article>'
             % (img(w["img"], w["alt"]).split("</figure>")[0].split(">", 1)[1], e(w["cat"]), w["date"], fdate(w["date"]), e(w["title"]), e(w["text"])))
